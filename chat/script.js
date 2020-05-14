@@ -57,7 +57,7 @@ drone.on('error', error => {
 });
 
 function getRandomName() {
-    const foods = ["bagel","beans","beer","biscuit","bread","broth","burger","butter","cake","candy","caramel","caviar","cheese","chili","chocolate","cider","cobbler","cocoa","coffee","cookie","cream","croissant","curd","eggs","fish","flour","hamburger","juice","ketchup","lard","liquor","margarine","marinade","mayo","mayonnaise","meat","milk","mousse","muffin","mushroom","noodle","nut","oil","olive","omelette","pasta","pastry","pie","pizza","plate","pot","poutine","pudding","rice","salad","salsa","sandwich","sauce","soda","soup","soy","spice","steak","stew","syrup","tartar","taste","tea","toast","vinegar","waffle","water","wheat","wine","yeast","yogurt"];
+    const foods = ["bagel","beans","beer","biscuit","bread","broth","burger","butter","cake","candy","caramel","caviar","cheese","chili","chocolate","cider","cobbler","cocoa","coffee","cookie","cream","croissant","curd","eggs","fish","flour","hamburger","juice","ketchup","lard","liquor","margarine","marinade","mayo","mayonnaise","meat","milk","mousse","muffin","mushroom","noodle","nut","oil","olive","omelette","pasta","pastry","pie","pizza","plate","pot","pudding","rice","salad","salsa","sandwich","sauce","soda","soup","soy","spice","steak","stew","syrup","tartar","taste","tea","toast","vinegar","waffle","water","wheat","wine","yeast","yogurt"];
     return foods[Math.floor(Math.random() * foods.length)] + "-" + foods[Math.floor(Math.random() * foods.length)];
 }
 
