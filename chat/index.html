@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+<title>Chat - benjamingustafson.github.io</title>
 <head>
   <script type='text/javascript' src='https://cdn.scaledrone.com/scaledrone.min.js'></script>
   <!--<script type='text/javascript' src='http://0.0.0.0:8080/scaledrone.js'></script>-->
@@ -17,7 +18,14 @@
     }
 
     .members-count,
-    .members-list,
+
+    .members-list{
+      border: 1px solid #e4e4e4;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction:  row;
+    }
     .messages {
       border: 1px solid #e4e4e4;
       padding: 15px;
@@ -52,18 +60,16 @@
       font-size: 16px;
       font-family: -apple-system, BlinkMacSystemFont, monospace;
     }
-    .message-form__button {
-      margin: 10px;
-    }
+
   </style>
 </head>
+
 <body>
-  <div class="members-count">-</div>
+  <div class="members-count"></div>
   <div class="members-list">-</div>
-  <div class="messages"></div>
+  <div id="msgs" class="messages"></div>
   <form class="message-form" onsubmit="return false;">
-    <input class="message-form__input" placeholder="Type a message.." type="text"/>
-    <!-- input class="message-form__button" value="Send" type="submit"/-->
+    <input class="message-form__input" placeholder="Type a message..." type="text"/>
   </form>
   <script src="./script.js"></script>
 </body>
