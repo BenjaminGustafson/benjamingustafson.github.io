@@ -1,0 +1,56 @@
+#main {
+  font-family: 'Merriweather', serif;
+  color:  hsl(0, 0%, 20%);
+}
+
+header {
+  text-align: center;
+}
+
+h1{
+  font-size: 48px;
+  margin: 10px;
+  font-weight: 200;
+}
+
+h2{
+  font-size: 18px;
+  font-weight: 100;
+}
+
+main{
+  width: 800px;
+  margin: auto;
+}
+
+@media (max-width: 800px) {
+  #main {
+    width: auto;
+  }
+}
+
+.image-box{
+  border-color: hsl(0, 0%, 70%);
+  border-width: 1px;
+  border-style: solid;
+  max-width: 400px;
+  padding: 10px;
+  margin: auto;
+}
+
+#image{
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+
+.caption{
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 0px;
+}
+
+li{
+  line-height: 1.5;
+}
