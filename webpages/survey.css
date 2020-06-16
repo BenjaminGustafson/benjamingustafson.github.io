@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+html{
+    font-family: 'Roboto', sans-serif;
+    
+}
+
+#title{
+    text-align: center;
+}
+
+#description{
+    text-align: center;
+}
+
+input {
+    border-radius: 5px;
+    width: 100%;
+}
+
+@media (max-width: 400px) {
+    #survey-form {
+        width: 100%;
+    }
+}
+
+#survey-form {
+    background-color: aliceblue;
+    margin: auto;
+    max-width: 400px;
+}
+
+label{
+    display: flex;
+
+}
