@@ -1,0 +1,32 @@
+body {
+    margin-top: 50px;
+    margin-left: 20%;
+    margin-right: 20%;
+    color: #2c2c2c;
+    background-color: whitesmoke;
+}
+
+@media (max-width:1000px){
+    body{
+        margin-left: 10%;
+        margin-right: 10%;
+    }
+}
+
+h2{
+    font-size: 20pt;
+}
+
+h3{
+    font-size: 16pt;
+}
+
+p{
+    font-size: 16pt;
+}
+
+img{
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
