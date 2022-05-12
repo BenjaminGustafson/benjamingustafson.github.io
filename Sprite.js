@@ -66,7 +66,7 @@ class Sprite{
         this.currentAnimationFrame = 0
 
         //Adjust animation speed here
-        this.animationFrameLimit = config.animationFrameLimit || 8
+        this.animationFrameLimit = config.animationFrameLimit || 6
         this.animationFrameProgress = this.animationFrameLimit
 
         //Reference game object

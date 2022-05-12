@@ -53,7 +53,7 @@ class Overworld {
    document.addEventListener("PersonWalkingComplete", e => {
      if (e.detail.whoId === "hero") {
        //Hero's position has changed
-       this.map.checkForFootstepCutscene()
+       //this.map.checkForFootstepCutscene()
      }
    })
  }
