@@ -1,31 +1,62 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>My Math Notes</title>
-    <link href="/styles/global.css" type="text/css" rel="stylesheet">
-    <link href="/styles/TextMessage.css" type="text/css" rel="stylesheet">
-    <link href="/styles/FlashCard.css" type="text/css" rel="stylesheet">
-    <script type="text/x-mathjax-config">MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});</script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-  </head>
-  <body>
-    <div class="game-container">
-      <canvas class="game-canvas" width="352" height="198"></canvas>
-    </div>
+<head>
+<title>Finite State Automata</title>
+<link rel="stylesheet" href="math.css" />
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script type="text/javascript"
+  src="http://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+</head>
 
-    <!-- Scripts -->
-    <script src="/utils.js"></script>
-    <script src="/DirectionInput.js"></script>
-    <script src="/Overworld.js"></script>
-    <script src="/GameObject.js"></script>
-    <script src="/Person.js"></script>
-    <script src="/Sprite.js"></script>
-    <script src="/OverworldMap.js"></script>
-    <script src="/OverworldEvent.js"></script>
-    <script src="/TextMessage.js"></script>
-    <script src="/FlashCard.js"></script>
-    <script src="/KeyPressListener.js"></script>
-    <script src="/init.js"></script>
+<body>
+<div class = "left">
+  <div class = "nav">
+    <h3> 
+      <a href = "index.html">FINITE STATE AUTOMATA</a>
+    </h3>
+  </div>
 
-  </body>
+  <div class = "text">
+
+    <h1>The distance between two sets</h1>
+    <hr>
+    
+    <p>
+      Suppose you wanted to define the distance between two sets of points in a metric space.
+      It would be nice if you could define it so that the distance between two sets is also a metric.
+      Then for any metric space, we would get another metric space (whose elements are subsets of the original metric space) for free!
+    </p>
+
+    <p>
+      Let's call the two sets $A$ and $B$, and say they came from a metric space $(X,d)$.
+    </p>
+    <p>
+      An initial attempt might be to find the two points in $A$ and $B$ that are closest to each other, and say that the distance between the sets is 
+      equal to the distance between those points.
+    </p>
+    <p>
+      One problem — what happens if I have two sets that overlap but aren't the same?
+      Their distance would be zero.
+      Recall that this would violate the condition on a metric space that distance zero implies equality.
+    </p>
+    
+</div>
+</div>
+
+<div class = "right">
+  
+  <img 
+  src="set_dist_wrong.svg" 
+  alt="partition with size 2,3,4"
+  width="400" />
+
+</div>
+
+
+</body>
+
+
 </html>

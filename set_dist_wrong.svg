@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="150.15262mm"
+   height="96.484207mm"
+   viewBox="0 0 150.15262 96.484207"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   sodipodi:docname="set_dist_wrong.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.76167929"
+     inkscape:cx="589.48695"
+     inkscape:cy="298.02569"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-22.100002,-7.3368416)">
+    <ellipse
+       style="fill:#989898;fill-opacity:1;stroke:#00000b;stroke-width:2;stroke-opacity:1;stop-color:#000000"
+       id="path739"
+       cx="55.578949"
+       cy="79.721054"
+       rx="32.478947"
+       ry="23.099998" />
+    <ellipse
+       style="fill:#989898;fill-opacity:1;stroke:#00000b;stroke-width:2;stroke-opacity:1;stop-color:#000000"
+       id="path739-9"
+       cy="40.815788"
+       cx="147.11052"
+       rx="24.142105"
+       ry="32.478947" />
+    <circle
+       id="path2025"
+       style="fill:#000000;stroke:none;stroke-width:0.264583"
+       cx="86.809303"
+       cy="73.377647"
+       r="0.39687499" />
+    <circle
+       id="path2027"
+       style="fill:#000000;stroke:none;stroke-width:0.264583"
+       cx="128.57576"
+       cy="61.627216"
+       r="0.39687499" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+       d="M 88.434309,73.009206 124.8964,58.675464"
+       id="path2085"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:'Cambria Math';-inkscape-font-specification:'Cambria Math';stroke-width:0.264583"
+       x="90.663162"
+       y="59.052631"
+       id="text2237"><tspan
+         sodipodi:role="line"
+         id="tspan2235"
+         style="stroke-width:0.264583"
+         x="90.663162"
+         y="59.052631">d(A,B)</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+       d="m 124.92236,61.180264 -1.8671,-4.51579"
+       id="path2239" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
+       d="m 90.120397,74.814474 -1.8671,-4.51579"
+       id="path2239-7" />
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:'Cambria Math';-inkscape-font-specification:'Cambria Math';stroke-width:0.264583"
+       x="51.931576"
+       y="80.06842"
+       id="text3004"><tspan
+         sodipodi:role="line"
+         id="tspan3002"
+         style="stroke-width:0.264583"
+         x="51.931576"
+         y="80.06842">A</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;line-height:1.25;font-family:'Cambria Math';-inkscape-font-specification:'Cambria Math';stroke-width:0.264583"
+       x="143.63683"
+       y="44.810528"
+       id="text3008"><tspan
+         sodipodi:role="line"
+         id="tspan3006"
+         style="stroke-width:0.264583"
+         x="143.63683"
+         y="44.810528">B</tspan></text>
+  </g>
+</svg>
