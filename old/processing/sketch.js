@@ -8,6 +8,12 @@ function setup(){
     x_drag = new DragCircle(width-margin,height-margin,20,'y',margin,width-margin, (50), (0));
 }
 
+// tape moves or head moves
+// text fields or drop downs
+// text fields that don't accept wrong symbols
+// arrow keys to move text field focus, tab
+// run, step, undo, run at full speed
+
 function draw(){
     background(250);
     fill(255);

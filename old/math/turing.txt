@@ -1,0 +1,15 @@
+Turing machine:
+
+Transducers:
+Copy
+Reverse
+Binary Add
+
+Deciders:
+
+CFG:
+a^n b^n
+
+Finite state automata:
+
+a^m b^n
