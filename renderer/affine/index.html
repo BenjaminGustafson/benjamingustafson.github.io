@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affine</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .left-column {
+            flex: 1;
+            text-align: right;
+            margin-right: 20px;
+        }
+
+        .right-column {
+            flex: 1;
+            text-align: left;
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="left-column">
+            <canvas id="myCanvas" width="600" height="600"></canvas>
+        </div>
+        <div class="right-column">
+            <h2>
+                Affine transformations (2D)
+            </h2>
+            Scaling, skewing, and translating by multiplying by a matrix.
+            
+            We can get scaling and skewing using a 2D matrix. 
+            <pre><code>
+                a b   x    =   ax + by
+                c d   y        cx + dy
+            </code></pre>
+            The scaling comes from a and d. and 
+            Suppose our matrix looks like this:
+            <pre><code>
+                a b c
+                d e f
+                0 0 1
+            </code></pre>
+
+            Then M x = [ax + by + c, dx + ey + z, 1]
+            <code>
+                <div id = "sliders"></div>
+            </code>
+              <h3>
+                Output:
+              </h3>
+              <ul>
+                <li>The projected point, (x',y',z')</li>
+            </ul>
+              <code>
+                  <div id = "outputs"></div>
+              </code>
+              <h3>
+                  Algorithm:
+              </h3>
+              <p>
+                <pre>
+                    <code>
+
+                    </code>
+                </pre>
+              </p>
+        </div>
+    </div>
+
+    <script src="script.js" id="module"></script>
+</body>
+
+</html>

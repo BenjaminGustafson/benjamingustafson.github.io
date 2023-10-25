@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triangle</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .left-column {
+            flex: 1;
+            text-align: right;
+            margin-right: 20px;
+        }
+
+        .right-column {
+            flex: 1;
+            text-align: left;
+        }
+
+
+        .slider-container {
+          display: flex;
+          align-items: center;
+         }
+
+        .slider-label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="left-column">
+            <canvas id="myCanvas" width="600" height="600"></canvas>
+        </div>
+        <div class="right-column">
+            <h2>
+                Function: Triangle
+            </h2>
+            <h3>
+                Input: 
+            </h3>
+            <ul>
+                <li>Clip coords</li>
+                <li>Shader</li>
+                <li>Zbuffer</li>
+            </ul>
+            <code>
+                <div id = "sliders"></div>
+            </code>
+              <h3>
+                Output:
+              </h3>
+              <ul>
+                <li>Draws the triangle to the image</li>
+            </ul>
+              <code>
+                  <div id = "outputs"></div>
+              </code>
+              <h3>
+                  Algorithm:
+              </h3>
+              <p>
+                <pre>
+                    <code>
+compute perspective vertices
+for each pixel in <a href="bounding_box/index.html">bounding box</a>:
+    bc_screen = barycentric(triangle, pixel)
+    bc_clip = bc_screen / pts.z
+    compute frag_depth
+    if pixel is not on screen: 
+        skip to next pixel
+    if fragment shader discards fragment
+        continue loop
+    set zbuffer of pixel
+    set pixel in image
+                    </code>
+                </pre>
+              </p>
+        </div>
+    </div>
+
+    <script src="script.js" id="module"></script>
+</body>
+
+</html>

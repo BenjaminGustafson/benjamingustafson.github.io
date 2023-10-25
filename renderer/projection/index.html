@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projection</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .left-column {
+            flex: 1;
+            text-align: right;
+            margin-right: 20px;
+        }
+
+        .right-column {
+            flex: 1;
+            text-align: left;
+        }
+
+
+        .slider-container {
+          display: flex;
+          align-items: center;
+         }
+
+        .slider-label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="left-column">
+            <canvas id="myCanvas" width="600" height="600"></canvas>
+        </div>
+        <div class="right-column">
+            <h2>
+                Projection
+            </h2>
+            Given a point P project it onto the plane z=0. The camera is on the z-axis.
+            <h3>
+                Input: 
+            </h3>
+            <ul>
+                <li>Target point P: <code>(x,y,z)</code></li>
+                <li>Eye location: <code>(0,0,c)</code></li>
+            </ul>
+            <code>
+                <div id = "sliders"></div>
+            </code>
+              <h3>
+                Output:
+              </h3>
+              <ul>
+                <li>The projected point, (x',y',z')</li>
+            </ul>
+              <code>
+                  <div id = "outputs"></div>
+              </code>
+              <h3>
+                  Algorithm:
+              </h3>
+              <p>
+                <pre>
+                    <code>
+
+                    </code>
+                </pre>
+              </p>
+        </div>
+    </div>
+
+    <script src="script.js" id="module"></script>
+</body>
+
+</html>
