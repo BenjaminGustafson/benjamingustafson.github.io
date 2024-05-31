@@ -17,27 +17,27 @@ body {
 
 .container {
     display: flex;
-    flex-wrap: wrap; /* Allow items to wrap to new lines */
+    flex-wrap: wrap; 
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    width: 90%; /* Use relative width */
-    max-width: 1200px; /* Constrain the maximum width */
 }
 
-/* Media query for devices with a max width of 600px */
 @media (max-width: 600px) {
-    body {
-        flex-direction: column; /* Stack items vertically */
-        padding: 10px; /* Add some padding around the body */
-    }
-
     .container {
         flex-direction: column; /* Stack items vertically */
         justify-content: center; /* Center items horizontally */
+        align-items: center; /* Center items horizontally */
         padding: 10px; /* Reduce padding */
+        width:100%;
+    }
+
+    img {
+    max-width: 100%; /* Ensure the image is no wider than its container */
+    height: auto; /* Maintain the aspect ratio */
+    display: block; /* Remove the bottom gap in inline images */
     }
 }
+
     </style>
 </head>
 
