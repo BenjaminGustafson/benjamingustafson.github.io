@@ -1,0 +1,80 @@
+body {
+    margin: 0;
+    display: flex;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+  }
+  
+  #description {
+    width: 30%;
+    background-color: #f0f0f0;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+  
+  #right-panel {
+    display: flex;
+    flex-direction: column;
+    width: 70%;
+    box-sizing: border-box;
+  }
+  
+  #options {
+    flex: 1;
+    background-color: #e0e0e0;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  #content {
+    flex: 3;
+    background-color: #d0d0d0;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;  /* Adjust to stack title above the canvas */
+    justify-content: flex-start;
+    align-items: center;
+  }
+  
+  #content-title {
+    margin-bottom: 20px; /* Spacing between title and canvas */
+  }
+  
+  /* Style the canvas to fill the content area */
+  #content-canvas {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    border: 1px solid black;
+  }
+  
+  .pipeline-step, .subsection {
+    cursor: pointer;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #ccc;
+    border-radius: 5px;
+  }
+  
+  .pipeline-step:hover, .subsection:hover {
+    background-color: #bbb;
+  }
+  
+  .back-button {
+    cursor: pointer;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #aaa;
+    border-radius: 5px;
+  }
+  
+  .back-button:hover {
+    background-color: #888;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  

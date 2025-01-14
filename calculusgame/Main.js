@@ -1,23 +1,46 @@
+/**
+ * 
+ *  The game state is:
+ *    - the current scene number
+ *    - the game objects in that scene
+ * 
+ *  All game objects must:
+ *    - have a draw(ctx) method
+ *    - have a mouseMove(x,y) method that checks if the mouse is over the object and
+ *      returns the grab priority of that object, or -1 if the mouse is not over the object
+ *    - have a method grab(x,y) that is called if the grab is successful
+ *    - have a release(x,y) method that is called when the 
+ *      object is grabbed and then released.
+ * 
+ *  A scene is an object with:
+ *    - objs: a list of game objects
+ *    - winCon: a function that checks whether the level is solved
+ * 
+ */
+
 
 function setup() { "use strict";
 
   var canvas = document.getElementById('myCanvas');
-  //  All objects must:
-  //  - have a draw(ctx) method
-  //  - have a mouseMove(x,y) method that checks if the mouse is over the object
-  //    returns the grab priority of that object, or
-  //    -1 if the mouse is not over the object
-  //  - have a method grab(x,y) that is called if the grab is successful
-  //  - have a release(x,y) method that is called when the 
-  //    object is grabbed and then released
 
-  const s = new Slider(600,100,300, 10, -1, 10)
+  var current_sceneName = "mainMenu"
+  var gameState = {
+    sceneName: current_sceneName,
+    objects: [],
+    update: (()=>{}),
+    completedLevels : {},
+  }
+
+  Object.keys(localStorage).forEach(key => {
+    gameState.completedLevels[key] = true
+  })
   
-  var levelNumber = 1
-  var level = loadLevel(levelNumber)
-  var objects = level.objs
-  
-  var grabbedObj = {priority:-1, obj:null};
+  loadScene(gameState)
+
+
+  // ----------------------------------------------------------------------------------------------
+  // Mouse events
+  // ----------------------------------------------------------------------------------------------
 
   // When the mouse is clicked, the (x,y) of the click is broadcast
   // to all objects.
@@ -25,70 +48,73 @@ function setup() { "use strict";
     var rect = canvas.getBoundingClientRect();
     const x = (event.clientX - rect.left)*(canvas.width/rect.width);
     const y = (event.clientY - rect.top)*(canvas.height/rect.height);
-    objects.forEach(obj => {
-      const priority = obj.mouseMove(x,y)
-      if (priority > grabbedObj.priority){
-        grabbedObj.priority = priority
-        grabbedObj.obj = obj
-      }
+    canvas.style.cursor = 'default'
+    Object.values(gameState.objects).forEach(obj => {
+        if (typeof obj.mouseDown === 'function'){
+            const cursor = obj.mouseDown(x,y)
+            if (cursor != null){
+                canvas.style.cursor = cursor
+            }
+        }
     })
-    if (grabbedObj.obj){
-      console.log("grabbed")
-      grabbedObj.obj.grab(x,y)
-      canvas.style.cursor = 'grabbing'
-    }
   });
 
-  // When the mouse is moved, we alert all objects
   canvas.addEventListener('mousemove', function (event) {
     var rect = canvas.getBoundingClientRect();
     const x = (event.clientX - rect.left)*(canvas.width/rect.width);
     const y = (event.clientY - rect.top)*(canvas.height/rect.height);
-    
     canvas.style.cursor = 'default'
-    objects.forEach(obj => {
-      // If any object returns true, we are hovering over a clickable object
-      if (obj.mouseMove(x,y) != -1){
-        canvas.style.cursor = 'grab'
-      }
+    Object.values(gameState.objects).forEach(obj => {
+        if (typeof obj.mouseMove === 'function'){
+            const cursor = obj.mouseMove(x,y)
+            if (cursor != null){
+                canvas.style.cursor = cursor
+            }
+        }
     })
-    // If an object is already grabbed
-    if (grabbedObj.obj){
-      canvas.style.cursor = 'grabbing'
-    }
   });
 
   canvas.addEventListener('mouseup', function (event) {
     var rect = canvas.getBoundingClientRect();
     const x = (event.clientX - rect.left)*(canvas.width/rect.width);
     const y = (event.clientY - rect.top)*(canvas.height/rect.height);
-    
-    if (grabbedObj.obj){
-      grabbedObj.obj.release(x,y)
-      console.log(`let go ${grabbedObj.obj}`)
-      // reset grabbedObj
-      grabbedObj = {priority:-1, obj:null};
-      
-      // Revert the cursor
-      canvas.style.cursor = 'default'
-      objects.forEach(obj => {
-        // If any object returns true, we are hovering over a clickable object
-        if (obj.mouseMove(x,y) != -1){
-          canvas.style.cursor = 'grab'
+    canvas.style.cursor = 'default'
+    Object.values(gameState.objects).forEach(obj => {
+        if (typeof obj.mouseUp === 'function'){
+            const cursor = obj.mouseUp(x,y)
+            if (cursor != null){
+                canvas.style.cursor = cursor
+            }
         }
-      })
+    })
+  });
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'c') {
+      localStorage.clear()
+      gameState.completedLevels = {}
     }
   });
 
-  function draw() {
-    if (level.winCon()){
-      console.log("correct")
-      new Audio('audio/confirmation_001.ogg').play();
-      level = loadLevel(levelNumber + 1)
-      levelNumber ++
-      objects = level.objs
+  // ----------------------------------------------------------------------------------------------
+  // The main update loop
+  // ----------------------------------------------------------------------------------------------
+  function update() {
+    console.log(gameState.sceneName)
+    if (current_sceneName != gameState.sceneName){
+      console.log("loading")
+      current_sceneName = gameState.sceneName
+      loadScene(gameState)
     }
+    gameState.update()
     var ctx = canvas.getContext('2d');
+
+    if (gameState.writeToStorage){
+      Object.keys(gameState.completedLevels).forEach(key => {
+        localStorage.setItem(key, "solved")
+      })
+      gameState.writeToStorage = false
+    }
 
     //Background
     Color.setColor(ctx,Color.black)
@@ -96,23 +122,28 @@ function setup() { "use strict";
     Color.setColor(ctx,new Color(10,10,10))
     ctx.strokeRect(0,0,canvas.width,canvas.height);
 
-    // Color.setColor(ctx,Color.white)
-    // loadLevel(ctx)
 
-    // Color.setColor(ctx,Color.red)
-    // Shapes.LineSegment(ctx, 100,500, 200,550, 10, 15)
-    // Shapes.Circle(ctx, 250,250, 15)
-
-    
-
-    for (let i = 0; i < objects.length; i++){
-      objects[i].draw(ctx);
+    for (let i = 0; i < Object.values(gameState.objects).length; i++){
+      Object.values(gameState.objects)[i].draw(ctx);
     }
 
 
-    window.requestAnimationFrame(draw); 
+    window.requestAnimationFrame(update); 
   }
-  draw();
-  console.log(objects)
+
+  var ctx = canvas.getContext('2d');
+  ctx.font = "40px monospace";
+  const tokens = ["x","f","+","•","sin","e","-"]
+  for (let i = 0 ; i < tokens.length; i ++){
+      console.log(tokens[i], ctx.measureText(tokens[i]).width)
+  }
+
+
+  update();
+  console.log(Object.values(gameState.objects))
 }
 window.onload = setup;
+
+
+
+
