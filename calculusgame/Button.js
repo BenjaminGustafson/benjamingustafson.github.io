@@ -1,13 +1,18 @@
-class NavButton{
+//
+class Button{
 
     active = true
 
     constructor(origin_x, origin_y, width, height, onclick, label){
+        this.toggled = false
         this.origin_x = origin_x
         this.origin_y = origin_y
         this.width = width
         this.height = height
         this.onclick = onclick
+        if (onclick == null){
+            this.onclick = () => {}
+        }
         this.label = label
         this.color = Color.white
     }
@@ -20,8 +25,13 @@ class NavButton{
         }
         Shapes.Rectangle(ctx,this.origin_x,this.origin_y,this.width,this.height,10)
         ctx.font = "40px monospace"
-        const textSize = ctx.measureText(this.label)
-        ctx.fillText(this.label, this.origin_x + this.width/2-textSize.width/2, this.origin_y + this.height/2+10)
+        var text_size = ctx.measureText(this.label)
+        // Adjust to fit inside label
+        const font_size = Math.min(40 * this.width / text_size.width * 0.8 - 10, 40)
+        ctx.font = font_size + "px monospace"
+        text_size = ctx.measureText(this.label)
+        // text baseline = top + half of height + half of font...
+        ctx.fillText(this.label, this.origin_x + this.width/2-text_size.width/2, this.origin_y + this.height/2 + text_size.actualBoundingBoxAscent/2)
     }
 
     mouseMove(x,y){

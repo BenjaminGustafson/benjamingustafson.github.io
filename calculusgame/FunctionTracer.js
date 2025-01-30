@@ -2,7 +2,6 @@
  * Traces a given function onto a grid
  * 
  * 
- * Could this be included as a shapes method rather than a game object?
  */
 
 class FunctionTracer {

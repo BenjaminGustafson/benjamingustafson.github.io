@@ -9,11 +9,11 @@ class Target{
      * @param {number} y center y value
      * @param {number} size sidelength of the square
      */
-    constructor(x,y,size){
+    constructor(origin_x,origin_y,size){
         this.unhit_color = Color.magenta
         this.hit_color = Color.blue
         this.size = size
-        this.setPosition(x,y)
+        this.setPosition(origin_x,origin_y)
     }
 
     /**

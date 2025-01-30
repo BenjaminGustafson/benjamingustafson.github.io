@@ -70,7 +70,7 @@ class Tracer {
                 y = cy
                 x++
                 i++
-                if (i % this.slider_spacing == 0 && slider_ind < this.sliders.length-1){
+                if (i % this.slider_spacing < 1 && slider_ind < this.sliders.length-1){
                     slider_ind++
                 }
             }

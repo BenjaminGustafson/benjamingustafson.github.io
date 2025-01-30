@@ -3,6 +3,9 @@
  *  The game state is:
  *    - the current scene number
  *    - the game objects in that scene
+ *    - an update function
+ *    - an object storing which levels have been solved
+ *    - a flag that tells us to save data to local storage
  * 
  *  All game objects must:
  *    - have a draw(ctx) method
@@ -18,6 +21,11 @@
  * 
  */
 
+const build = "play" 
+// = "dev" c key clears local storage
+// = "layout" wasd keys moves gameobjects, qe to cycle objs, 12345 changes layout precision
+// = "play" no console logs, no dev tools
+// = ""
 
 function setup() { "use strict";
 
@@ -29,6 +37,8 @@ function setup() { "use strict";
     objects: [],
     update: (()=>{}),
     completedLevels : {},
+    writeToStorage: false,
+    layout : {ind: 0, prec: 10},
   }
 
   Object.keys(localStorage).forEach(key => {
@@ -90,9 +100,54 @@ function setup() { "use strict";
   });
 
   document.addEventListener('keydown', function(event) {
-    if (event.key === 'c') {
-      localStorage.clear()
-      gameState.completedLevels = {}
+    if (build == "dev"){
+      if (event.key == 'c'){
+        localStorage.clear()
+        gameState.completedLevels = {}
+      }
+    }
+
+    if (build == "layout"){
+      const obj = gameState.objects[gameState.layout.ind]
+      switch (event.key){
+        case 'w':
+          obj.origin_y -= gameState.layout.prec
+          break
+        case 'a':
+          obj.origin_x -= gameState.layout.prec
+          break
+        case 's':
+          obj.origin_y += gameState.layout.prec
+          break
+        case 'd':
+          obj.origin_x += gameState.layout.prec
+          
+          break
+        case 'e':
+          gameState.layout.ind = (gameState.layout.ind + 1) % gameState.objects.length
+          break
+        case 'q':
+          gameState.layout.ind = (gameState.objects.length + gameState.layout.ind - 1) % gameState.objects.length
+          break
+        case '1':
+          gameState.layout.prec = 1
+          break
+        case '2':
+          gameState.layout.prec = 10
+          break
+        case '3':
+          gameState.layout.prec = 100
+          break
+        case '4':
+          gameState.layout.prec = 25
+          break
+        case '5':
+          gameState.layout.prec = 5
+          break
+        case 'p':
+          console.log(obj.origin_x + "," +obj.origin_y)
+          break
+      }
     }
   });
 
@@ -100,15 +155,18 @@ function setup() { "use strict";
   // The main update loop
   // ----------------------------------------------------------------------------------------------
   function update() {
-    console.log(gameState.sceneName)
+    if (build == 'dev'){console.log(gameState.sceneName)}
     if (current_sceneName != gameState.sceneName){
-      console.log("loading")
       current_sceneName = gameState.sceneName
       loadScene(gameState)
+      if (build == "layout"){
+        gameState.layout.ind = 0
+      }
     }
     gameState.update()
     var ctx = canvas.getContext('2d');
 
+    // Flag writeToStorage tells us to save the completedLevels
     if (gameState.writeToStorage){
       Object.keys(gameState.completedLevels).forEach(key => {
         localStorage.setItem(key, "solved")
@@ -127,20 +185,17 @@ function setup() { "use strict";
       Object.values(gameState.objects)[i].draw(ctx);
     }
 
+    if (build == 'layout'){
+      const layout_obj = gameState.objects[gameState.layout.ind]
+      ctx.strokeStyle = 'rgb(255,0,0)'
+      Shapes.Line(ctx, 0, layout_obj.origin_y, canvas.width, layout_obj.origin_y, 1)
+      Shapes.Line(ctx, layout_obj.origin_x, 0, layout_obj.origin_x, canvas.height, 1)
+    }
 
     window.requestAnimationFrame(update); 
   }
 
-  var ctx = canvas.getContext('2d');
-  ctx.font = "40px monospace";
-  const tokens = ["x","f","+","•","sin","e","-"]
-  for (let i = 0 ; i < tokens.length; i ++){
-      console.log(tokens[i], ctx.measureText(tokens[i]).width)
-  }
-
-
   update();
-  console.log(Object.values(gameState.objects))
 }
 window.onload = setup;
 

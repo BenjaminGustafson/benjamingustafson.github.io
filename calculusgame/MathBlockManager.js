@@ -13,10 +13,10 @@ class MathBlockManager {
     grab_x = 0
     grab_y = 0
 
-    constructor (blocks, field_x, field_y, translate_y_slider,scale_y_slider,tracer){
+    constructor (blocks, origin_x, origin_y, translate_y_slider,scale_y_slider, output){
         this.blocks = blocks
-        this.field_x = field_x
-        this.field_y = field_y
+        this.origin_x = origin_x
+        this.origin_y = origin_y
         this.width = 400
         this.height = 50
         this.translate_y_slider = translate_y_slider
@@ -27,7 +27,7 @@ class MathBlockManager {
         this.blocks.forEach(b => {
             this.tool_bar.push(b)
         })
-        this.tracer = tracer
+        this.output = output
     }
 
 
@@ -37,19 +37,27 @@ class MathBlockManager {
             const field_block_fun = this.field_block.toFunction()
             // Check that the function is not incomplete
             if (field_block_fun != null){
-                this.tracer.display = true
-                // Set the tracer's function to the fieldblock, and use sliders for scale and translate
-                this.tracer.fun = (x => field_block_fun(x))
+                if (this.output.type == "fun_tracer"){
+                    this.output.fun_tracer.display = true
+                    // Set the fun_tracer's function to the fieldblock, and use sliders for scale and translate
+                    this.output.fun_tracer.fun = (x => field_block_fun(x))
+                }else if (this.output.type == "sliders"){
+
+                }
             }else{
                 // Set display false so that we don't evaluate the incomplete function
-                this.tracer.display = false
+                if (this.output.type == "fun_tracer"){
+                    this.output.fun_tracer.display = false
+                }
             }
         }else{
             // If there is no fieldblock, we cannot trace the function
-            this.tracer.display = false
+            if (this.output.type == "fun_tracer"){
+                this.output.fun_tracer.display = false
+            }
             // Draw the placeholder for the block
             Color.setColor(ctx,this.field_color)
-            Shapes.Rectangle(ctx,this.field_x,this.field_y,this.width,this.height,10,true)
+            Shapes.Rectangle(ctx,this.origin_x,this.origin_y,this.width,this.height,10,true)
         }
         this.tool_bar.forEach(b => b.draw(ctx))
         if (this.grabbed){
@@ -134,7 +142,7 @@ class MathBlockManager {
     }
 
     checkInField(x,y){
-        return x >= this.field_x && x <= this.field_x + this.width && y >= this.field_y && y <= this.field_y + this.height
+        return x >= this.origin_x && x <= this.origin_x + this.width && y >= this.origin_y && y <= this.origin_y + this.height
     }
 
 
@@ -155,8 +163,8 @@ class MathBlockManager {
                 // The block is over the field and the field is empty
                 this.field_block = this.grabbed
                 this.grabbed.attached = true
-                this.grabbed.x = this.field_x
-                this.grabbed.y = this.field_y
+                this.grabbed.x = this.origin_x
+                this.grabbed.y = this.origin_y
                 if (g.on_tool_bar){
                     g.on_tool_bar = false
                     const new_g = new MathBlock(g.type,g.token,g.origin_x,g.origin_y)
