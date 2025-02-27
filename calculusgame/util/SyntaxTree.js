@@ -1,3 +1,5 @@
+// Class not in use
+
 class SyntaxTree {
     constructor (left = null, right = null, value){
         this.left = left;

@@ -20,6 +20,14 @@ for the scenes.
 Game objects are an abstract class, but there are no abstract classes in 
 javascript. 
 
+Required methods:
+- draw(ctx)
+Optional methods:
+- mouseMove(x,y) checks if the mouse is over the object and returns the grab priority of that object, or -1 if the mouse is not over the object
+- grab(x,y) called if the grab is successful
+- release(x,y) called when the object is grabbed and then released.
+
+
 ### Tracer.js
 
 ### FunctionTracer.js

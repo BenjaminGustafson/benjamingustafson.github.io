@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Custom Waveform Synth</title>
+  </head>
+  <body>
+    <button id="play">Play Sound</button>
+    <script>
+      document.getElementById('play').addEventListener('click', function() {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const desiredFreq = 440;
+        const sampleRate = audioCtx.sampleRate;
+        const samplesPerCycle = Math.round(sampleRate / desiredFreq);
+        const baseFreq = sampleRate / samplesPerCycle;
+
+        const buffer = audioCtx.createBuffer(1, samplesPerCycle, sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < samplesPerCycle; i++) {
+          data[i] = 0.01*Math.sin((2 * Math.PI * i) / samplesPerCycle);
+        }
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        source.playbackRate.value = desiredFreq / baseFreq;
+
+        source.connect(audioCtx.destination);
+        source.start();
+      });
+    </script>
+  </body>
+</html>

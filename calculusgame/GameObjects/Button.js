@@ -1,4 +1,3 @@
-//
 class Button{
 
     active = true

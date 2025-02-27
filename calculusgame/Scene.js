@@ -2,9 +2,8 @@
  * This file contains all of the data for the levels.
  * 
  * The canvas is set to 1600 x 900 px, and scaled down if the window is too small.
- * We do all layout math relative to the 1600 x 900 px.
- * We know that we want the aspect ratio to be 16:9, so we hardcode to 1600 x 900.
- * Its arguably more human readable.
+ * We do all layout math relative to the 1600 x 900 px. * 
+ * 
  * 
  * 
 */
@@ -25,7 +24,7 @@ const canvas_height = 900
  */
 const levels = {
     intro: ["intro1","intro2","intro4Pos","introNeg","introFrac","introCombined","intro8"],
-    quad: ["quad1","quad2","quad16","quad32","quad400","quad6","quad7","quad8","quad9"],
+    quad: ["quad4","quad8","quad16","quad32","quad400","quad2x","quadHalf","quadShiftLeft","quadShiftRight"],
 }
 
 
@@ -106,6 +105,38 @@ function levelNavigation(gameState, winCon){
         }
         if (gameState.completedLevels[gameState.sceneName]){
             forward_button.active = true
+        }
+    }
+    gameState.update = update
+}
+
+
+function levelNavigationObj(gameState, winCon){
+    let objs = gameState.objects
+    objs.back_button = new Button(100,100,100,100, (()=> gameState.sceneName = gameState.section),"↑")
+    objs.forward_button = new Button(300,100,100,100, (()=> {
+            if (build == "dev") console.log("section", gameState.section, "index", gameState.sceneIndex)
+            if (gameState.sceneIndex < levels[gameState.section].length - 1){
+                gameState.sceneIndex += 1
+                gameState.sceneName = levels[gameState.section][gameState.sceneIndex]
+            }else{
+                gameState.sceneName = gameState.section
+            }
+        }),
+        "→")
+    objs.forward_button.active = false
+
+    // non-destructively add to the update function
+    const prev_update = gameState.update
+    function update (){
+        prev_update()
+        if(winCon() && !gameState.completedLevels[gameState.sceneName]){
+            gameState.completedLevels[gameState.sceneName] = true
+            gameState.writeToStorage = true
+            
+        }
+        if (gameState.completedLevels[gameState.sceneName]){
+            objs.forward_button.active = true
         }
     }
     gameState.update = update
@@ -193,7 +224,7 @@ function simpleDiscLevel(gameState, target_vals, tracer_start = 0){
 // }
 
 
-function quadDiscLevel(gameState, num_sliders, withButton = false){
+function quadDiscLevel2(gameState, num_sliders, withButton = false, withSySlider = false, func = (x=>x*x/2)){
     const gridLeft = new Grid(300,350,400,400,4,4,5,2,2)
     const gridRight = new Grid(900,350,400,400,4,4,5,2,2)
     var sliders = []
@@ -207,7 +238,7 @@ function quadDiscLevel(gameState, num_sliders, withButton = false){
     const target_coords = []
     for (let i = 0; i<num_sliders; i++){
         const x = -2 + (i+1)/num_sliders*4
-        target_coords.push([x,x*x/2])
+        target_coords.push([x,func(x)])
     }
     var targets = []
     for (let i = 0; i < target_coords.length; i++){
@@ -221,8 +252,10 @@ function quadDiscLevel(gameState, num_sliders, withButton = false){
     
     const ty_slider = new Slider(1400, 350, 400, 4, 0, 2, 0.1, true, true)
     ty_slider.circleColorActive = Color.green
-    const sy_slider = new Slider(1500, 350, 400, 8, 1, 4, 0.1, true, true)
     ty_slider.active = false
+    const sy_slider = new Slider(1500, 350, 400, 8, 1, 4, 0.1, true, true)
+    sy_slider.circleColorActive = Color.green
+    sy_slider.active = false
 
     //const mngr = new MathBlockManager(math_blocks,900,150, ty_slider, sy_slider, {type:"sliders", sliders:sliders})
     const linear_button = new Button(900,220,50,50,()=>{},"x")
@@ -232,10 +265,12 @@ function quadDiscLevel(gameState, num_sliders, withButton = false){
             linear_button.toggled = true
             linear_button.color = Color.green
             ty_slider.active = true
+            sy_slider.active = true
         }else{
             linear_button.toggled = false
             linear_button.color = Color.white
             ty_slider.active = false
+            sy_slider.active = false
         }
     }
     linear_button.onclick = set_linear
@@ -244,18 +279,95 @@ function quadDiscLevel(gameState, num_sliders, withButton = false){
     if (withButton){
         objs.push(linear_button)
         objs.push(ty_slider)
+        if (withSySlider){
+            objs.push(sy_slider)
+        }
     }
     gameState.objects = objs
     gameState.update = () => {
         if (ty_slider.active){
             for (let i = 0; i < num_sliders; i++){
-                sliders[i].setValue(ty_slider.value + fun(gridRight.canvasToGrid(sliders[i].origin_x,0).x))
+                sliders[i].setValue(ty_slider.value + sy_slider.value * fun(gridRight.canvasToGrid(sliders[i].origin_x,0).x))
             }
         }
     }
     levelNavigation(gameState, ()=>tracer.solved)
 }
 
+
+function quadDiscLevel(gameState, num_sliders, withButton = false, withSySlider = false, func = (x=>x*x/2)){
+    gameState.objects = {}
+    let objs = gameState.objects
+    objs.gridLeft = new Grid(300,350,400,400,4,4,5,2,2)
+    objs.gridRight = new Grid(900,350,400,400,4,4,5,2,2)
+    var sliders = []
+    const slider_spacing = 400/num_sliders
+    var slider_size = 15
+    if (num_sliders >= 16) slider_size = 10
+    if (num_sliders >= 64) slider_size = 5
+    for (let i = 0; i < num_sliders; i++){
+        const slider = new Slider(900+slider_spacing*i, 350, 400, 4, 0, 2, 0.01, false, vertical=true,circleRadius=slider_size)
+        sliders.push(slider)
+        objs["slider" + i] = slider
+    }
+    const target_coords = []
+    for (let i = 0; i<num_sliders; i++){
+        const x = -2 + (i+1)/num_sliders*4
+        target_coords.push([x,func(x)])
+    }
+    var targets = []
+    for (let i = 0; i < target_coords.length; i++){
+        const coord = objs.gridLeft.gridToCanvas(target_coords[i][0],target_coords[i][1])
+        const target = new Target(coord.x, coord.y, slider_size)
+        targets.push(target)
+    }
+    const tracer = new Tracer(300,350,objs.gridLeft,
+        {type:"sliders",sliders:sliders,slider_spacing:slider_spacing},
+        4,targets)
+    objs.tracer = tracer
+    // We have to do this to order the layers correctly, maybe in future game objects can get a layer property
+    for (let i = 0; i < target_coords.length; i++){
+        objs["target" + i] = targets[i]
+    }
+
+    
+    objs.ty_slider = new Slider(1400, 350, 400, 4, 0, 2, 0.1, true, true)
+    objs.ty_slider.circleColorActive = Color.green
+    objs.ty_slider.active = false
+    objs.sy_slider = new Slider(1500, 350, 400, 8, 1, 4, 0.1, true, true)
+    objs.sy_slider.circleColorActive = Color.green
+    objs.sy_slider.active = false
+
+    if (withButton){
+        objs.linear_button = new Button(900,220,50,50,()=>{},"x")
+        const fun = x => x
+        function set_linear (){
+            if (!objs.linear_button.toggled){
+                objs.linear_button.toggled = true
+                objs.linear_button.color = Color.green
+                objs.ty_slider.active = true
+                objs.sy_slider.active = true
+            }else{
+                objs.linear_button.toggled = false
+                objs.linear_button.color = Color.white
+                objs.ty_slider.active = false
+                objs.sy_slider.active = false
+            }
+        }
+        objs.linear_button.onclick = set_linear
+
+        gameState.update = () => {
+            if (objs.ty_slider.active){
+                for (let i = 0; i < num_sliders; i++){
+                    sliders[i].setValue(objs.ty_slider.value + objs.sy_slider.value * fun(objs.gridRight.canvasToGrid(sliders[i].origin_x,0).x))
+                }
+            }
+        }
+    }else {
+        gameState.update = () => {}
+    }
+    levelNavigationObj(gameState, ()=>tracer.solved)
+}
 
 function cubicDiscLevel(gameState, num_sliders, next){
     // To generalize
@@ -487,7 +599,17 @@ function genContLevel(gameState, fun, blocks,
     levelNavigation(gameState, ()=>tracer.solved)
 }
 
+/**
+ * Adds the button to pull up the notebook
+ * Notebook pages correspond to certain levels
+ * So we check the completed levels in the gamestate 
+ * to see which pages are available. 
+ * 
+ */
+function notebook (gameState){
+    
 
+}
 
 /**
  * 
@@ -506,17 +628,17 @@ function loadScene(gameState){
                 "The game is not finished, so some features might not work as intended.",
             ]
             gameState.objects = [
-                new Button(300,350,100,100, (()=> gameState.sceneName = "intro"), "1"),
-                new Button(600,350,100,100, (()=> gameState.sceneName = "quad"), "2"),
-                new Button(900,350,100,100, (()=> gameState.sceneName = "cubic"), "3"),
-                new Button(1200,350,100,100, (()=> gameState.sceneName = "exp"), "4"),
-                new Button(300,600,100,100, (()=> gameState.sceneName = "sin"), "5"),
-                new Button(600,600,100,100, (()=> gameState.sceneName = "sum"), "6"),
-                new Button(900,600,100,100, (()=> gameState.sceneName = "prod"), "7"),
-                new Button(1200,600,100,100, (()=> gameState.sceneName = "chain"), "8"),
-                new TextBox(300,160,text_content[0],"30px sans-serif"),
-                new TextBox(300,220,text_content[1],"30px sans-serif"),
-                new TextBox(300,280,text_content[2],"30px sans-serif")
+                new Button(300,250,100,100, (()=> gameState.sceneName = "intro"), "1"),
+                new Button(600,250,100,100, (()=> gameState.sceneName = "quad"), "2"),
+                new Button(900,250,100,100, (()=> gameState.sceneName = "cubic"), "3"),
+                new Button(1200,250,100,100, (()=> gameState.sceneName = "exp"), "4"),
+                new Button(300,500,100,100, (()=> gameState.sceneName = "sin"), "5"),
+                new Button(600,500,100,100, (()=> gameState.sceneName = "sum"), "6"),
+                new Button(900,500,100,100, (()=> gameState.sceneName = "prod"), "7"),
+                new Button(1200,500,100,100, (()=> gameState.sceneName = "chain"), "8"),
+                // new TextBox(300,160,text_content[0],"30px sans-serif"),
+                // new TextBox(300,220,text_content[1],"30px sans-serif"),
+                // new TextBox(300,280,text_content[2],"30px sans-serif")
             ]
             gameState.update = (()=>{})
             break
@@ -624,6 +746,11 @@ function loadScene(gameState){
             break
         }
 
+        // 
+        case "notesIntro":{
+
+        }
+
 
         /**
          * Quadratic Levels
@@ -640,7 +767,7 @@ function loadScene(gameState){
          * - A quadratic shape on the left can be achieved by a linear
          *   shape on the right.
          */
-        case "quad1":{
+        case "quad4":{
             quadDiscLevel(gameState,4)
             break
         }
@@ -648,7 +775,7 @@ function loadScene(gameState){
         /**
          * - As we add more sliders the curve becomes smoother
          */
-        case "quad2":{
+        case "quad8":{
             quadDiscLevel(gameState,8)
             break
         }
@@ -664,7 +791,35 @@ function loadScene(gameState){
         }
 
         case "quad400":{
-            quadDiscLevel(gameState,200,withButton=true)
+            quadDiscLevel(gameState,400,withButton=true)
+            break
+        }
+
+        case "quad2x":{
+            quadDiscLevel(gameState,400,withButton=true,withSySlider=true,func=(x=>x*x-2))
+            break
+        }
+
+        case "quadNeg":{
+            quadDiscLevel(gameState,400,withButton=true,withSySlider=true,func=(x=>-x*x/2))
+            break
+        }
+
+        case "quadHalf":{
+            quadDiscLevel(gameState,400,withButton=true,withSySlider=true,func=(x=>x*x/4))
+            gameState.objects.tracer.origin_y += 100
+            break
+        }
+
+        case "quadShiftLeft":{
+            quadDiscLevel(gameState,400,withButton=true,withSySlider=true,func=(x=>(x+1)*(x+1)/2-2))
+            gameState.objects.tracer.origin_y += 350
+            break
+        }
+
+        case "quadShiftRight":{
+            quadDiscLevel(gameState,400,withButton=true,withSySlider=true,func=(x=>(x-1)*(x-1)/4-1))
+            gameState.objects.tracer.origin_y += 75
             break
         }
 

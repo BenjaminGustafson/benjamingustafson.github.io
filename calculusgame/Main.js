@@ -7,13 +7,6 @@
  *    - an object storing which levels have been solved
  *    - a flag that tells us to save data to local storage
  * 
- *  All game objects must:
- *    - have a draw(ctx) method
- *    - have a mouseMove(x,y) method that checks if the mouse is over the object and
- *      returns the grab priority of that object, or -1 if the mouse is not over the object
- *    - have a method grab(x,y) that is called if the grab is successful
- *    - have a release(x,y) method that is called when the 
- *      object is grabbed and then released.
  * 
  *  A scene is an object with:
  *    - objs: a list of game objects
@@ -67,6 +60,27 @@ function setup() { "use strict";
             }
         }
     })
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const desiredFreq = 440;
+        const sampleRate = audioCtx.sampleRate;
+        const samplesPerCycle = Math.round(sampleRate / desiredFreq);
+        const baseFreq = sampleRate / samplesPerCycle;
+
+        const buffer = audioCtx.createBuffer(1, samplesPerCycle, sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < samplesPerCycle; i++) {
+          data[i] = 0.01*Math.sin((2 * Math.PI * i) / samplesPerCycle);
+        }
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        source.playbackRate.value = desiredFreq / baseFreq;
+
+        source.connect(audioCtx.destination);
+        //source.start();
   });
 
   canvas.addEventListener('mousemove', function (event) {
