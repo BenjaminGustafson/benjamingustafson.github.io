@@ -135,7 +135,7 @@ class MathBlock {
                 ctx.fillText(str, this.x + this.padding, this.y + this.h/2+10);
                 Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
                 break
-            case MathBlock.FUNCTION:
+            case MathBlock.FUNCTION:{
                 var str1 = this.prefix + this.token + "("
                 var str2 = ")" + this.suffix
                 const w1 = ctx.measureText(str1).width
@@ -164,6 +164,7 @@ class MathBlock {
                 ctx.fillText(str2, this.x + this.padding + w1 + child_w, this.y + this.h/2+10)
                 Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
                 break
+            }
             case MathBlock.POWER:
                 {
                     var str1 = this.prefix 
@@ -250,8 +251,75 @@ class MathBlock {
                     Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
                     }
                     break
-            default:
-                break
+                case MathBlock.BIN_OP:{
+                    /**
+                     * |      prefix (?   [child 0] token [child 1] )? suffix       |
+                     *   pad                                                  pad  
+                     */
+                    Color.setColor(ctx,Color.black)
+                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
+                    
+                    var x = this.x
+                    x += this.padding
+
+                    Color.setColor(ctx,this.color)
+                    const str1 = this.prefix == "" ? this.prefix : this.prefix + "("
+                    ctx.fillText(str1, x, this.y + this.h/2+10)
+                    x += ctx.measureText(str1).width
+
+                    if (this.children[0]){
+                        this.children[0].draw(ctx)
+                        this.h = this.children[0].h + this.padding*2
+                        this.children[0].x = x
+                        this.children[0].y = this.y+this.padding
+                        x += this.children[0].w
+                    }else{
+                        if (this.attach_hover == 0){
+                            Color.setColor(ctx,Color.light_gray)
+                        }else{
+                            Color.setColor(ctx,Color.gray)
+                        }
+                        Shapes.Rectangle(ctx, x, this.y+this.padding,this.base_width,this.base_height,this.lineWidth,true)
+                        this.attach_squares[0] = {x:x, y:this.y+this.padding, w:this.base_width, h:this.base_height}
+                        this.h = this.base_height + this.padding*2
+                        x += this.base_width
+                    }
+
+                    Color.setColor(ctx,this.color)
+                    ctx.fillText(this.token,x, this.y + this.h/2+10)
+                    x += ctx.measureText(this.token).width
+
+                    if (this.children[1]){
+                        this.children[1].draw(ctx)
+                        this.h = Math.max(this.children[1].h + this.padding*2, this.h)
+                        this.children[1].x = x
+                        this.children[1].y = this.y+this.padding
+                        x += this.children[1].w
+                    }else{
+                        if (this.attach_hover == 1){
+                            Color.setColor(ctx,Color.light_gray)
+                        }else{
+                            Color.setColor(ctx,Color.gray)
+                        }
+                        Shapes.Rectangle(ctx, x ,this.y+this.padding,this.base_width,this.base_height,this.lineWidth,true)
+                        this.attach_squares[1] = {x:x,y:this.y+this.padding,w:this.base_width,h:this.base_height}
+                        this.h = Math.max(this.h, this.base_height + this.padding*2)
+                        x += this.base_width
+                    }
+
+                    Color.setColor(ctx,this.color)
+                    const str2 = this.prefix == "" ? this.suffix : ")" + this.suffix
+                    ctx.fillText(str2,  x, this.y + this.h/2+10)
+                    x += ctx.measureText(str2).width
+
+                    x += this.padding
+
+                    this.w = x - this.x
+                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
+                }   
+                    break
+                default:
+                    break
         }
         
     }
@@ -322,6 +390,18 @@ class MathBlock {
                         return (x => this.translate_y + this.scale_y*Math.sin(this.children[0].toFunction()(x)))
                     case "cos":
                         return (x => this.translate_y + this.scale_y*Math.cos(this.children[0].toFunction()(x)))
+                    default:
+                        return null
+                }
+            case MathBlock.BIN_OP:
+                if (this.children[0] == null || this.children[0].toFunction() == null || this.children[1] == null || this.children[1].toFunction() == null){
+                    return null
+                }
+                switch (this.token){
+                    case "+":
+                        return (x => this.translate_y + this.scale_y*(this.children[0].toFunction()(x) + this.children[1].toFunction()(x)))
+                    case "*":
+                        return (x => this.translate_y + this.scale_y*(this.children[0].toFunction()(x) * this.children[1].toFunction()(x)))
                     default:
                         return null
                 }

@@ -14,7 +14,7 @@
  * 
  */
 
-const build = "play" 
+const build = "dev" 
 // = "dev" c key clears local storage
 // = "layout" wasd keys moves gameobjects, qe to cycle objs, 12345 changes layout precision
 // = "play" no console logs, no dev tools

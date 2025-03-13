@@ -25,6 +25,12 @@ const canvas_height = 900
 const levels = {
     intro: ["intro1","intro2","intro4Pos","introNeg","introFrac","introCombined","intro8"],
     quad: ["quad4","quad8","quad16","quad32","quad400","quad2x","quadHalf","quadShiftLeft","quadShiftRight"],
+    cubic: ["cubic4","cubic8","cubic16","cubic32","cubic400"],
+    exp: ["exp1","exp2"],
+    sin: ["sin1"],
+    sum: ["sum1"],
+    prod: ["prodTest"],
+    chain: [],
 }
 
 
@@ -369,6 +375,103 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, withSySlider 
     levelNavigationObj(gameState, ()=>tracer.solved)
 }
 
+function twoGridLevel(gameState, num_sliders, buttons, func){
+    gameState.objects = {}
+    let objs = gameState.objects
+    objs.gridLeft = new Grid(300,350,400,400,4,4,5,2,2)
+    objs.gridRight = new Grid(900,350,400,400,4,4,5,2,2)
+    var sliders = []
+    const slider_spacing = 400/num_sliders
+    var slider_size = 15
+    if (num_sliders >= 16) slider_size = 10
+    if (num_sliders >= 64) slider_size = 5
+    for (let i = 0; i < num_sliders; i++){
+        const slider = new Slider(900+slider_spacing*i, 350, 400, 4, 0, 2, 0.01, false, vertical=true,circleRadius=slider_size)
+        sliders.push(slider)
+        objs["slider" + i] = slider
+    }
+    const target_coords = []
+    for (let i = 0; i<num_sliders; i++){
+        const x = -2 + (i+1)/num_sliders*4
+        target_coords.push([x,func(x)])
+    }
+    var targets = []
+    for (let i = 0; i < target_coords.length; i++){
+        const coord = objs.gridLeft.gridToCanvas(target_coords[i][0],target_coords[i][1])
+        const target = new Target(coord.x, coord.y, slider_size)
+        targets.push(target)
+    }
+    const tracer = new Tracer(300,350 + (2-func(-2))*100,objs.gridLeft,
+        {type:"sliders",sliders:sliders,slider_spacing:slider_spacing},
+        4,targets)
+    objs.tracer = tracer
+    // We have to do this to order the layers correctly, maybe in future game objects can get a layer property
+    for (let i = 0; i < target_coords.length; i++){
+        objs["target" + i] = targets[i]
+    }
+
+    if (buttons){
+        objs.ty_slider = new Slider(1400, 350, 400, 4, 0, 2, 0.01, true, true)
+        objs.ty_slider.circleColorActive = Color.green
+        objs.ty_slider.active = false
+        objs.sy_slider = new Slider(1500, 350, 400, 4, 1, 2, 0.01, true, true)
+        objs.sy_slider.circleColorActive = Color.green
+        objs.sy_slider.active = false
+
+        var fun = x => x
+
+        if (buttons == 1){
+            objs.linear_button = new Button(900,220,50,50,()=>{},"/")
+            fun = x => x
+            function set_linear (){
+                if (!objs.linear_button.toggled){
+                    objs.linear_button.toggled = true
+                    objs.linear_button.color = Color.green
+                    objs.ty_slider.active = true
+                    objs.sy_slider.active = true
+                }else{
+                    objs.linear_button.toggled = false
+                    objs.linear_button.color = Color.white
+                    objs.ty_slider.active = false
+                    objs.sy_slider.active = false
+                }
+            }
+            objs.linear_button.onclick = set_linear
+        }
+
+        if (buttons == 2){
+            objs.quad_button = new Button(950,220,50,50,()=>{},"U")
+            fun = x => x*x
+            function set_quad (){
+                if (!objs.quad_button.toggled){
+                    objs.quad_button.toggled = true
+                    objs.quad_button.color = Color.green
+                    objs.ty_slider.active = true
+                    objs.sy_slider.active = true
+                }else{
+                    objs.quad_button.toggled = false
+                    objs.quad_button.color = Color.white
+                    objs.ty_slider.active = false
+                    objs.sy_slider.active = false
+                }
+            }
+            objs.quad_button.onclick = set_quad
+        }
+
+        gameState.update = () => {
+            if (objs.ty_slider.active){
+                for (let i = 0; i < num_sliders; i++){
+                    sliders[i].setValue(objs.ty_slider.value + objs.sy_slider.value * fun(objs.gridRight.canvasToGrid(sliders[i].origin_x,0).x))
+                }
+            }
+        }
+    }else {
+        gameState.update = () => {}
+    }
+    levelNavigationObj(gameState, ()=>tracer.solved)
+}
+
+
 function cubicDiscLevel(gameState, num_sliders, next){
     // To generalize
     const fun = x => x*x*x/6
@@ -583,7 +686,7 @@ function genContLevel(gameState, fun, blocks,
     //funLeft.color = Color.red
     const math_blocks = []
     for (let i = 0; i < blocks.length; i++){
-        math_blocks.push(new MathBlock(blocks[i][0],blocks[i][1],1300+x_adjust,250+y_adjust+100*i))
+        math_blocks.push(new MathBlock(blocks[i][0],blocks[i][1],1300+x_adjust,150+y_adjust+100*i))
     }
     const mngr = new MathBlockManager(math_blocks,600+x_adjust,150+y_adjust, ty_slider, sy_slider, {type: "fun_tracer", fun_tracer: funRight})
     targets = []
@@ -894,37 +997,37 @@ function loadScene(gameState){
          * 
          * - Another thing that could be good for cubic is triple discrete graphs.
          */
-        case "cubicMenu":{
+        case "cubic":{
             subMenu(gameState,"3")
             break
         }
 
-        /**
-         * Same as 2.1-2.3, just with the cubic target.
-         */
-        case "cubic1":{
-            cubicDiscLevel(gameState, 4)
-            break
-        }
-
-        case "cubic2":{
-            cubicDiscLevel(gameState, 8)
-            break
-        }
-
-        case "cubic3":{
-            cubicDiscLevel(gameState, 16)
-            break
-        }
-
-        /**
-         * Might want to label x^3 here. After this we don't off x^3 as a mathblock.
-         */
         case "cubic4":{
-            const fun = x => x*x*x/6
-            cubicContLevel(gameState, fun)
+            twoGridLevel(gameState,4,null,x => x*x*x/6)
             break
         }
+
+        case "cubic8":{
+            twoGridLevel(gameState,8,null,x => x*x*x/6)
+            break
+        }
+
+        case "cubic16":{
+            twoGridLevel(gameState,16,2,x => x*x*x/6)
+            break
+        }
+
+        case "cubic32":{
+            twoGridLevel(gameState,32,2,x => x*x*x/6)
+            break
+        }
+
+        case "cubic400":{
+            twoGridLevel(gameState,400,2,x => x*x*x/6)
+            break
+        }
+
+
 
         /**
          * Small scale
@@ -962,7 +1065,7 @@ function loadScene(gameState){
          * Exponential Levels
          * 
          */
-        case "expMenu":{
+        case "exp":{
             subMenu(gameState,"4")
             break
         }
@@ -1001,7 +1104,7 @@ function loadScene(gameState){
             break
         }
         
-        case "sinMenu":{
+        case "sin":{
             subMenu(gameState,"5","sin")
             break
         }
@@ -1045,11 +1148,18 @@ function loadScene(gameState){
          * 
          */
 
-        case "sumMenu":{
+        case "sum":{
             subMenu(gameState,"6","sum")
             break
         }
 
+
+        case "sum1":{
+            const fun = x =>  x*x/8 + Math.sin(x)
+            const blocks = [[MathBlock.VARIABLE,"x"],[MathBlock.POWER,"2"],[MathBlock.EXPONENT,"e"],[MathBlock.FUNCTION, "sin"],[MathBlock.BIN_OP,"+"]]
+            genContLevel(gameState, fun, blocks)
+            break
+        }
 
 
         /**
@@ -1073,8 +1183,15 @@ function loadScene(gameState){
          * 
          */
 
-        case "prodMenu":{
+        case "prod":{
             subMenu(gameState,"7","prod")
+            break
+        }
+
+        case "prodTest":{
+            const fun = x =>  x*x/8 + Math.sin(x)
+            const blocks = [[MathBlock.VARIABLE,"x"],[MathBlock.POWER,"2"],[MathBlock.EXPONENT,"e"],[MathBlock.FUNCTION, "sin"],[MathBlock.BIN_OP,"+"],[MathBlock.BIN_OP,"*"]]
+            genContLevel(gameState, fun, blocks)
             break
         }
 
@@ -1082,7 +1199,7 @@ function loadScene(gameState){
          * 8 chain
          */
 
-        case "chainMenu":{
+        case "chain":{
             subMenu(gameState,"8","chain")
             break
         }
