@@ -1,0 +1,30 @@
+Done:
+Set up shaders in main.js
+- Finished the fundamentals page
+
+
+Next:
+Follow the 3D perspective tutorial
+Less code, more fun
+Then drawing multiple things
+
+
+TODO:
+- set up to draw geometry
+- 3D perspective matrices
+- multiple meshes
+- mesh from file
+- skybox
+- environment mapping
+- noise mesh
+- colored faces?? colored vertices?
+- textures
+- water bump map
+
+
+Issues:
+
+Waves: need to track just the origin of the wave
+Surface height is computed as the sum of the waves
+... How does that work? the wave doesn't reach the point immediately
+It should be possible... should be relatively straightforward math...
