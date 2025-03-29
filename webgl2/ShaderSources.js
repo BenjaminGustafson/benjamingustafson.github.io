@@ -1,19 +1,37 @@
 var generalVertexShaderSource = `#version 300 es
-in vec4 a_position;
+in vec3 a_position;
 in vec3 a_normal;
-
-uniform mat4 u_normalMatrix;
-uniform mat4 u_viewProjectionMatrix;
-
+uniform mat4 u_mvpMatrix;
+uniform mat3 u_normalMatrix;
 out vec3 v_normal;
-out float v_clipY;
 
 void main() {
-  gl_Position = u_viewProjectionMatrix * a_position;
-  v_normal = mat3(u_normalMatrix) * a_normal;
-  v_clipY = gl_Position.y;
+    gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
+    v_normal = u_normalMatrix * a_normal;
 }
 `;
+
+var generalFragmentShaderSource = `#version 300 es
+precision highp float;
+
+in vec3 v_normal;
+out vec4 outColor;
+
+uniform vec3 u_lightDir;
+uniform float u_ambient;
+
+void main() {
+    vec3 normal = normalize(v_normal);
+    float diffuse = max(dot(normal, u_lightDir), 0.0);
+    float light = u_ambient + (1.0 - u_ambient) * diffuse;
+    vec3 baseColor = vec3(0.5, 0.5, 0.5);
+
+    outColor = vec4(baseColor * light, 1.0);
+    //outColor = vec4(normalize(v_normal) * 0.5 + 0.5, 1.0);//debug normals
+    //outColor = vec4(1.0, 0.0, 1.0, 1.0); //debug fixed color
+}
+`
+
 
 var mountainFragmentShaderSource = `#version 300 es
 precision highp float;
@@ -113,26 +131,68 @@ out vec4 outColor;
 uniform mat4 u_inverseViewProjection;
 
 vec3 decodeDirection(vec2 uv, mat4 invVP) {
-  // NDC coordinates
   vec4 ndc = vec4(uv * 2.0 - 1.0, 1.0, 1.0);
   
   // Unproject to world space
   vec4 world = invVP * ndc;
   world.xyz /= world.w;
 
-  // Assume camera is at origin
   return normalize(world.xyz);
 }
 
 void main() {
   vec3 dir = decodeDirection(v_uv, u_inverseViewProjection);
 
-  // Very simple gradient based on y
   vec3 skyColor = vec3(clamp(dir.x * 0.5 + 0.5, 0.0, 1.0), clamp(dir.y * 0.5 + 0.5, 0.0, 1.0), clamp(dir.z * 0.5 + 0.5, 0.0, 1.0));
   outColor = vec4(skyColor, 1.0);
 }
 `
 
+
+
+
+var genSkyVertexShaderSource = `#version 300 es
+precision highp float;
+
+const vec2 positions[3] = vec2[](
+  vec2(-1.0, -1.0),
+  vec2( 3.0, -1.0),
+  vec2(-1.0,  3.0)
+);
+
+out vec2 v_uv;
+
+void main() {
+  v_uv = positions[gl_VertexID] * 0.5 + 0.5;
+  gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
+}
+`;
+
+var genSkyFragmentShaderSource = `#version 300 es
+precision highp float;
+
+in vec2 v_uv;
+out vec4 outColor;
+
+uniform mat4 u_inverseViewProjection;
+
+vec3 decodeDirection(vec2 uv, mat4 invVP) {
+  vec4 ndc = vec4(uv * 2.0 - 1.0, 1.0, 1.0);
+  
+  // Unproject to world space
+  vec4 world = invVP * ndc;
+  world.xyz /= world.w;
+
+  return normalize(world.xyz);
+}
+
+void main() {
+  vec3 dir = decodeDirection(v_uv, u_inverseViewProjection);
+
+  vec3 skyColor = vec3(clamp(dir.x * 0.5 + 0.5, 0.0, 1.0), clamp(dir.y * 0.5 + 0.5, 0.0, 1.0), clamp(dir.z * 0.5 + 0.5, 0.0, 1.0));
+  outColor = vec4(skyColor, 1.0);
+}
+`
 
 
 
