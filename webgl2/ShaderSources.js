@@ -22,7 +22,7 @@ uniform float u_ambient;
 
 void main() {
     vec3 normal = normalize(v_normal);
-    float diffuse = max(dot(normal, u_lightDir), 0.0);
+    float diffuse = max(dot(normal, -u_lightDir), 0.0);
     float light = u_ambient + (1.0 - u_ambient) * diffuse;
     vec3 baseColor = vec3(0.5, 0.5, 0.5);
 
@@ -77,14 +77,14 @@ void main() {
     vec2 uv = ndc.xy * 0.5 + 0.5;
 
     // Optional: Clamp UVs to avoid artifacts
-    //uv = clamp(uv, 0.001, 0.999);
+    uv = clamp(uv, 0.001, 0.999);
 
     vec4 reflectedColor = texture(u_reflectionTexture, uv);
 
     // Optional: Blend reflection with base color
     float fresnel = pow(1.0 - dot(normal, -viewDir), 3.0); // Fresnel for realism
     vec3 baseColor = vec3(0.1, 0.1, 0.1); // dark surface
-    outColor = reflectedColor;//vec4(mix(baseColor, reflectedColor.rgb, fresnel), 1.0);
+    outColor = vec4(mix(baseColor, reflectedColor.rgb, fresnel), 1.0);
 }
 `
 

@@ -21,32 +21,32 @@ function setup() {
 
 
     // ----------------------------- Create geometry ---------------------------------------
-    // const perlin = createPerlinNoise(44);
-    // const fbm = createFBM(perlin, { 
-    //   octaves: 5,
-    //   persistence: 0.4,
-    //   lacunarity: 2.6,
-    //   scale: 6,
-    //   });
+    const perlin = createPerlinNoise(44);
+    const fbm = createFBM(perlin, { 
+      octaves: 5,
+      persistence: 0.4,
+      lacunarity: 2.6,
+      scale: 6,
+      });
 
-    // const terrainGeometry = generateTerrain(20, 15, 200, fbm, {gradientScale: 0.1, gradientPower:1});
+    const terrainGeometry = generateTerrain(30, 15, 200, fbm, {gradientScale: 0.1, gradientPower:1});
 
     // const lakeGeometry = generateLake(20, 10, 200);
 
     const cubeGeometry = generateCube();
     const cubeModelMatrix = mat4.create();
-    mat4.translate(cubeModelMatrix, cubeModelMatrix, [0, 2, 0]);
+    mat4.translate(cubeModelMatrix, cubeModelMatrix, [0, 0.8, -1]);
 
-    const planeGeometry = generatePlane(5,5,5);
+    const planeGeometry = generatePlane(20,20,10);
     const planeModelMatrix = mat4.create();
 
 
     // -------------------------------- Create Shader Programs --------------------------------
     // Mountains
-    // const mountainProgram = createProgram(gl,
-    //   createShader(gl, gl.VERTEX_SHADER, generalVertexShaderSource), 
-    //   createShader(gl, gl.FRAGMENT_SHADER, mountainFragmentShaderSource)
-    // );
+    const mountainProgram = createProgram(gl,
+      createShader(gl, gl.VERTEX_SHADER, generalVertexShaderSource), 
+      createShader(gl, gl.FRAGMENT_SHADER, generalFragmentShaderSource)
+    );
 
     // // Lake
     // const lakeProgram = createProgram(gl,
@@ -61,10 +61,13 @@ function setup() {
     );
 
     // ------------------------------- Create SceneObjects  ---------------------------
-    // var mountainModelMatrix = mat4.create();
-    // mat4.translate(mountainModelMatrix,mountainModelMatrix,[0,-1.5,-0.5])
-    // mat4.scale(mountainModelMatrix,mountainModelMatrix,[1,2,1])
-    // const terrain = new SceneObject(gl, mountainProgram, terrainGeometry,mountainModelMatrix);
+    var mountainModelMatrix = mat4.create();
+    mat4.translate(mountainModelMatrix,mountainModelMatrix,[0,-1.5,-7])
+    mat4.scale(mountainModelMatrix,mountainModelMatrix,[1,2.5,1])
+    const terrain = new SceneObject(gl, mountainProgram, terrainGeometry,mountainModelMatrix);
+    sceneObjects.push(terrain);
+
+
     // var lakeModelMatrix = mat4.create();
     // mat4.translate(lakeModelMatrix,lakeModelMatrix,[0,0,0])
     // lake = new SceneObject(gl, lakeProgram, lakeGeometry, lakeModelMatrix, {
@@ -73,7 +76,6 @@ function setup() {
     //   u_specularStrength: 1.0,
     // });
 
-    //sceneObjects.push(terrain);
     // sceneObjects.push(lake);
 
     const cubeProgram = createProgram(gl,
@@ -87,7 +89,7 @@ function setup() {
     );
 
     cube = new SceneObject(gl, cubeProgram, cubeGeometry, cubeModelMatrix);
-    sceneObjects.push(cube);
+    //sceneObjects.push(cube);
 
     plane = new SceneObject(gl, planeProgram, planeGeometry, planeModelMatrix);
     sceneObjects.push(plane)
@@ -156,7 +158,7 @@ function render(time) {
     mat4.perspective(projectionMatrix, fov, aspect, zNear, zFar)
 
     // ------------------------------ View --------------------------------------
-    var cameraPosition = [5*Math.sin(time/10), 5, 5*Math.cos(time/10)]
+    var cameraPosition = [0,0.5,5]
     var target = [0, 0, 0]
     var up = [0, 1, 0]
     var viewMatrix = mat4.create()
@@ -171,7 +173,7 @@ function render(time) {
 
     // -------------------------- Animate objects ---------------------------------------
     //mat4.rotateY(cube.modelMatrix, cube.modelMatrix, deltaTime/2)
-    mat4.translate(cube.modelMatrix, cube.modelMatrix, [-0.01*Math.sin(time),-0.01*Math.cos(time),0])
+    mat4.translate(cube.modelMatrix, cube.modelMatrix, [0,0,0])
     
 
     // ----------------------------- Reflected view ------------------------------
