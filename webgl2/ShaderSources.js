@@ -32,6 +32,63 @@ void main() {
 }
 `
 
+var reflectPlaneVertSrc = `#version 300 es
+
+in vec3 a_position;
+in vec3 a_normal;
+
+uniform mat4 u_modelMatrix;
+uniform mat4 u_mvpMatrix;
+uniform mat3 u_normalMatrix;
+
+out vec3 v_worldPos;
+out vec3 v_normal;
+
+void main() {
+    vec4 worldPos = u_modelMatrix * vec4(a_position, 1.0);
+    v_worldPos = worldPos.xyz;
+    v_normal = u_normalMatrix * a_normal;
+
+    gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
+}
+`;
+
+var reflectPlaneFragSrc = `#version 300 es
+precision highp float;
+
+in vec3 v_worldPos;
+in vec3 v_normal;
+
+uniform vec3 u_cameraPos;
+uniform sampler2D u_reflectionTexture;
+uniform mat4 u_projectionMatrix;
+uniform mat4 u_viewMatrix;
+
+out vec4 outColor;
+
+void main() {
+    vec3 normal = normalize(v_normal);
+    vec3 viewDir = normalize(v_worldPos - u_cameraPos);
+    vec3 reflectDir = reflect(viewDir, normal);
+
+    // Reconstruct clip space pos for sampling reflection texture
+    vec4 clipPos = u_projectionMatrix * u_viewMatrix * vec4(v_worldPos, 1.0);
+    vec3 ndc = clipPos.xyz / clipPos.w;
+    vec2 uv = ndc.xy * 0.5 + 0.5;
+
+    // Optional: Clamp UVs to avoid artifacts
+    //uv = clamp(uv, 0.001, 0.999);
+
+    vec4 reflectedColor = texture(u_reflectionTexture, uv);
+
+    // Optional: Blend reflection with base color
+    float fresnel = pow(1.0 - dot(normal, -viewDir), 3.0); // Fresnel for realism
+    vec3 baseColor = vec3(0.1, 0.1, 0.1); // dark surface
+    outColor = reflectedColor;//vec4(mix(baseColor, reflectedColor.rgb, fresnel), 1.0);
+}
+`
+
+
 
 var mountainFragmentShaderSource = `#version 300 es
 precision highp float;
@@ -196,6 +253,26 @@ void main() {
 
 
 
+// vertex shader
+const texVertexShader = `#version 300 es
+in vec2 a_position;
+out vec2 v_texcoord;
+
+void main() {
+    v_texcoord = (a_position + 1.0) * 0.5;
+    gl_Position = vec4(a_position, 0, 1);
+}`;
+
+// fragment shader
+const texFragmentShader = `#version 300 es
+precision mediump float;
+in vec2 v_texcoord;
+uniform sampler2D u_texture;
+out vec4 outColor;
+
+void main() {
+    outColor = texture(u_texture, v_texcoord);
+}`;
 
 
 

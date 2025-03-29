@@ -6,7 +6,7 @@ var sceneObjects = []
 var skyProgram = null
 let reflectionFramebuffer;
 let reflectionTexture;
-var lake = null
+let plane;
 let cube;
 
 // ================================ SETUP =================================================
@@ -17,6 +17,8 @@ function setup() {
     if (!gl) {
         return;
     }
+    resizeCanvasToDisplaySize(gl.canvas);
+
 
     // ----------------------------- Create geometry ---------------------------------------
     // const perlin = createPerlinNoise(44);
@@ -33,7 +35,11 @@ function setup() {
 
     const cubeGeometry = generateCube();
     const cubeModelMatrix = mat4.create();
-    //mat4.translate(cubeModelMatrix, cubeModelMatrix, [0, 0, 0]);
+    mat4.translate(cubeModelMatrix, cubeModelMatrix, [0, 2, 0]);
+
+    const planeGeometry = generatePlane(5,5,5);
+    const planeModelMatrix = mat4.create();
+
 
     // -------------------------------- Create Shader Programs --------------------------------
     // Mountains
@@ -75,8 +81,16 @@ function setup() {
       createShader(gl, gl.FRAGMENT_SHADER,generalFragmentShaderSource)
     );
 
+    const planeProgram = createProgram(gl,
+        createShader(gl, gl.VERTEX_SHADER, reflectPlaneVertSrc), 
+        createShader(gl, gl.FRAGMENT_SHADER,reflectPlaneFragSrc)
+    );
+
     cube = new SceneObject(gl, cubeProgram, cubeGeometry, cubeModelMatrix);
     sceneObjects.push(cube);
+
+    plane = new SceneObject(gl, planeProgram, planeGeometry, planeModelMatrix);
+    sceneObjects.push(plane)
 
     gl.enable(gl.DEPTH_TEST);
     //gl.disable(gl.CULL_FACE);
@@ -84,57 +98,54 @@ function setup() {
 
 
     // --------------------------------- Reflection ------------------------------------------
-    // reflectionFramebuffer = gl.createFramebuffer();
-    // gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFramebuffer);
+    reflectionFramebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFramebuffer);
 
-    // reflectionTexture = gl.createTexture();
-    // gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
-    // gl.texImage2D(
-    //     gl.TEXTURE_2D, 0, gl.RGBA,
-    //     gl.canvas.width, gl.canvas.height,
-    //     0, gl.RGBA, gl.UNSIGNED_BYTE, null
-    // );
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    reflectionTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, reflectionTexture);
+    gl.texImage2D(
+        gl.TEXTURE_2D, 0, gl.RGBA,
+        gl.canvas.width, gl.canvas.height,
+        0, gl.RGBA, gl.UNSIGNED_BYTE, null
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    // // Attach the texture as the color attachment
-    // gl.framebufferTexture2D(
-    //     gl.FRAMEBUFFER,
-    //     gl.COLOR_ATTACHMENT0,
-    //     gl.TEXTURE_2D,
-    //     reflectionTexture,
-    //     0
-    // );
+    // Attach the texture as the color attachment
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.TEXTURE_2D,
+        reflectionTexture,
+        0
+    );
 
     // Create a depth renderbuffer
-    // const reflectionDepthBuffer = gl.createRenderbuffer();
-    // gl.bindRenderbuffer(gl.RENDERBUFFER, reflectionDepthBuffer);
-    // gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, gl.canvas.width, gl.canvas.height);
-    // gl.framebufferRenderbuffer(
-    //     gl.FRAMEBUFFER,
-    //     gl.DEPTH_ATTACHMENT,
-    //     gl.RENDERBUFFER,
-    //     reflectionDepthBuffer
-    // );
+    const reflectionDepthBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, reflectionDepthBuffer);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, gl.canvas.width, gl.canvas.height);
+    gl.framebufferRenderbuffer(
+        gl.FRAMEBUFFER,
+        gl.DEPTH_ATTACHMENT,
+        gl.RENDERBUFFER,
+        reflectionDepthBuffer
+    );
 
-    // // Check completeness
-    // if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
-    //     console.error("Reflection framebuffer is not complete");
-    // }
+    // Check completeness
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+        console.error("Reflection framebuffer is not complete");
+    }
 
-    // gl.bindFramebuffer(gl.FRAMEBUFFER, null); // Unbind for now
-
-
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null); // Unbind for now
 }// End Setup
 
 
-// ================================ Render Loop ===============================================
+//================================ Render Loop ===============================================
 var then = 0
 function render(time) {
     time *= 0.001;  // convert to seconds
     const deltaTime = time - then;
     then = time;
-    resizeCanvasToDisplaySize(gl.canvas);
 
     // -------------------------- Projection matrix -------------------------------
     var projectionMatrix = mat4.create()
@@ -145,8 +156,8 @@ function render(time) {
     mat4.perspective(projectionMatrix, fov, aspect, zNear, zFar)
 
     // ------------------------------ View --------------------------------------
-    var cameraPosition = [0, 5, 6]
-    var target = [Math.sin(time) * 2, Math.cos(time) * 2, 0]
+    var cameraPosition = [5*Math.sin(time/10), 5, 5*Math.cos(time/10)]
+    var target = [0, 0, 0]
     var up = [0, 1, 0]
     var viewMatrix = mat4.create()
     mat4.lookAt(viewMatrix, cameraPosition, target, up)
@@ -157,52 +168,54 @@ function render(time) {
 
     const invViewProj = mat4.create();
     mat4.invert(invViewProj, viewProjectionMatrix);
+
+    // -------------------------- Animate objects ---------------------------------------
+    //mat4.rotateY(cube.modelMatrix, cube.modelMatrix, deltaTime/2)
+    mat4.translate(cube.modelMatrix, cube.modelMatrix, [-0.01*Math.sin(time),-0.01*Math.cos(time),0])
     
 
     // ----------------------------- Reflected view ------------------------------
    
-    // const reflectedCamera = cameraPosition.slice()
-    // reflectedCamera[1] *= -1
-    // const reflectedTarget = target.slice();
-    // reflectedTarget[1] *= -1;
-    // var reflectedViewMatrix = mat4.create()
-    // mat4.lookAt(reflectedViewMatrix, reflectedCamera, reflectedTarget, up)
-    // const reflectedVPMatrix = mat4.create();
-    // mat4.multiply(reflectedVPMatrix, projectionMatrix, reflectedViewMatrix);
-    // const invReflectedVP = mat4.create();
-    // mat4.invert(invReflectedVP, reflectedVPMatrix)
+    const reflectionMat = mat4.create();
+    mat4.scale(reflectionMat, reflectionMat, [1, -1, 1]);
+
+    const reflectedViewMatrix = mat4.create();
+    mat4.multiply(reflectedViewMatrix, viewMatrix, reflectionMat); // reflection * view
+
+    const reflectedVPMatrix = mat4.create();
+    mat4.multiply(reflectedVPMatrix, projectionMatrix, reflectedViewMatrix);
+    
+    const invReflectedVP = mat4.create();
+    mat4.invert(invReflectedVP, reflectedVPMatrix)
 
     // --------------------- Render to Reflection Texture -----------------------
 
-    // gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFramebuffer);
-    // gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    // gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, reflectionFramebuffer);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // // Reflected sky
-    // const skyVAO = gl.createVertexArray();
-    // gl.bindVertexArray(skyVAO);
-    // gl.depthMask(false); // Don’t write to depth buffer
-    // gl.useProgram(skyProgram);
-    // gl.uniformMatrix4fv(gl.getUniformLocation(skyProgram, "u_inverseViewProjection"), false, invReflectedVP);
-    // gl.drawArrays(gl.TRIANGLES, 0, 3);
-    // gl.depthMask(true);  // Re-enable depth writing for scene
+    // Reflected sky
+    const skyVAO = gl.createVertexArray();
+    gl.bindVertexArray(skyVAO);
+    gl.depthMask(false); // Don’t write to depth buffer
+    gl.useProgram(skyProgram);
+    gl.uniformMatrix4fv(gl.getUniformLocation(skyProgram, "u_inverseViewProjection"), false, invReflectedVP);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.depthMask(true);  // Re-enable depth writing for scene
 
-    // //Render all non-water objects
-    // for (const obj of sceneObjects) {
-    //     if (obj !== lake) {
-    //         obj.draw(reflectedVPMatrix, {
-    //             lightDir: vec3.normalize([], [1, 1, 1]),
-    //             ambient: 0.2,
-    //         }, {
-    //             u_time: time,
-    //             u_clipY: 0.0,
-    //             u_clipping: false
-    //         });
-    //     }
-    // }
+    //Render all non-plane objects
+    for (const obj of sceneObjects) {
+        if (obj !== plane) {
+            obj.draw(reflectedVPMatrix, [
+                ["u_lightDir", vec3.normalize([], [1, 1, 1]), "3f"],
+                ["u_ambient", 0.2, "1f"],
+                ["u_time", time, "1f"]
+            ]);
+        }
+    }
 
-    // gl.bindFramebuffer(gl.FRAMEBUFFER, null); // Done rendering reflection
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null); // Done rendering reflection
 
     // --------------------------- Canvas set up -----------------------------------------
     // Tell WebGL how to convert from clip space to pixels
@@ -213,7 +226,6 @@ function render(time) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // ------------------------------- Draw sky ----------------------------------------
-    const skyVAO = gl.createVertexArray();
     gl.bindVertexArray(skyVAO);
     gl.depthMask(false); // Don’t write to depth buffer
     gl.useProgram(skyProgram);
@@ -221,8 +233,6 @@ function render(time) {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.depthMask(true);  // Re-enable depth writing for scene
 
-    // -------------------------- Animate objects ---------------------------------------
-    mat4.rotateY(cube.modelMatrix, cube.modelMatrix, deltaTime/2)
 
     // -------------------------------- Draw --------------------------------------
     if (sceneObjects.length == 0){
@@ -232,10 +242,13 @@ function render(time) {
         obj.draw(viewProjectionMatrix, [
             ["u_lightDir", vec3.normalize([], [1, 1, 1]), "3f"],
             ["u_ambient", 0.2, "1f"],
-            ["u_time", time, "1f"]
+            ["u_time", time, "1f"],
+            ["u_cameraPos", cameraPosition, "3f"],
+            ["u_reflectionTexture", { texture: reflectionTexture, unit: 0 }, "tex2d"],
+            ["u_viewMatrix", viewMatrix, "mat4"],
+            ["u_projectionMatrix", projectionMatrix, "mat4"]
         ]);
     }
-
     requestAnimationFrame(render);
 }
 
