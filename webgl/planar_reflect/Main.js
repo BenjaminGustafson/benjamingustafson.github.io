@@ -45,7 +45,7 @@ function setup() {
     // Mountains
     const mountainProgram = createProgram(gl,
       createShader(gl, gl.VERTEX_SHADER, generalVertexShaderSource), 
-      createShader(gl, gl.FRAGMENT_SHADER, generalFragmentShaderSource)
+      createShader(gl, gl.FRAGMENT_SHADER, mountainFragmentShaderSource)
     );
 
     // // Lake
