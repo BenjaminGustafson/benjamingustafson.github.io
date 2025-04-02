@@ -1,0 +1,27 @@
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-family: sans-serif;
+}
+
+#canvas {
+  width: 600px;
+  height: 600px;
+  display: block;
+  border: 1px solid #ccc;
+}
+
+#controls {
+  margin-left: 2rem;
+  width: 300px;
+  background-color: #f0f0f0;
+  padding: 1rem;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  height: fit-content;
+}
