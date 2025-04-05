@@ -11,7 +11,7 @@ class SceneObject {
         // Positions
         this.positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, geometry.positions, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(geometry.positions), gl.STATIC_DRAW);
         const posLoc = gl.getAttribLocation(program, "a_position");
         if (posLoc !== -1) {
             gl.enableVertexAttribArray(posLoc);
@@ -28,7 +28,7 @@ class SceneObject {
         }
         this.normalBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
         const normLoc = gl.getAttribLocation(program, "a_normal");
         if (normLoc !== -1) {
             gl.enableVertexAttribArray(normLoc);
@@ -40,7 +40,7 @@ class SceneObject {
         // Indices
         this.indexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geometry.indices, gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(geometry.indices), gl.STATIC_DRAW);
 
     }
 
@@ -62,8 +62,9 @@ class SceneObject {
         this.setUniform("u_mvpMatrix", mvpMatrix, "mat4");
 
         // Set uniforms
-        for (const [name, value, type] of uniforms) {
-            this.setUniform(name, value, type)
+        for (let i = 0; i <  uniforms.length; i++) {
+            let uniform = uniforms[i]
+            this.setUniform(uniform[0], uniform[1], uniform[2])
         }
 
         gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0);

@@ -15,13 +15,34 @@ body {
   border: 1px solid #ccc;
 }
 
+#canvas2 {
+  width: 600px;
+  height: 600px;
+  display: block;
+  border: 1px solid #ccc;
+}
+
 #controls {
   margin-left: 2rem;
-  width: 300px;
+  width: 400px;
   background-color: #f0f0f0;
   padding: 1rem;
   box-sizing: border-box;
   border-radius: 8px;
   border: 1px solid #ccc;
   height: fit-content;
+}
+
+/* Flex container for the slider control */
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Ensure the slider value label maintains a fixed width */
+#uvScaleValue {
+  display: inline-block;
+  min-width: 2em;
+  text-align: right;
 }
