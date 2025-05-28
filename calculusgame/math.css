@@ -1,0 +1,72 @@
+body {
+    margin-top: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #2c2c2c;
+    background-color: whitesmoke;
+}
+
+.nav {
+    float: left;
+    max-width: 20ch;
+    margin-left: 5%;
+
+}
+
+
+.left {
+    float: left;
+    width: 50%;
+}
+
+.right {
+    float: right;
+    width: 50%;
+}
+
+.text{
+    float: right;
+    max-width: 80ch;
+}
+
+@media screen and (max-width: 220ch) {
+    .nav {
+        display: none !important;
+    }
+    .text {
+        margin-left: 5%; 
+    }
+}
+
+@media screen and (max-width: 160ch) {
+    .right {
+        float: none;
+    }
+    .left {
+        width: 100%;
+    }
+    .text{
+        float: none;
+    }
+}
+
+h1{
+    font-size: 24pt;
+}
+
+h2{
+    font-size: 20pt;
+}
+
+h3{
+    font-size: 16pt;
+}
+
+p{
+    font-size: 16pt;
+}
+
+img{
+    margin-left: 10%;
+    margin-right: auto;
+}

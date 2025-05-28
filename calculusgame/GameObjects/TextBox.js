@@ -12,17 +12,18 @@
  */
 class TextBox{
 
-    constructor(origin_x,origin_y,content,font='40px sans-serif', align='start',baseline='alphabetic'){
+    constructor(origin_x,origin_y,content,font='40px sans-serif',color=Color.white, align='start',baseline='alphabetic'){
         this.origin_x = origin_x
         this.origin_y = origin_y
         this.content = content
         this.font = font
         this.align = align
         this.baseline = baseline
+        this.color = color
     }
 
     draw(ctx){
-        Color.setColor(ctx,Color.white)
+        Color.setColor(ctx,this.color)
         ctx.font = this.font
         ctx.textAlign = this.align
         ctx.textBaseline = this.baseline

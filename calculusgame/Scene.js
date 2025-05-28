@@ -725,6 +725,24 @@ function notebook (gameState){
 function loadScene(gameState){
     switch (gameState.sceneName){
         case "":
+        case "startMenu":{
+            start_button = new Button(100,250,200,100, (()=> gameState.sceneName = "shipDoor"), "Start")
+            start_button.color = Color.black
+            about_button = new Button(100,400,200,100, (()=> window.location.replace("about.html")), "About")
+            about_button.color = Color.black
+            gameState.objects = [
+                new ImageObject(0,0, canvas_width, canvas_height, "start_img"),
+                new TextBox(100,150,"A game about calculus",font="60px monospace", color=Color.black),
+                start_button,about_button
+            ]
+            break
+        }
+        case "shipDoor":{
+            gameState.objects = [
+                new ImageObject(0,0, canvas_width, canvas_height, "start2_img"),
+            ]
+            break
+        }
         case "mainMenu":{   
             text_content = ["This is a game about calculus.",
                 "If you get stuck, feel free to skip a level.",

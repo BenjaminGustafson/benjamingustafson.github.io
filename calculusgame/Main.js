@@ -24,7 +24,7 @@ function setup() { "use strict";
 
   var canvas = document.getElementById('myCanvas');
 
-  var current_sceneName = "mainMenu"
+  var current_sceneName = "startMenu"
   var gameState = {
     sceneName: current_sceneName,
     objects: [],
