@@ -69,4 +69,6 @@ p{
 img{
     margin-left: 10%;
     margin-right: auto;
+    float: right;
+    max-width: 60ch;
 }

@@ -14,9 +14,13 @@ class Button{
         }
         this.label = label
         this.color = Color.white
+        this.visible = true
     }
 
     draw(ctx){
+        if (!this.visible){
+            return
+        }
         if (this.active){
             Color.setColor(ctx,this.color)
         }else{

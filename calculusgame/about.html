@@ -25,58 +25,72 @@
 
   <div class = "text">
 
-    <h1>What is this game?</h1>
+    <h1>A puzzle game that teaches calculus</h1>
     <hr>
     
     <p>
-     This is a game where the player solves 2D puzzles, and learns calculus along the way.  
+     The goal of this project is to develop a proof-of-concept game where the player solves puzzles, and learns calculus along the way. 
+     This game is not intended to replace a calculus course.
+     A calculus course will demand upwards of 100 hours of a student's time, which is too large of a scope for this small game.
+     The game focuses on building intuition for the core concept of Calc I, the derivative.
+    </p>
+    <p>
+      Students in a calculus course can develop a shallow understanding of the derivative if they focus too much on the algebraic mechanics of taking a derivative.
+      The derivative has an essential graphical interpretation as the slope of the tangent line.
+      The puzzles in the game are based on the relationship between the graph of a function and its derivative.
+    </p>
+    <p>
+      <img src="images/examplepuzzle.png"/>
     </p>
 
-    <h1>Where is the game currently at in development?</h1>
+    <p>
+      In a standard puzzle the graph on the left represents some function, $f$, and the graph on the right is its derivative $f'$.
+      The player sets the values of $f'$ by moving the circles on graph on the right.
+      The puzzle is solved by setting the values of $f'$ so that $f$ hits the square targets.
+      We can add more targets (squares) and sliders (circles) so that the graph becomes smoother.
+    </p>
+
+    <p>
+      <img src="images/quad16.png"/>
+    </p>
+
+    <p>
+      We can use this style of puzzle to teach derivative rules. In the above puzzle, we see that $f$ is quadratic and so $f'$ is linear.
+    </p>
+
+
+    <p>
+      Students are often led to memorize derivative rules.
+      There are popular mnemonics like "fig gif" (f'g + g'f) for the power rule.
+      In my opinion, mnemonics show a lack of depth of understanding.
+      A student should be able to give some explanation as to why each derivative rule holds.
+      A calculus textbook might give proofs of the rules, but these proofs are above the mathematical reading level of the typical student.
+    </p>
+
+    <!-- <p>
+      Along with building intuition, games offer possibly a more compelling way to study calculus or other subjects.
+      For many students, calculus is a class that is required for their major, and can be perceived as a hurdle in the way of them doing what they actually want to.
+      Thus, there is some responsibility on the people teaching calculus to motivate the student.
+      Video game design is in a way the study of motivation.
+      Games are designed to be "fun", a nebulous term that could mean enjoyable in the moment or bringing long term satisfaction.
+      For students who find exercise sets, whiteboard lectures, and dry textbooks a bit boring, games offer a way to increase motivation.
+    </p>
+
+    <p>
+      Another advantage games have over an exercise set is that there is a strict set of confines on the player.
+      If you have ever helped a struggling student, one of the most common issues is that they don't know where to start. 
+      They have a problem, like taking the derivative of a given function, but they don't know what they are allowed to do or not allowed to do.
+      They are faced with a blank sheet of paper and a pencil and the unlimited possibilities of things that they could write.
+      Games are much more approachable since they   -->
+  </p>
+
+    <h2>Current state of the game</h2>
     <hr>
 
     <p>
-        The art is all placeholders, just to give a rough idea. All of the puzzles need to be playtested.
-    </p>
-
-    <h1>The gap in calculus pedagogy</h1>
-    <hr>
-
-    <p>
-    The game aims to teach derivative rules.
-    Calculus students are often led to memorize these rules.
-    Their textbook might give proofs of the rules, but this is above the reading level of the typical student.
-    Further, an algebraic proof doesn't give an intuitive explanation for why the rule is true.
-    </p>
-    <p>
-
-        One advantage of a video game over an exercise set is that there is a strict set of confines on the player.
-        If you have ever helped a struggling student, one of the most common issues is that they don't know where to start. 
-        They have a problem, like take the derivative of a given function, but they don't know what they are allowed to do or not allowed to do.
-        They are faced with a blank sheet of paper and a pencil and the unlimited possibilities of things that they could write.
-    </p>
-    <p>
-
-        Another advantage of games is that they give instant feedback.
-        They can prevent the player from moving on until they have mastered a skill.
-    </p> 
-    
-
-    <h1>The untapped potential of educational games</h1>
-    <hr>
-    <p>
-        Video game design has developed many strategies for making things fun.
-        Games make otherwise boring tasks enjoying and compelling. 
-        For example, there is not something inheretly fun about clicking on targets with a mouse.
-        But when themed as shooting an enemy with a gun, when a score is attached, when a hit makes a satisfying sound effect, 
-        the task becomes more fun.
-          
-        Rarely do games try to make that core task into something educational. 
-        There are successful examples of gamification like Duolingo or Khan Academy.
-
-        In the case of puzzle games, the underlying task can be framed as a mathematical problem.
-
-
+      A first version of the puzzle format is complete.
+      All of the puzzles need to be playtested.
+      The art is all placeholder, just to give a rough idea of the theme. 
     </p>
 
 

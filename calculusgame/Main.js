@@ -14,12 +14,12 @@
  * 
  */
 
-const build = "dev" 
-// = "dev" c key clears local storage
+const build = "play" 
+// = "dev" c key clears local storage, s key sets solved
 // = "layout" wasd keys moves gameobjects, qe to cycle objs, 12345 changes layout precision
 // = "play" no console logs, no dev tools
 // = ""
-
+keysPressed = {}
 function setup() { "use strict";
 
   var canvas = document.getElementById('myCanvas');
@@ -34,11 +34,37 @@ function setup() { "use strict";
     layout : {ind: 0, prec: 10},
   }
 
+  if (build == 'dev'){
+    const startScene =  localStorage.getItem('startScene')
+    if (startScene) gameState.sceneName = startScene 
+  }
+
   Object.keys(localStorage).forEach(key => {
     gameState.completedLevels[key] = true
   })
   
   loadScene(gameState)
+
+  // const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  // const desiredFreq = 440;
+  // const sampleRate = audioCtx.sampleRate;
+  // const samplesPerCycle = Math.round(sampleRate / desiredFreq);
+  // const baseFreq = sampleRate / samplesPerCycle;
+
+  // const buffer = audioCtx.createBuffer(1, samplesPerCycle, sampleRate);
+  // const data = buffer.getChannelData(0);
+
+  // for (let i = 0; i < samplesPerCycle; i++) {
+  //   data[i] = 0.01*Math.sin((2 * Math.PI * i) / samplesPerCycle);
+  // }
+
+  // const source = audioCtx.createBufferSource();
+  // source.buffer = buffer;
+  // source.loop = true;
+  // source.playbackRate.value = desiredFreq / baseFreq;
+
+  // source.connect(audioCtx.destination);
+  //source.start();
 
 
   // ----------------------------------------------------------------------------------------------
@@ -60,27 +86,10 @@ function setup() { "use strict";
             }
         }
     })
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const desiredFreq = 440;
-        const sampleRate = audioCtx.sampleRate;
-        const samplesPerCycle = Math.round(sampleRate / desiredFreq);
-        const baseFreq = sampleRate / samplesPerCycle;
-
-        const buffer = audioCtx.createBuffer(1, samplesPerCycle, sampleRate);
-        const data = buffer.getChannelData(0);
-
-        for (let i = 0; i < samplesPerCycle; i++) {
-          data[i] = 0.01*Math.sin((2 * Math.PI * i) / samplesPerCycle);
-        }
-
-        const source = audioCtx.createBufferSource();
-        source.buffer = buffer;
-        source.loop = true;
-        source.playbackRate.value = desiredFreq / baseFreq;
-
-        source.connect(audioCtx.destination);
-        //source.start();
+    if (gameState.mouseDown){
+      gameState.mouseDown(x,y)
+    }
+    
   });
 
   canvas.addEventListener('mousemove', function (event) {
@@ -113,11 +122,29 @@ function setup() { "use strict";
     })
   });
 
+  
+  document.addEventListener('keyup', function(event) {
+    keysPressed[event.key] = false
+  });
+
+
   document.addEventListener('keydown', function(event) {
+    if (!keysPressed[event.key] && gameState.keyPressed){
+      gameState.keyPressed(event.key)
+    }
+    keysPressed[event.key] = true
     if (build == "dev"){
-      if (event.key == 'c'){
-        localStorage.clear()
-        gameState.completedLevels = {}
+      switch (event.key){
+        case 'c':
+          localStorage.clear()
+          gameState.completedLevels = {}
+          break
+        case 's':
+          gameState.completedLevels[gameState.sceneName] = true
+          break
+        case 'r':
+          localStorage.setItem("startScene", gameState.sceneName)
+          break
       }
     }
 

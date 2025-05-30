@@ -34,7 +34,7 @@ const levels = {
 }
 
 
-function subMenu(gameState, menu_num){
+function subMenu(gameState, menu_num, exitTo){
     gameState.section = gameState.sceneName;
     buttons = []
     for (let i = 0; i < levels[gameState.section].length; i++){
@@ -67,14 +67,24 @@ function subMenu(gameState, menu_num){
     // Space betweeen back and grid 200px
     // 500px of buttons (3 rows max)
     // Leaves 100px above and below
-    const backButton = new Button(100,100,100,100, (()=> gameState.sceneName = "mainMenu"), "↑")
+    const backButton = new Button(100,100,100,100, (()=> gameState.sceneName = exitTo), "↑")
     buttons.push(backButton)
 
+    // const actionButton = new Button(300,100,200,100, (()=> gameState.sceneName = exitTo), "Open Door")
+    // actionButton.active = false
+    // buttons.push(actionButton)
+
     gameState.update = (()=>{
-        for (let i = 0; i < buttons.length; i++){
+        var allComplete = true
+        for (let i = 0; i < levels[gameState.section].length; i++){
             if (gameState.completedLevels[levels[gameState.section][i]]){
                 buttons[i].color = Color.blue
+            }else{
+                allComplete = false
             }
+        }
+        if (allComplete){
+            gameState.completedLevels[gameState.section] = true
         }
     })
     gameState.objects = buttons
@@ -702,6 +712,59 @@ function genContLevel(gameState, fun, blocks,
     levelNavigation(gameState, ()=>tracer.solved)
 }
 
+
+
+function rngLevel(gameState, funType, blocks,
+    grid_setting = {grid_width: 4, grid_height: 4, x_axis: 2, y_axis: 2},
+){
+
+    const randA = Math.floor(Math.random()*50)/10
+    const randB = Math.floor(Math.random()*20)/10
+    const funString = "f(x)=" + randA + "x+" + randB
+    const fun = x =>  randA * x + randB
+
+    const target_coords = []
+    const num_targets = 200
+    for (let i = 0; i < num_targets; i++){
+        const x = -2 + (i+1)/num_targets*4
+        const y = fun(x)
+        target_coords.push([x,y])
+    }
+
+    const y_adjust = 100
+    const x_adjust = 100
+    const gridLeft = new Grid(100+x_adjust,250+y_adjust,400,400,grid_setting.grid_width,grid_setting.grid_height,5,grid_setting.x_axis,grid_setting.y_axis)
+    const gridRight = new Grid(600+x_adjust,250+y_adjust,400,400,grid_setting.grid_width,grid_setting.grid_height,5,grid_setting.x_axis,grid_setting.y_axis)
+    const ty_slider = new Slider(1100+x_adjust, 250+y_adjust, 400, 8, 0, 4, 0.1, true, true)
+    const sy_slider = new Slider(1200+x_adjust, 250+y_adjust, 400, 8, 1, 4, 0.1, true, true)
+    const funRight = new FunctionTracer(gridRight)
+    //const funLeft = new FunctionTracer(gridLeft, (x => x*x))
+    //funLeft.color = Color.red
+    const math_blocks = []
+    for (let i = 0; i < blocks.length; i++){
+        math_blocks.push(new MathBlock(blocks[i][0],blocks[i][1],1300+x_adjust,150+y_adjust+100*i))
+    }
+    const mngr = new MathBlockManager(math_blocks,600+x_adjust,150+y_adjust, ty_slider, sy_slider, {type: "fun_tracer", fun_tracer: funRight})
+    targets = []
+    for (let i = 0; i < target_coords.length; i++){
+        const canvas_coords = gridLeft.gridToCanvas(target_coords[i][0],target_coords[i][1])
+        targets.push(new Target(canvas_coords.x, canvas_coords.y,5))
+    }
+    tracer_start = gridLeft.gridToCanvas(-2,fun(-2))
+    const tracer = new Tracer(tracer_start.x,tracer_start.y,gridLeft,{type:"mathBlock",mathBlockMngr:mngr},4,targets)
+    
+    const back_button = new Button(100,100,100,100, (()=> gameState.sceneName = "ship"),"↑")
+    const forward_button = new Button(300,100,100,100, (()=> {}),"→")
+    const targetText = new TextBox(200,300,funString,font='40px monospace',color=Color.white) 
+    const posText = new TextBox(200,850,"Position",font='40px monospace',color=Color.white)
+    const velText = new TextBox(700,850,"Velocity",font='40px monospace',color=Color.white)
+
+    gameState.objects = [gridLeft,gridRight,sy_slider,ty_slider,mngr,funRight,tracer,back_button,forward_button,targetText,
+        posText, velText
+    ].concat(targets)
+    gameState.update = () => {}
+}
+
 /**
  * Adds the button to pull up the notebook
  * Notebook pages correspond to certain levels
@@ -723,6 +786,9 @@ function notebook (gameState){
  * 
  */
 function loadScene(gameState){
+    gameState.update = () => {}
+    gameState.mouseDown = null
+    gameState.keyPressed = null
     switch (gameState.sceneName){
         case "":
         case "startMenu":{
@@ -735,14 +801,75 @@ function loadScene(gameState){
                 new TextBox(100,150,"A game about calculus",font="60px monospace", color=Color.black),
                 start_button,about_button
             ]
+            gameState.keyPressed = key => {
+                if (key == 'Enter' || key == ' ' || key == 'ArrowRight'){
+                    gameState.sceneName = "shipDoor"
+                }
+            }
             break
         }
         case "shipDoor":{
+            const open = gameState.completedLevels["intro"]
+            const door_button = new Button(880,450,120,230, (()=> {gameState.sceneName = (open ? "ship" : "intro")}), "")
+            door_button.visible = false
             gameState.objects = [
-                new ImageObject(0,0, canvas_width, canvas_height, "start2_img"),
+                new ImageObject(0,0, canvas_width, canvas_height, open ? "shipDoorOpen_img" : "start2_img"),
+                door_button
+            ]
+            gameState.keyPressed = key => {
+                if (key == 'Enter' || key == ' ' || key == 'ArrowRight'){
+                    gameState.sceneName = (open ? "ship" : "intro")
+                }
+            }
+            break
+        }
+        case "escapeMenu":{
+            gameState.objects = [
+                new Button(300,250,100,100, (()=> gameState.sceneName = "intro"), "Continue"),
+                new Button(300,250,100,100, (()=> gameState.sceneName = "intro"), "Main menu")
             ]
             break
         }
+        case "ship":{
+            gameState.shipState = {
+                landed : true,
+                currentLocation : 'Linear Prime',
+                inFlight : false,
+                fuelLevel : 100,
+            }
+            text_content = [
+                "Current location: Landed on Linear Prime",
+                "Navigating to: Quadratic System",
+                "Fuel level: [■■■■■] 100%"
+            ]
+            var exitTo = "shipDoor" 
+            const door_button = new Button(90,90,250,800, (()=> {gameState.sceneName = exitTo}), "")
+            door_button.visible = false
+            const nav_button = new Button(670,470,410,190, (()=> {gameState.sceneName = "navigation"}), "")
+            nav_button.visible = false
+            gameState.objects = [
+                new ImageObject(0,0, canvas_width, canvas_height, "interior_img"),
+                new TextBox(580,160,text_content[0],"30px monospace", Color.green),
+                new TextBox(580,220,text_content[1],"30px monospace", Color.green),
+                new TextBox(580,280,text_content[2],"30px monospace", Color.green),
+                door_button, nav_button
+            ]
+            gameState.update( () => {
+                if (landed && !inFlight){
+                    door_button.active = true
+                }else{
+                    door_button.active = false
+                }
+            })
+            break
+        }
+        case "navigation":{
+            const fun = x =>  x*x/8 + Math.sin(x)
+            const blocks = [[MathBlock.VARIABLE,"x"],[MathBlock.POWER,"2"],[MathBlock.EXPONENT,"e"],[MathBlock.FUNCTION, "sin"],[MathBlock.BIN_OP,"+"]]
+            rngLevel(gameState, fun, blocks)
+            break
+        }
+        // old main menu
         case "mainMenu":{   
             text_content = ["This is a game about calculus.",
                 "If you get stuck, feel free to skip a level.",
@@ -773,7 +900,13 @@ function loadScene(gameState){
          * complexity in 2.
          */
         case "intro":{
-            subMenu(gameState,"1","intro")
+            subMenu(gameState,"1","shipDoor")
+            gameState.keyPressed = key => {
+                console.log(key)
+                if (key == 'Escape' || key == 'ArrowLeft'){
+                    gameState.sceneName = "shipDoor"
+                }
+            }
             break
         }
 
