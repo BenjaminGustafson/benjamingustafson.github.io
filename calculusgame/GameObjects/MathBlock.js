@@ -13,6 +13,7 @@ class MathBlock {
     static EXPONENT = 2 // me^[]+b
     static FUNCTION = 3 // mf([])+b
     static BIN_OP = 4   // m([]+[])+b ?include scale or no... []*[] it would have weird interactions with the inside...
+    static CONSTANT = 5 // c
 
     depth = 0
     
@@ -57,6 +58,7 @@ class MathBlock {
             case MathBlock.BIN_OP:
                 this.num_children = 2
                 break
+            case MathBlock.CONSTANT:
             default:
                 this.num_children = 0
                 break
@@ -100,7 +102,7 @@ class MathBlock {
     }
 
     draw (ctx){
-        const ty =  Number(this.translate_y.toFixed(1))
+        const ty =  Number(this.translate_y.toFixed(1)) // TODO abstract out slider attachment
         const sy =  Number(this.scale_y.toFixed(1))
 
         this.prefix = ""
@@ -124,8 +126,20 @@ class MathBlock {
         }
         //console.log(this.prefix,this.suffix)
 
-        ctx.font = "40px monospace";
+        ctx.font = "40px monospace"
+        ctx.textBaseline = 'alphabetic'
+        ctx.textAlign = 'start'
         switch (this.type){
+            case MathBlock.CONSTANT:{
+                    const str = ty
+                    this.w = ctx.measureText(str).width + this.padding*2
+                    Color.setColor(ctx,Color.black)
+                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
+                    Color.setColor(ctx, this.color)
+                    ctx.fillText(str, this.x + this.padding, this.y + this.h/2+10);
+                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
+                }
+                break
             case MathBlock.VARIABLE:
                 const str = this.prefix + this.token + this.suffix 
                 this.w = ctx.measureText(str).width + this.padding*2
@@ -363,6 +377,8 @@ class MathBlock {
      */
     toFunction(scale = 1, offset = 0){
         switch(this.type){
+            case MathBlock.CONSTANT:
+                return x => this.translate_y
             case MathBlock.VARIABLE:
                 return (x => this.translate_y + this.scale_y*x)
             case MathBlock.POWER:

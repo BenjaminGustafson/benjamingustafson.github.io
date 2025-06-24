@@ -12,6 +12,7 @@ class MathBlockManager {
     grab_moved = false
     grab_x = 0
     grab_y = 0
+    frozen = false
 
     constructor (blocks, origin_x, origin_y, translate_y_slider,scale_y_slider, output){
         this.blocks = blocks
@@ -67,6 +68,9 @@ class MathBlockManager {
 
 
     mouseMove(x,y){
+        if (this.frozen){
+            return
+        }
         if (this.highlighted){
             this.highlighted.translate_y = this.translate_y_slider.value
             this.highlighted.scale_y = this.scale_y_slider.value
@@ -110,6 +114,9 @@ class MathBlockManager {
     }
 
     mouseDown(x,y){
+        if (this.frozen){
+            return
+        }
         this.mouseIsDown = true
         var cursor = null
         var top_priority = -1
@@ -147,6 +154,9 @@ class MathBlockManager {
 
 
     mouseUp(x,y){
+        if (this.frozen){
+            return
+        }
         this.mouseIsDown = false
         
         if (this.grabbed){ 

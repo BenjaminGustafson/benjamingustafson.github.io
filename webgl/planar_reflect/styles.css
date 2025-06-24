@@ -2,7 +2,7 @@ body {
   margin: 0;
 }
 canvas {
-  display: block;  /* prevents scrollbar */
+  display: block;
   width: 100vw;
   height: 100vh;
 }

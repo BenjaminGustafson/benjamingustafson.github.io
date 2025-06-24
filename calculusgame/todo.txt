@@ -1,0 +1,84 @@
+
+
+Issues:
+- Leaving the nav puzzle and coming back results in a new puzzle
+
+
+Todo:
+1. Progress bar
+2. Graph labels
+3. Function scale
+4. Destination
+5. Tool tip
+
+
+Art:
+I don't like how dark the current art is, replace it with more cheerful
+
+Youtube videos:
+1. 
+
+
+Navigation levels:
+- Progress bar:
+    - Displays distance to next planet
+    - Has an icon for the ship
+    - Fills with different color
+    - Textbox that says destination?
+
+- Left graph:
+    - Axis labels
+    - Grid labels
+
+- Sliders:
+    - When no block is selected, hidden
+        Display tool tip
+    - 1 or 2 sliders: 2 because of linear function
+
+- Mathblocks:
+    - Starts with just constant
+    - More unlocked during progression
+
+ 
+
+- Overall alignment
+
+Gameplay loop:
+    - Gamestate variables:
+        - Max distance from current puzzle
+        - Total distance
+        - History of answers (correct or incorrect) for each section
+    - Grid size scaled to max distance per puzzle (actual distance depends on rng) 
+    - Penalty for getting questions wrong, max distance decreases until it hits a minimum.
+    - Reward for getting questions right is max distance increases linearly. With no upper bound.
+    - For example, distance from planet 1 to 2 is 1000 km, min distance is 100km, bonus is 10km, penalty is 20km.
+    - 3 tries before answer is revealed and you skip question -- doesnt this mean that you could succeed by only answering questions from section 1?
+        - Yes, but this would bring your speed way down 
+
+    100+150+200+250+300
+    5-10 qs
+    350+400+450+500+550
+    1000
+    2250
+    3500
+    500 1.5k 3k
+    Doesn't matter bc it won't be exact you can expect it to be like half that on average
+
+    - Keep track of puzzle accuracy for each section, recency weighted
+    Function for how much to assign puzzle: sum over i from 1 (most recent) to n (least recent) of a_i * n^(alpha)
+    For some decay rate alpha < 0   or alpha^n? would be decay rate...
+    a_i = one value for correct, another (negative) value for incorrect
+    You could test this out, or look at literature
+
+
+
+- Answer 20 linear questions correct to unlock the constant rule
+    - tricky to figure out how to do this...
+    - First click on the function, to put the right graph in deconstructive mode
+    - At first the function will be the same as f(x) and the blocks will all be red
+    - Then click on a rule, like constant rule
+    - Then click on a mathblock to apply the rule (need highlight hover)
+    - If the rule applies the mathblock becomes green
+    Ex: f(x) = -2x + 2 -> sum rule -> (y -2x) g+ (y +2) -> constant rule -> (y -2x) g+ (g 0) -> power rule -> g -2 + 0
+Are you allowed to tinker with the mathblocks during the process? probably not a good idea... 
+In that case... how do you switch back to manual input mode?

@@ -1,9 +1,19 @@
+/**
+ * SimpleGeometry.js
+ * 
+ * Contains functions to create simple geometric objects.
+ * 
+ * Functions return geometry as an object with attributes: positions, normals, indices.
+ */
+
+
 
 /**
- * A cube with side lenght size centered at the origin.
- * Faces axes aligned, and normals facing out.
- * @param {*} size 
- * @returns object with {normals, faces, indices}
+ * Generates the a cube of a given size centered at the origin.
+ * Faces are axes aligned, and normals face outwards.
+ * 
+ * @param {*} size the side length of the cube
+ * @returns object with {positions, normals, indices}
  */
 function generateCube(size = 1) {
     const s = size / 2;
@@ -45,19 +55,20 @@ function generateCube(size = 1) {
  * @param {*} width the size along the x axis in model units 
  * @param {*} depth the size along the z axis
  * @param {*} x_resolution the number of vertices along the x axis
- * @returns object with {normals, faces, indices}
+ * @returns object with {positions, normals, indices}
  */
 function generatePlane(width, depth, x_resolution) {
     const positions = [];
     const normals = [];
     const indices = [];
 
-    // dx the distance from one vertex to the next along x
+    // dx is the distance from one vertex to the next along x
     const dx = width / (x_resolution - 1);
     // z_resolution as close to square as possible
     const z_resolution = Math.round(depth / dx);
     const dz = depth / z_resolution;
 
+    // Generate the positions as a grid
     for (let z = 0; z < z_resolution; z++) {
         for (let x = 0; x < x_resolution; x++) {
             const posX = -width / 2 + x * dx;
@@ -68,6 +79,10 @@ function generatePlane(width, depth, x_resolution) {
     }
 
     /**
+     *  Each grid square is split into 2 triangles by a cut diagonally 
+     *  across the square from the top right to the bottom left.
+     * 
+     *  Below is the calculation of the indices of the corners of each square:
      *                      x
      *    __________________________________________________________
      *   |  0                                       x_resolution-1

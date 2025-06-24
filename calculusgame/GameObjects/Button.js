@@ -28,6 +28,8 @@ class Button{
         }
         Shapes.Rectangle(ctx,this.origin_x,this.origin_y,this.width,this.height,10)
         ctx.font = "40px monospace"
+        ctx.textBaseline = 'alphabetic'
+        ctx.textAlign = 'start'
         var text_size = ctx.measureText(this.label)
         // Adjust to fit inside label
         const font_size = Math.min(40 * this.width / text_size.width * 0.8 - 10, 40)

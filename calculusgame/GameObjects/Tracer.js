@@ -2,7 +2,7 @@
  * 
  * Traces the numeric integral of a given input
  * 
- * TODO: too high speed might miss targets
+ * ISSUE: too high speed might miss targets
  */
 
 class Tracer {
@@ -13,13 +13,15 @@ class Tracer {
     solved_color = Color.blue
     unsolved_color = Color.red
     solved = false
+    stopped = false
+    doneTracing = false
 
     /**
      * 
-     * @param {*} origin_x 
-     * @param {*} origin_y 
-     * @param {*} grid 
-     * @param {*} input 
+     * @param {number} origin_x 
+     * @param {number} origin_y 
+     * @param {Grid} grid 
+     * @param {*} input type: "sliders" or "mathBlock" or "tracer"
      * @param {*} frames_per_unit 
      * @param {*} targets 
      */
@@ -33,7 +35,7 @@ class Tracer {
         }else if (input.type == "mathBlock"){
             this.mathBlockMngr = input.mathBlockMngr
         } if (input.type == "tracer"){
-            this.source_tracer = input.source_tracer   
+            this.source_tracer = input.source_tracer
         }
         this.grid = grid
         this.scale = grid.width/grid.gridWidth
@@ -41,14 +43,21 @@ class Tracer {
         this.targets = targets
     }
     
+    /**
+     * Sets the tracer back to the beginning
+     */
     reset(){
         this.frame = 0
         this.index = 0
         this.targets.forEach(t => {
             t.hit = false
         })
+        this.doneTracing = false
     }
 
+    /**
+     * Calculates the y-values for the tracer
+     */
     calc_ys(){
         var canvas_ys = []
         var grid_ys = []
@@ -110,10 +119,16 @@ class Tracer {
         
     }
 
+
+    /**
+     * 
+     *  
+     * 
+     */
     draw(ctx){
         // If the mathblock is not defined, don't trace
         if (this.type == "mathBlock"
-            && (!this.mathBlockMngr.field_block 
+            && (!this.mathBlockMngr.field_block
                 || !this.mathBlockMngr.field_block.toFunction()))
         {
             this.reset()
@@ -139,21 +154,22 @@ class Tracer {
             y = cy
             x++
             i++
-        }
+        }        
 
-
-        this.solved = true
-        this.targets.forEach(t => {
-            if (!t.hit){
-                this.solved = false
-            }
-        })
-
-
-        
         // Before we have drawn past the end of the grid, increment frames
-        if (this.frame <= this.grid.width ){
-            this.frame += this.frames_per_unit
+        if (this.frame <= this.grid.width){
+            if (!this.stopped){
+                this.frame += this.frames_per_unit
+            }
+            this.doneTracing = false
+        }else{ // After we reach the end, check if solved
+            this.solved = true
+            this.targets.forEach(t => {
+                if (!t.hit){
+                    this.solved = false
+                }
+            })
+            this.doneTracing = true
         }
     }
 

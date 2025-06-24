@@ -1,3 +1,10 @@
+/**
+ * ShaderSources.js
+ * 
+ * Contains all of the shader source code as strings.
+ * 
+ */
+
 var generalVertexShaderSource = `#version 300 es
 in vec3 a_position;
 in vec3 a_normal;
@@ -27,7 +34,7 @@ void main() {
     vec3 baseColor = vec3(0.5, 0.5, 0.5);
 
     outColor = vec4(baseColor * light, 1.0);
-    //outColor = vec4(normalize(v_normal) * 0.5 + 0.5, 1.0);//debug normals
+    //outColor = vec4(normalize(v_normal) * 0.5 + 0.5, 1.0); //debug normals
     //outColor = vec4(1.0, 0.0, 1.0, 1.0); //debug fixed color
 }
 `
@@ -81,15 +88,18 @@ void main() {
 
     vec4 reflectedColor = texture(u_reflectionTexture, uv);
 
-    // Optional: Blend reflection with base color
-    float fresnel = pow(1.0 - dot(normal, -viewDir), 3.0); // Fresnel for realism
-    vec3 baseColor = vec3(0.0, 0.0, 0.0); // dark surface
+    // Blend reflection with base color
+    float fresnel = pow(1.0 - dot(normal, -viewDir), 3.0);
+    vec3 baseColor = vec3(0.0, 0.0, 0.0);
     outColor = vec4(mix(baseColor, reflectedColor.rgb, fresnel), 1.0);
 }
 `
 
 
-
+/**
+ * Shader for the mountains.
+ * 
+ */
 var mountainFragmentShaderSource = `#version 300 es
 precision highp float;
 
@@ -319,44 +329,3 @@ void main() {
     outColor = texture(u_texture, v_texcoord);
 }`;
 
-
-
-// `#version 300 es
-// precision highp float;
-
-// out vec4 outColor;
-
-// float random(vec2 uv) {
-//   return fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
-// }
-
-// float star(vec2 uv) {
-//   vec2 grid = floor(uv * 100.0);       // grid cell
-//   vec2 id = grid;                      // star ID
-//   vec2 offset = fract(uv * 100.0);     // pixel offset in cell
-
-//   float rnd = random(id);
-//   if (rnd < 0.8) return 0.0;           // skip most cells
-
-//   // Random star position inside cell
-//   vec2 starPos = fract(vec2(sin(rnd * 4375.0), cos(rnd * 1234.0)));
-
-//   // Random size
-//   float sizeRnd = random(id + 13.37);
-//   float radius = mix(0.05, 0.3, sizeRnd);  // small to big stars
-
-//   float d = distance(offset, starPos);
-//   return smoothstep(radius, 0.0, d);   // softer = larger glow
-// }
-
-// void main() {
-//   // Convert from gl_FragCoord (in pixels) to [0,1] UV
-//   vec2 uv = gl_FragCoord.xy / vec2(1280.0, 720.0); // <-- Replace with canvas size if needed
-
-//   float s = star(uv);
-//   vec3 sky = mix(vec3(0.0, 0.0, 0.1), vec3(0.0), uv.y);
-//   sky += s;
-//   //outColor = vec4(sky, 1.0);
-//   outColor = vec4(uv,1.0,1.0);
-// }
-// `

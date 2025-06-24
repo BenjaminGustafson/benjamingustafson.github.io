@@ -1,4 +1,20 @@
+/**
+ *  Terrain.js
+ * 
+ *  Contains the function generateTerrain which 
+ *  
+ *  Contains helper functions to create the perlin noise for generateTerrain.
+ * 
+ */
 
+
+
+/**
+ * 
+ * @param {
+ * } seed 
+ * @returns 
+ */
 function createSeededRNG(seed) {
     // Simple LCG (linear congruential generator)
     let s = seed >>> 0;
@@ -69,6 +85,13 @@ function createPerlinNoise(seed = 0) {
     return noise;
 }
 
+/**
+ * Creates Fractal Brownian Motion (FBM)
+ * 
+ * @param {*} perlinFn 
+ * @param {*} param1 
+ * @returns 
+ */
 function createFBM(perlinFn, {
     octaves = 5,
     persistence = 0.5,
@@ -126,7 +149,7 @@ function generateTerrain(width, depth, resolution, fbm, options = {}) {
       const height = noiseHeight * (rows-z)*0.01 + (rows-z)*0.007;
 
       positions.push(worldX, height, worldZ);
-      normals.push(0, 1, 0); // Placeholder — will be replaced
+      normals.push(0, 1, 0); // Placeholder
     }
   }
 
@@ -150,7 +173,12 @@ function generateTerrain(width, depth, resolution, fbm, options = {}) {
   };
 }
 
-
+/**
+ * Helper function to 
+ * @param {*} positions 
+ * @param {*} indices 
+ * @param {*} normals 
+ */
 function computeVertexNormals(positions, indices, normals) {
     // Zero out normals
     for (let i = 0; i < normals.length; i++) normals[i] = 0;

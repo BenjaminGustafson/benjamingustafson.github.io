@@ -19,7 +19,7 @@ class Grid{
      * @param {*} x_axis The location of the x-axis, counting from the left starting at 0.
      * @param {*} y_axis The location of the y-axis, counting from the top starting at 0.
      */
-    constructor(origin_x, origin_y, width, height, gridWidth, gridHeight, lineWidthMax, x_axis = -1, y_axis = -1){
+    constructor(origin_x, origin_y, width, height, gridWidth, gridHeight, lineWidthMax, x_axis = -1, y_axis = -1, labels = false){
         this.origin_x = origin_x
         this.origin_y = origin_y
         this.width = width
@@ -34,7 +34,8 @@ class Grid{
         this.grid_x_min = -x_axis 
         this.grid_y_min = y_axis
         this.grid_x_max = this.grid_x_min + this.gridWidth
-        this.grid_y_max = this.grid_y_min + this.gridHeight 
+        this.grid_y_max = this.grid_y_min + this.gridHeight
+        this.labels = labels
     }
 
     draw(ctx){
