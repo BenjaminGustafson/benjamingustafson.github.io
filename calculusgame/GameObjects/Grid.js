@@ -41,20 +41,31 @@ class Grid{
     draw(ctx){
         Color.setColor(ctx,Color.white)
         // Horizontal lines. Starting at top = 0
+        ctx.font = '20px monospace'
+        ctx.textAlign = 'right'
+        ctx.textBaseline = 'middle'
         for (let i = 0; i <= this.gridHeight; i++){
             const lineWidth = this.lineWidthMax// * (i % (this.gridSize/2) == 0 ? 1 : 1/2)
+            const y = this.origin_y+this.height/this.gridHeight*i
             Shapes.Line(ctx,
-                        this.origin_x,            this.origin_y+this.height/this.gridHeight*i, 
-                        this.origin_x+this.width, this.origin_y+this.height/this.gridHeight*i, 
+                        this.origin_x,            y, 
+                        this.origin_x+this.width, y, 
                         (i == this.x_axis ? lineWidth : lineWidth), (i == this.x_axis ? "arrow" : "rounded"))
+            ctx.fillText(this.gridHeight-i, this.origin_x - 20, y)
+            
         }
         // Vertical lines
+        ctx.font = '20px monospace'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'top'
         for (let i = 0; i <= this.gridWidth; i++){
             const lineWidth = this.lineWidthMax
+            const x = this.origin_x+this.width/this.gridWidth*i
             Shapes.Line(ctx,
-                        this.origin_x+this.width/this.gridWidth*i, this.origin_y, 
-                        this.origin_x+this.width/this.gridWidth*i, this.origin_y+this.height, 
+                        x, this.origin_y, 
+                        x, this.origin_y+this.height, 
                         lineWidth, (i == this.y_axis ? "arrow" : "rounded"))
+            ctx.fillText(i, x, this.origin_y + this.height+20)
 
         }
         Color.setColor(ctx,Color.red)

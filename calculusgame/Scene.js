@@ -33,8 +33,8 @@ const levels = {
     chain: [],
 }
 
-const planets = ["Linear", "Quadratic", "Exponential"]
-const distances = [0, 1000, 3000]
+const PLANETS = ["Linear", "Quadratic", "Exponential"]
+const DISTANCES = [0, 1000, 3000]
 
 
 function subMenu(gameState, menu_num, exitTo) {
@@ -744,10 +744,8 @@ function rngLinear() {
 
 }
 
-function rngLevel(gameState,
-    grid_setting = { grid_width: 4, grid_height: 4, x_axis: 2, y_axis: 2 },
-) {
-
+function rngLevel(gameState) {
+    const grid_setting = { grid_width: 4, grid_height: 4, x_axis: 2, y_axis: 2 }
     const blocks = [[MathBlock.CONSTANT, ""]]
 
     linearFun = rngLinear()
@@ -766,9 +764,10 @@ function rngLevel(gameState,
 
     const y_adjust = 100
     const x_adjust = 100
-    const gridLeft = new Grid(100 + x_adjust, 250 + y_adjust, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, 2, 0)
-    const gridRight = new Grid(600 + x_adjust, 250 + y_adjust, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, grid_setting.x_axis, grid_setting.y_axis)
-    const ty_slider = new Slider(1100 + x_adjust, 250 + y_adjust, 400, 8, 0, 4, 0.1, true, true)
+    const gridLeftX = 150
+    const gridLeft = new Grid(gridLeftX, 250 + y_adjust, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
+    const gridRight = new Grid(600 + x_adjust, 250 + y_adjust, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
+    const leftSlider = new Slider(1100 + x_adjust, 250 + y_adjust, 400, 4, 0, 4, 0.1, true, true)
     const sy_slider = new Slider(1200 + x_adjust, 250 + y_adjust, 400, 8, 1, 4, 0.1, true, true)
     const funRight = new FunctionTracer(gridRight)
     //const funLeft = new FunctionTracer(gridLeft, (x => x*x))
@@ -777,7 +776,7 @@ function rngLevel(gameState,
     for (let i = 0; i < blocks.length; i++) {
         math_blocks.push(new MathBlock(blocks[i][0], blocks[i][1], 1300 + x_adjust, 150 + y_adjust + 100 * i))
     }
-    const mngr = new MathBlockManager(math_blocks, 600 + x_adjust, 150 + y_adjust, ty_slider, sy_slider, { type: "fun_tracer", fun_tracer: funRight })
+    const mngr = new MathBlockManager(math_blocks, 600 + x_adjust, 150 + y_adjust, leftSlider, sy_slider, { type: "fun_tracer", fun_tracer: funRight })
     targets = []
     for (let i = 0; i < target_coords.length; i++) {
         const canvas_coords = gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
@@ -787,29 +786,57 @@ function rngLevel(gameState,
     const tracer = new Tracer(tracer_start.x, tracer_start.y, gridLeft, { type: "mathBlock", mathBlockMngr: mngr }, 4, targets)
     tracer.stopped = true
 
+    const shipIcon = document.getElementById("shipicon_img");
+    const linIcon = document.getElementById("linearicon_img");
+    const quadIcon = document.getElementById("quadraticicon_img");
     const progressBar = {
-        draw: (ctx) => {
-            const originX = 300
+        value: 0,
+        originX: 300,
+        length: 500,
+        draw: function(ctx){
+            const startDist = DISTANCES[gameState.stored.nextPlanet-1]
+            const endDist = DISTANCES[gameState.stored.nextPlanet]
+            this.value = (gameState.stored.totalDistance - startDist) * this.length / (endDist - startDist)
             const originY = 150
-            const length = 500
             const numTicks = 10
             const tickLength = 10
             const lineWidth = 5
             Color.setColor(ctx, Color.white)
-            Shapes.RoundedLine(ctx, originX, originY, originX + length, originY, lineWidth)
+            Shapes.RoundedLine(ctx, this.originX, originY, this.originX + this.length, originY, lineWidth)
+            Color.setColor(ctx, Color.blue)
+            Shapes.RoundedLine(ctx, this.originX, originY, this.originX + this.value, originY, lineWidth)
+            Color.setColor(ctx, Color.white)
+            ctx.font = '20px monospace'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'top'
+            ctx.fillText(PLANETS[gameState.stored.nextPlanet-1]+" Planet", this.originX, originY-60)
+            ctx.fillText(PLANETS[gameState.stored.nextPlanet]+" Planet", this.originX+this.length, originY-60)
+            ctx.fillText(gameState.stored.totalDistance+" u travelled", this.originX+this.length/2, originY-60)
+            ctx.fillText(startDist+" u", this.originX, originY+25)
+            ctx.fillText(endDist+" u", this.originX+this.length, originY+25)
+            
+
             for (let i = 0; i < numTicks + 1; i++) {
-                const tickX = originX + length / numTicks * i
-                ctx.font = '20px monospace'
-                ctx.textAlign = 'center'
-                ctx.textBaseline = 'top'
-                ctx.fillText(i, tickX, originY + tickLength + 5)
+                const tickX = this.originX + this.length / numTicks * i
+                
+                //ctx.fillText(i, tickX, originY + tickLength + 5)
+                if (tickX < this.originX + this.value){
+                    Color.setColor(ctx, Color.blue)
+                }else{
+                    Color.setColor(ctx, Color.white)
+                }
                 Shapes.RoundedLine(ctx, tickX, originY - tickLength, tickX, originY + tickLength, lineWidth)
             }
+            
+            ctx.drawImage(shipIcon, this.originX + this.value-20, 130, 40,40)
+            ctx.drawImage(linIcon, this.originX-70, 130, 40,40)
+            ctx.drawImage(quadIcon, this.originX+this.length +30, 130, 40,40)
+
         }
     }
 
     const backButton = new Button(100, 100, 100, 100, (() => gameState.sceneName = "ship"), "↑")
-    const startButton = new Button(900, 100, 100, 100, (() => { }), "Start")
+    const startButton = new Button(925, 100, 100, 100, (() => { }), "Start")
     startButton.onclick = (() => {
         tracer.reset();
         gameState.local.state = "Tracing"
@@ -819,9 +846,26 @@ function rngLevel(gameState,
         gameState.refresh = true
     })
     nextButton.visible = false
-    const targetText = new TextBox(200, 300, funString, font = '40px monospace', color = Color.white)
-    const posText = new TextBox(200, 850, "Position", font = '40px monospace', color = Color.white)
-    const velText = new TextBox(700, 850, "Velocity", font = '40px monospace', color = Color.white)
+    const targetText = new TextBox(gridLeftX, 300, funString, font = '40px monospace', color = Color.white)
+    const axisLabels = {
+        draw: function(ctx){
+            ctx.font = '20px monospace'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'top'
+            Color.setColor(ctx, Color.white)
+            ctx.fillText("Time (s)", gridLeftX + 200, 800)
+            ctx.fillText("Time (s)", 900, 800)
+            ctx.translate(gridLeftX -60,550)
+            ctx.rotate(-Math.PI/2)
+            ctx.fillText("Position (units)", 0, 0)
+            ctx.resetTransform()
+            ctx.translate(620,550)
+            ctx.rotate(-Math.PI/2)
+            ctx.fillText("Velocity (units/s)", 0, 0)
+            ctx.resetTransform()
+        }
+    }
+    
 
     gameState.stored.strikes = 0
     const strikes = {
@@ -829,7 +873,7 @@ function rngLevel(gameState,
             for (let i = 0; i < 3; i++) {
                 console.log(gameState.stored.strikes)
                 if (gameState.stored.strikes <= i) {
-                    Color.setColor(ctx, Color.light_gray)
+                    Color.setColor(ctx, Color.white)
                     if(gameState.local.state == "Solved" && gameState.stored.strikes == i) {
                         Color.setColor(ctx, Color.blue)
                     }
@@ -842,11 +886,10 @@ function rngLevel(gameState,
     }
 
     gameState.local.state = "Input"
-    gameState.objects = [gridLeft, gridRight, sy_slider, ty_slider, mngr, funRight, tracer, backButton, startButton, nextButton, targetText,
-        posText, velText, progressBar, strikes
+    gameState.objects = [gridLeft, gridRight, leftSlider, mngr, funRight, tracer, backButton, startButton, nextButton, targetText,
+        progressBar, strikes, axisLabels
     ].concat(targets)
     gameState.update = () => {
-        console.log(gameState.local.state)
         switch (gameState.local.state) {
             case "Input":
                 mngr.frozen = false

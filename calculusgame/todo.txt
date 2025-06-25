@@ -5,11 +5,12 @@ Issues:
 
 
 Todo:
-1. Progress bar
 2. Graph labels
+- 
 3. Function scale
 4. Destination
 5. Tool tip
+
 
 
 Art:
@@ -38,6 +39,7 @@ Navigation levels:
 - Mathblocks:
     - Starts with just constant
     - More unlocked during progression
+    - Limited supply - 1 of each to start with
 
  
 

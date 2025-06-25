@@ -33,17 +33,18 @@ function setup() {
         writeToStorage: false,
         layout: { ind: 0, prec: 10 },
         stored: {
-            total_distance: 0,
-            current_nav_function: null,
+            totalDistance: 0,
+            currentNavFunction: null,
+            gridScale: 100,
             strikes: 0,
-            puzzle_accuracy: {
+            puzzleAccuracy: {
                 linear: 0,
             },
-            num_puzzles: {
+            numPuzzles: {
                 linear: 0,
             },
-            mathblocks_unlocked: [MathBlock.CONSTANT],
-            next_planet: 1,
+            mathblocksUnlocked: [MathBlock.CONSTANT],
+            nextPlanet: 1,
         },
         local: {},
     }
@@ -59,8 +60,12 @@ function setup() {
 
 
     try {
-        gameState.stored = JSON.parse(localStorage.getItem('storedState'));
-        console.log(gameState.stored)
+        const storedState = localStorage.getItem('storedState')
+        if (storedState == null){
+            throw new Error("Local storage is null");
+        }
+        gameState.stored = JSON.parse(storedState);
+        console.log("Successfully loaded stored state")
     } catch (e) {
         localStorage.setItem('storedState', JSON.stringify(gameState.stored));
         console.error('Unable to load stored data')
