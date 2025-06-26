@@ -5,16 +5,30 @@ Issues:
 
 
 Todo:
-1. Course charted screen,
--  it could have a big graph of the whole piecewise function, this would require the time to be set like the position,
-more of a want to have than must have
-- must have just a button to continue 
+1. Arrival at quadratic planet
+2. Dashboard updates current location
+3. Door doesn't exit in space
+4. Make quadratic scene
+5. Put puzzle ramp in quadratic
+6. Door opens to quadratic
+7. Nav puzzles after go to exp
+8. Nav puzzles mix in quad puzzles
+9. Make projectile launch scene (more similar to puzzle than navigation), i.e. don't use mathblocks...
+- If not using mathblocks, then how to make function continuous?
+10. Vary only launch velocity with a slider, display gravity, and show trajectory before launch
+11. Only target is landing spot
+12. Move between launches with next button, but art makes it seem like you are moving across the planet?
 
 
+
+1. Course charted confirmation
 6. Bonus distance
 7. Puzzle accuracy (do this after there are multiple types of puzzles)
+8. star animation during travel (want)
 
-* star animation during travel (want)
+
+
+
 
 
 Art:

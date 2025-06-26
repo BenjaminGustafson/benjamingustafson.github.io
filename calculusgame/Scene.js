@@ -890,9 +890,10 @@ function rngLevel(gameState) {
     }
 
     gameState.local.state = "Input"
-    gameState.objects = [gridLeft, gridRight, leftSlider, mngr, funRight, tracer, backButton, startButton, nextButton, targetText,
-        progressBar, strikes, axisLabels, toolTip
+    gameState.objects = [toolTip, gridLeft, gridRight, leftSlider, funRight, tracer, backButton, startButton, nextButton, targetText,
+        progressBar, strikes, axisLabels
     ].concat(targets)
+    gameState.objects.push(mngr)
     gameState.update = () => {
         if (mngr.field_block == null){
             leftSlider.hidden = true
@@ -985,9 +986,9 @@ function loadScene(gameState) {
     switch (gameState.sceneName) {
         case "":
         case "startMenu": {
-            start_button = new Button(100, 250, 200, 100, (() => gameState.sceneName = "shipDoor"), "Start")
+            start_button = new Button(500, 100, 200, 100, (() => gameState.sceneName = "shipDoor"), "Start")
             start_button.color = Color.black
-            about_button = new Button(100, 400, 200, 100, (() => window.location.replace("about.html")), "About")
+            about_button = new Button(750, 100, 200, 100, (() => window.location.replace("about.html")), "About")
             about_button.color = Color.black
             gameState.objects = [
                 new ImageObject(0, 0, canvas_width, canvas_height, "start_img"),
@@ -1003,7 +1004,7 @@ function loadScene(gameState) {
         }
         case "shipDoor": {
             const open = gameState.completedLevels["intro"]
-            const door_button = new Button(880, 450, 120, 230, (() => { gameState.sceneName = (open ? "ship" : "intro") }), "")
+            const door_button = new Button(1150, 480, 110, 230, (() => { gameState.sceneName = (open ? "ship" : "intro") }), "")
             door_button.visible = false
             gameState.objects = [
                 new ImageObject(0, 0, canvas_width, canvas_height, open ? "shipDoorOpen_img" : "start2_img"),
