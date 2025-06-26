@@ -16,8 +16,8 @@ class Grid{
      * @param {*} gridWidth width in grid squares
      * @param {*} gridHeight height in grid squares
      * @param {*} lineWidthMax 
-     * @param {*} x_axis The location of the x-axis, counting from the left starting at 0.
-     * @param {*} y_axis The location of the y-axis, counting from the top starting at 0.
+     * @param {*} x_axis The location of the x-axis, counting from the top starting at 0.
+     * @param {*} y_axis The location of the y-axis, counting from the left starting at 0.
      */
     constructor(origin_x, origin_y, width, height, gridWidth, gridHeight, lineWidthMax, x_axis = -1, y_axis = -1, labels = false){
         this.origin_x = origin_x
@@ -31,10 +31,10 @@ class Grid{
         this.x_axis = x_axis
         this.y_axis = y_axis
         this.unit_scale = gridWidth/width
-        this.grid_x_min = -x_axis 
-        this.grid_y_min = y_axis
-        this.grid_x_max = this.grid_x_min + this.gridWidth
-        this.grid_y_max = this.grid_y_min + this.gridHeight
+        this.grid_x_min = -y_axis // grid value of left
+        this.grid_y_min = x_axis - gridHeight // grid value of the bottom
+        this.grid_x_max = gridWidth-y_axis
+        this.grid_y_max = x_axis
         this.labels = labels
     }
 
@@ -51,7 +51,9 @@ class Grid{
                         this.origin_x,            y, 
                         this.origin_x+this.width, y, 
                         (i == this.x_axis ? lineWidth : lineWidth), (i == this.x_axis ? "arrow" : "rounded"))
-            ctx.fillText(this.gridHeight-i, this.origin_x - 20, y)
+            if (this.labels){
+                ctx.fillText(this.x_axis-i, this.origin_x - 20, y)
+            }
             
         }
         // Vertical lines
@@ -64,8 +66,10 @@ class Grid{
             Shapes.Line(ctx,
                         x, this.origin_y, 
                         x, this.origin_y+this.height, 
-                        lineWidth, (i == this.y_axis ? "arrow" : "rounded"))
-            ctx.fillText(i, x, this.origin_y + this.height+20)
+                        lineWidth, (i == this.y_axis ? "c" : "rounded"))
+            if (this.labels){
+                ctx.fillText(i, x, this.origin_y + this.height+20)
+            }
 
         }
         Color.setColor(ctx,Color.red)
@@ -80,6 +84,7 @@ class Grid{
 
 
     }
+
 
     gridToCanvas(gx,gy){
         // -- y_axis = 3       

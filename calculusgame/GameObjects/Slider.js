@@ -71,6 +71,9 @@ class Slider{
     }
 
     draw(ctx){
+        if (this.hidden){
+            return
+        }
         if (this.active){
             this.circleColor = this.circleColorActive
         }else{

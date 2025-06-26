@@ -175,6 +175,9 @@ function setup() {
                 case 'r':
                     localStorage.setItem("startScene", gameState.sceneName)
                     break
+                case '0':
+                    gameState.stored.totalDistance = 0
+                    break
             }
         }
 

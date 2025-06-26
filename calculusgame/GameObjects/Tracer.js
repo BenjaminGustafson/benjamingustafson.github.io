@@ -87,10 +87,15 @@ class Tracer {
             if (this.mathBlockMngr.field_block && this.mathBlockMngr.field_block.toFunction()){
                 const fun = this.mathBlockMngr.field_block.toFunction()
                 var i = 0
-                while (x < this.origin_x + this.frame){
+                var onGrid = true
+                while (x < this.origin_x + this.frame && onGrid){
                     const gx = this.grid.canvasToGrid(x,0).x
                     const cy = y - fun(gx)
-                    grid_ys.push(this.grid.canvasToGrid(0,cy).y)
+                    const gy = this.grid.canvasToGrid(0,cy).y
+                    if (gy >= this.grid.grid_y_max){
+                        onGrid = false
+                    }
+                    grid_ys.push(gy)
                     canvas_ys.push(cy)
                     if (Math.abs(canvas_ys[i]-this.canvas_ys[i]) > 0.001){
                         this.reset()
@@ -119,6 +124,10 @@ class Tracer {
         
     }
 
+
+    getValue(){
+        return this.grid_ys[this.grid_ys.length-1]
+    }
 
     /**
      * 

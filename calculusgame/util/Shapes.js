@@ -15,7 +15,7 @@ class Shapes {
      * @param {int} end_y the y coordinate of the middle of the end point
      * @param {int} width the width of the line
     */
-    static Line(ctx, start_x, start_y, end_x, end_y, width, endCapStyle="rounded", endCapSize=-1){
+    static Line(ctx, start_x, start_y, end_x, end_y, width, endCapStyle="rounded", endCapSize=-1,oneSideCap=false){
         ctx.beginPath();
         ctx.moveTo(start_x, start_y);
         ctx.lineTo(end_x, end_y);
@@ -38,7 +38,9 @@ class Shapes {
                 break;
             case "arrow":
                 this.Arrow(ctx, start_x, start_y, end_x, end_y,endCapSize)
-                this.Arrow(ctx, end_x, end_y, start_x, start_y,endCapSize)
+                if(!oneSideCap){
+                    this.Arrow(ctx, end_x, end_y, start_x, start_y,endCapSize)
+                }
                 break;
             default:
                 break;    
