@@ -2,7 +2,8 @@
 /**
  * 
  * A MathBlock is a draggable rectangle that has a function or operation.
- * 
+ * MathBlocks can nest in each other to form more complex functions.
+ * MathBlocks are an input option for defining a function in a puzzle.
  */
 
 

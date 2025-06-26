@@ -1,3 +1,6 @@
+/**
+ * A class for handling colors. All UI elements should use the given color palette.
+ */
 class Color {
     constructor(r, g, b){
         this.r = r;
@@ -5,7 +8,7 @@ class Color {
         this.b = b;
     }
 
-    // Should be colorblind friendly
+    // Palette designed to be colorblind friendly
     static black = new Color(43,43,43)
     static white = new Color(233,233,233)
     static light_gray = new Color(190,190,190)

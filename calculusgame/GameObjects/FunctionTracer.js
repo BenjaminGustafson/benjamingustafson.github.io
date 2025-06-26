@@ -1,7 +1,8 @@
 /**
  * Traces a given function onto a grid
  * 
- * 
+ * Not to be confused with Tracer, which traces a function given slope input.
+ *
  */
 
 class FunctionTracer {

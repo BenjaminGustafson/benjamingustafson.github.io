@@ -1,4 +1,6 @@
-// TODO: Figure out class interaction
+/**
+ * A square target that can be hit by tracers.
+ */
 class Target{
 
     hit = false

@@ -1,13 +1,11 @@
 
 
 Issues:
-- Leaving the nav puzzle and coming back results in a new puzzle
+- Leaving the nav puzzle and coming back results in a new puzzle, or refreshing the page
 
 
 Todo:
 1. Arrival at quadratic planet
-2. Dashboard updates current location
-3. Door doesn't exit in space
 4. Make quadratic scene
 5. Put puzzle ramp in quadratic
 6. Door opens to quadratic

@@ -1,3 +1,9 @@
+/**
+ * A slider UI element.
+ * Has a circle handle and a line with tick marks.
+ * 
+ * 
+ */
 class Slider{
 
 

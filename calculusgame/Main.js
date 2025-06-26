@@ -37,12 +37,9 @@ function setup() {
             currentNavFunction: null,
             gridScale: 100,
             strikes: 0,
-            puzzleAccuracy: {
-                linear: 0,
-            },
-            numPuzzles: {
-                linear: 0,
-            },
+            puzzleAccuracy: [],
+            numPuzzles: [],
+            progress: [],
             mathblocksUnlocked: [MathBlock.CONSTANT],
             nextPlanet: 1,
         },
@@ -59,18 +56,21 @@ function setup() {
     })
 
 
-    try {
-        const storedState = localStorage.getItem('storedState')
-        if (storedState == null){
-            throw new Error("Local storage is null");
-        }
-        gameState.stored = JSON.parse(storedState);
-        console.log("Successfully loaded stored state")
-    } catch (e) {
+    const storedState = localStorage.getItem('storedState')
+    if (storedState == null){
+        console.log('Unable to load stored data (happens on first visit to page)')
         localStorage.setItem('storedState', JSON.stringify(gameState.stored));
-        console.error('Unable to load stored data')
-        console.error(e);
+    }else{
+        const parsed = JSON.parse(storedState);
+        if (parsed == null){
+            console.log('Unable to parse stored state')
+            localStorage.setItem('storedState', JSON.stringify(gameState.stored));
+        }else {
+            gameState.stored = parsed
+            console.log("Loaded save")   
+        }
     }
+    
 
 
     loadScene(gameState)

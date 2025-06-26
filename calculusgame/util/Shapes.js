@@ -49,6 +49,9 @@ class Shapes {
         
     }
 
+    /**
+     * A rectangle with rounded corners.
+     */
     static Rectangle(ctx,start_x,start_y,width,height,strokeWidth,fill=false){
         this.Line(ctx, start_x, start_y, start_x+width, start_y,strokeWidth)
         this.Line(ctx, start_x, start_y, start_x, start_y+height,strokeWidth)
@@ -58,11 +61,6 @@ class Shapes {
             ctx.fillRect(start_x,start_y,width,height)
         }
     }
-
-    static Function(ctx, f, start_x, start_y, width, height, x_min, x_max, y_min, y_max, lineWidth, endCapStyle){
-        
-    }
-
 
     /**
      * 
@@ -77,6 +75,7 @@ class Shapes {
      * @param {int} end_y the y coordinate of the middle of the end point
      * @param {int} width the width of the line
     */
+   // Deprecated?
     static LineSegment(ctx, start_x, start_y, end_x, end_y, width, endpointSize){
         ctx.beginPath();
         ctx.moveTo(start_x, start_y);
@@ -93,18 +92,21 @@ class Shapes {
         ctx.fill();
     }
 
+    // Deprecated?
     // A line with rounded endpoints.
     static RoundedLine(ctx, start_x, start_y, end_x, end_y, width){
         this.LineSegment(ctx, start_x, start_y, end_x, end_y, width, width/2)
     }
 
+    /**
+     * A filled in circle.
+     */
     static Circle(ctx, center_x, center_y, radius){ 
         ctx.beginPath();
         ctx.arc(center_x,center_y,radius,0,2*Math.PI);
         ctx.fill();
     }
 
-    // A an arrow shape
     static Arrow(ctx, start_x, start_y, end_x, end_y, scale){
         ctx.save()
         ctx.translate(end_x,end_y)

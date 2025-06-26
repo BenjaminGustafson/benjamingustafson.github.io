@@ -1,7 +1,8 @@
 /**
  * 
  * The manager handles how mathblocks attach to each other.
- * 
+ * It includes "field" which is a rectangle that mathblocks 
+ * can attach to.
  * 
  */
 class MathBlockManager {

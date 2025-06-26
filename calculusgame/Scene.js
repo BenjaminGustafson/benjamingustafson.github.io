@@ -23,7 +23,7 @@ const canvas_height = 900
  *  
  */
 const levels = {
-    intro: ["intro1", "intro2", "intro4Pos", "introNeg", "introFrac", "introCombined", "intro8"],
+    intro: ["intro1", "intro2", "intro4Pos", "introNeg", "introFrac", "introCombined", "intro8", "intro16"],
     quad: ["quad4", "quad8", "quad16", "quad32", "quad400", "quad2x", "quadHalf", "quadShiftLeft", "quadShiftRight"],
     cubic: ["cubic4", "cubic8", "cubic16", "cubic32", "cubic400"],
     exp: ["exp1", "exp2"],
@@ -33,7 +33,11 @@ const levels = {
     chain: [],
 }
 
-const PLANETS = ["Linear", "Quadratic", "Exponential"]
+const PLANET_DATA = [
+    {name: "Linear", distance: 0, levels:["intro1", "intro2", "intro4Pos", "introNeg", "introFrac", "introCombined", "intro8"]},
+]
+
+const PLANETS = ["Linear", "Quadratic", "Exponential", "Sine", "Sum", "Product", "Chain", "Cubic", "Polynomial", "Cosine", "NegPoly"]
 const DISTANCES = [0, 10, 30]
 
 
@@ -161,51 +165,33 @@ function levelNavigationObj(gameState, winCon) {
     gameState.update = update
 }
 
-function introLevels(gameState, vals) {
-    // Right align 100px left of middle (800-100-400=300)
-    // Center vertically (450-400/2=250)
-    const gridLeft = new Grid(300, 250, 400, 400, 4, 4, 5, 2, 2)
-    // Left align 100px right of middle (800+100=900)
-    const gridRight = new Grid(900, 250, 400, 400, 4, 4, 5, 2, 2)
-    // On first four cols of gridRight
-    // x = 900, 950, 1000, 1050. top_y = 250.  
-    const slider1 = new Slider(900, 250, 400, 4, 0, 2, 0.1, false)
-    const slider2 = new Slider(1000, 250, 400, 4, 0, 2, 0.1, false)
-    const slider3 = new Slider(1100, 250, 400, 4, 0, 2, 0.1, false)
-    const slider4 = new Slider(1200, 250, 400, 4, 0, 2, 0.1, false)
-    const target1_coord = gridLeft.gridToCanvas(-1, vals[0])
-    const target2_coord = gridLeft.gridToCanvas(0, vals[1])
-    const target3_coord = gridLeft.gridToCanvas(1, vals[2])
-    const target4_coord = gridLeft.gridToCanvas(2, vals[3])
-    const target1 = new Target(target1_coord.x, target1_coord.y, 15)
-    const target2 = new Target(target2_coord.x, target2_coord.y, 15)
-    const target3 = new Target(target3_coord.x, target3_coord.y, 15)
-    const target4 = new Target(target4_coord.x, target4_coord.y, 15)
-    const tracer = new Tracer(300, 450, gridLeft,
-        { type: "sliders", sliders: [slider1, slider2, slider3, slider4], slider_spacing: 100 },
-        4, [target1, target2, target3, target4])
-    const objs = [gridLeft, gridRight, slider1, slider2, slider3, slider4, tracer, target1, target2, target3, target4]
-    gameState.objects = objs
-    gameState.update = () => { }
-    levelNavigation(gameState, () => tracer.solved)
-}
 
-function simpleDiscLevel(gameState, target_vals, tracer_start = 0) {
-    const num_sliders = target_vals.length
+
+
+/**
+ * A 4x4 discrete level with given targets.
+ * 
+ * @param {*} gameState 
+ * @param {*} targetVals The y-values of the targets
+ * @param {*} tracerStart y-intercept where the tracer starts from
+ * @param {number} targetSize The size of the targets and sliders
+ */
+function simpleDiscLevel(gameState, targetVals, tracerStart = 0, targetSize = 15) {
+    const numSliders = targetVals.length
     const gridLeft = new Grid(300, 250, 400, 400, 4, 4, 5, 2, 2)
     const gridRight = new Grid(900, 250, 400, 400, 4, 4, 5, 2, 2)
     var sliders = []
-    const slider_spacing = 400 / num_sliders
-    for (let i = 0; i < num_sliders; i++) {
-        sliders.push(new Slider(900 + slider_spacing * i, 250, 400, 4, 0, 2, 0.01, false, vertical = true, circleRadius = 10))
+    const slider_spacing = 400 / numSliders
+    for (let i = 0; i < numSliders; i++) {
+        sliders.push(new Slider(900 + slider_spacing * i, 250, 400, 4, 0, 2, 0.01, false, vertical = true, circleRadius = targetSize))
     }
     var targets = []
-    for (let i = 0; i < num_sliders; i++) {
-        const x = -2 + (i + 1) / num_sliders * 4
-        const coord = gridLeft.gridToCanvas(x, target_vals[i])
-        targets.push(new Target(coord.x, coord.y, 10))
+    for (let i = 0; i < numSliders; i++) {
+        const x = -2 + (i + 1) / numSliders * 4
+        const coord = gridLeft.gridToCanvas(x, targetVals[i])
+        targets.push(new Target(coord.x, coord.y, targetSize))
     }
-    const tracer_coord = gridLeft.gridToCanvas(-2, tracer_start)
+    const tracer_coord = gridLeft.gridToCanvas(-2, tracerStart)
     const tracer = new Tracer(tracer_coord.x, tracer_coord.y, gridLeft,
         { type: "sliders", sliders: sliders, slider_spacing: slider_spacing },
         4, targets)
@@ -715,7 +701,11 @@ function genContLevel(gameState, fun, blocks,
     levelNavigation(gameState, () => tracer.solved)
 }
 
-
+/**
+ * 
+ * The randomly generated navigation levels
+ * 
+ */
 function rngLevel(gameState) {
     const grid_setting = { grid_width: 4, grid_height: 4, x_axis: 2, y_axis: 2 }
     const blocks = [[MathBlock.CONSTANT, ""]]
@@ -751,20 +741,18 @@ function rngLevel(gameState) {
     for (let i = 0; i < num_targets; i++) {
         const x = (i + 1) / num_targets * 4
         const y = fun(x)
-        console.log(x,y,gridLeft.grid_y_max)
         if (y <= gridLeft.grid_y_max && y >= gridLeft.grid_y_min) {
             target_coords.push([x, y])
         }
     }
-    console.log("grid", gridLeft.grid_y_max, gridLeft.grid_x_max, gridLeft.grid_y_min, gridLeft.grid_y_max)
 
+    
     targets = []
 
 
 
     for (let i = 0; i < target_coords.length; i++) {
         const canvas_coords = gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
-        console.log(i, "canvas coords", canvas_coords)
         targets.push(new Target(canvas_coords.x, canvas_coords.y, 5))
     }
     tracer_start = gridLeft.gridToCanvas(0, fun(0))
@@ -832,7 +820,12 @@ function rngLevel(gameState) {
     })
     const nextButton = new Button(925, 100, 100, 100, (() => { }), "Next")
     nextButton.onclick = (() => {
-        gameState.refresh = true
+        console.log(gameState.stored.totalDistance >= DISTANCES[gameState.stored.nextPlanet])
+        if (gameState.stored.totalDistance >= DISTANCES[gameState.stored.nextPlanet]){
+            gameState.sceneName = "ship"
+        }else{
+            gameState.refresh = true
+        }
     })
     nextButton.visible = false
     const targetText = new TextBox(gridLeftX, 300, funString, font = '40px monospace', color = Color.white)
@@ -1004,7 +997,7 @@ function loadScene(gameState) {
         }
         case "shipDoor": {
             const open = gameState.completedLevels["intro"]
-            const door_button = new Button(1150, 480, 110, 230, (() => { gameState.sceneName = (open ? "ship" : "intro") }), "")
+            const door_button = new Button(1212, 470, 110, 200, (() => { gameState.sceneName = (open ? "ship" : "intro") }), "")
             door_button.visible = false
             gameState.objects = [
                 new ImageObject(0, 0, canvas_width, canvas_height, open ? "shipDoorOpen_img" : "start2_img"),
@@ -1025,35 +1018,28 @@ function loadScene(gameState) {
             break
         }
         case "ship": {
-            gameState.shipState = {
-                landed: true,
-                currentLocation: 'Linear Prime',
-                inFlight: false,
-                fuelLevel: 100,
-            }
+            const dist = gameState.stored.totalDistance
+            const nextPlanet = gameState.stored.nextPlanet
+            inFlight = dist > DISTANCES[nextPlanet-1] && dist < DISTANCES[nextPlanet]
             text_content = [
-                "Current location: Landed on Linear Prime",
-                "Navigating to: Quadratic System",
-                "Fuel level: [■■■■■] 100%"
+                "Current location: " + (inFlight ?  "In space" : "Landed on "+PLANETS[nextPlanet-1] + " Planet"),
+                "Navigating to: " + PLANETS[nextPlanet] + " Planet",
             ]
-            var exitTo = "shipDoor"
+            var exitTo = "shipDoor" // todo
             const door_button = new Button(90, 90, 250, 800, (() => { gameState.sceneName = exitTo }), "")
             door_button.visible = false
             const nav_button = new Button(670, 470, 410, 190, (() => { gameState.sceneName = "navigation" }), "")
             nav_button.visible = false
+            door_button.active = !inFlight
             gameState.objects = [
                 new ImageObject(0, 0, canvas_width, canvas_height, "interior_img"),
                 new TextBox(580, 160, text_content[0], "30px monospace", Color.green),
                 new TextBox(580, 220, text_content[1], "30px monospace", Color.green),
-                new TextBox(580, 280, text_content[2], "30px monospace", Color.green),
+                //new TextBox(580, 280, text_content[2], "30px monospace", Color.green),
                 door_button, nav_button
             ]
             gameState.update(() => {
-                if (landed && !inFlight) {
-                    door_button.active = true
-                } else {
-                    door_button.active = false
-                }
+                
             })
             break
         }
@@ -1087,9 +1073,7 @@ function loadScene(gameState) {
         /** Intro Levels
          * Difficulty here is quite low, player should only struggle with
          * understanding what the goal is and what they have under their
-         * control. They should grasp this in the first 4 puzzles, and 
-         * then 5-8 are a victory lap to encourage them before we introduce
-         * complexity in 2.
+         * control.
          */
         case "intro": {
             subMenu(gameState, "1", "shipDoor")
@@ -1146,7 +1130,7 @@ function loadScene(gameState) {
          * Now go to 4x4 but still only move in positive direction or 0.
          */
         case "intro4Pos": {
-            introLevels(gameState, [0, 1, 1, 2])
+            simpleDiscLevel(gameState, [0, 1, 1, 2])
             break
         }
 
@@ -1154,7 +1138,7 @@ function loadScene(gameState) {
          * Introduce negative direction.
          */
         case "introNeg": {
-            introLevels(gameState, [1, 0, -1, 0])
+            simpleDiscLevel(gameState, [1, 0, -1, 0])
             break
         }
 
@@ -1162,7 +1146,7 @@ function loadScene(gameState) {
          * Sliders can be set to partial units, specifically half
          */
         case "introFrac": {
-            introLevels(gameState, [0.5, 1, 0.5, 1.5])
+            simpleDiscLevel(gameState, [0.5, 1, 0.5, 1.5])
             break
         }
 
@@ -1170,7 +1154,7 @@ function loadScene(gameState) {
          * Reinforce previous levels, also use max slider values
          */
         case "introCombined": {
-            introLevels(gameState, [2, 1.5, -0.5, -2])
+            simpleDiscLevel(gameState, [2, 1.5, -0.5, -2])
             break
         }
 
@@ -1188,7 +1172,7 @@ function loadScene(gameState) {
          */
         case "intro16": {
             simpleDiscLevel(gameState, [0.25, 0.5, 0.75, 1, 1.25, 1, 0.75, 0.5,
-                0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1])
+                0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1], tracerStart = 0, targetSize = 12)
             break
         }
 
