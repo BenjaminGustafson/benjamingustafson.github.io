@@ -1,16 +1,14 @@
 /**
  * A slider UI element.
- * Has a circle handle and a line with tick marks.
  * 
+ * Drawn as a line with tick marks and a circle that can be dragged along the line.
  * 
  */
 class Slider{
 
-
-    
     /**
      * 
-     * Ex: 
+     * Sliders values example: 
      *
      * _____ i=0 value = 2   y = y 
      *   |
@@ -25,11 +23,16 @@ class Slider{
      *   = top_y + unitLength * (axis - value)
      * 
      * value = axis - (y - top_y)/unitLength
-     * @param {*} x 
-     * @param {*} top_y 
-     * @param {*} height 
+     * 
+     * @param {*} origin_x x-value of middle of slider (vertical)
+     * @param {*} origin_y y-value of top of slider (vertical)
+     * @param {*} length 
      * @param {*} numDivision The slider will have numDivision+1 tick marks.
+     * @param {*} startValue 
      * @param {*} axis Where 0 is on the slider. Counting from the top down starting at zero.
+     * @param {*} increment 
+     * @param {*} visible 
+     * @param {*} vertical 
      * @param {*} circleRadius 
      */
     constructor(origin_x, origin_y, length, numDivision, startValue,  axis, increment = 0.1, visible = true, vertical = true, circleRadius=15){
@@ -143,7 +146,6 @@ class Slider{
             if (value != this.value){
                 // new Audio('audio/click_003.mp3').play()
                 this.value = value
-                console.log('value', value)
             }
             if (this.vertical){
                 this.circle_pos = this.origin_y + (this.axis - this.value)* this.unitLength

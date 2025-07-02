@@ -24,56 +24,65 @@ function setup() {
 
     var canvas = document.getElementById('myCanvas');
 
-    var current_sceneName = "startMenu"
     var gameState = {
-        sceneName: current_sceneName,
-        objects: [],
-        update: (() => { }),
-        completedLevels: {},// todo: refactor this
-        writeToStorage: false,
-        layout: { ind: 0, prec: 10 },
-        stored: {
-            totalDistance: 0,
-            currentNavFunction: null,
-            gridScale: 100,
-            strikes: 0,
-            puzzleAccuracy: [],
-            numPuzzles: [],
-            progress: [],
-            mathblocksUnlocked: [MathBlock.CONSTANT],
-            nextPlanet: 1,
-        },
-        local: {},
+        objects: [], // The GameObjects in the current scene
+        update: (() => { }), //
+        //layout: { ind: 0, prec: 10 },
+        stored: {}, // The part of the state that is saved. See initStoredState for object contents
+        temp: {}, // Cleared on scene change.
     }
 
+    function initStoredState(){
+        var initCompletedLevels = []
+        var initPuzzleMastery = []
+        var initNumPuzzles = []
+        for (let i = 0; i < PLANET_DATA.length; i++){
+            initCompletedLevels.push({})
+            initPuzzleMastery.push(0)
+            initNumPuzzles.push(0)
+        }
+
+        gameState.stored = {
+            sceneName: "startMenu",
+            landed:true, // true if the ship is on a planet, false if it is in space
+            planetIndex:0,// The current planet landed on, or the planet we just left
+            planetCompletedLevels: initCompletedLevels, // objects storing completed levels, like {"level1":true}, indexed by planet
+            totalDistance: 0, // the total distance the ship has traveled
+            currentNavFunction: null, // the puzzle that the navigation is currently on
+            strikes: 0, // the number of strikes (incorrect answers) at the navigation puzzle
+            puzzleMastery: initPuzzleMastery, // list of mastery scores, indexed by puzzle type
+            numPuzzles: initNumPuzzles, // number of attempted puzzles, indexed by puzzle type
+            mathblocksUnlocked: [MathBlock.CONSTANT],// the MathBlocks currently available
+        }
+        
+    }
+
+    // Try to load stored data
+    const storedState = localStorage.getItem('storedState')
+    if (storedState == null){ // Local storage does not have stored data
+        console.log('No stored data. Creating new save')
+        initStoredState()
+    }else{ // Try to parse stored data
+        const parsed = JSON.parse(storedState);
+        if (parsed == null){ // Data has parse error
+            console.log('Unable to parse stored state')
+            initStoredState()
+        }else { // Save data exists
+            gameState.stored = parsed
+            console.log("Loaded save")   
+            gameState.temp.nextScene = gameState.stored.sceneName
+            gameState.stored.sceneName = 'startMenu' // always start at menu
+        }
+    }
+    
     if (build == 'dev') {
         const startScene = localStorage.getItem('startScene')
         if (startScene) gameState.sceneName = startScene
     }
 
-    Object.keys(localStorage).forEach(key => {
-        gameState.completedLevels[key] = true
-    })
+    var currentSceneName = gameState.stored.sceneName
 
-
-    const storedState = localStorage.getItem('storedState')
-    if (storedState == null){
-        console.log('Unable to load stored data (happens on first visit to page)')
-        localStorage.setItem('storedState', JSON.stringify(gameState.stored));
-    }else{
-        const parsed = JSON.parse(storedState);
-        if (parsed == null){
-            console.log('Unable to parse stored state')
-            localStorage.setItem('storedState', JSON.stringify(gameState.stored));
-        }else {
-            gameState.stored = parsed
-            console.log("Loaded save")   
-        }
-    }
-    
-
-
-    loadScene(gameState)
+    loadScene(gameState, 'startMenu', false)
 
     // const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     // const desiredFreq = 440;
@@ -102,7 +111,7 @@ function setup() {
     // ----------------------------------------------------------------------------------------------
 
     // When the mouse is clicked, the (x,y) of the click is broadcast
-    // to all objects.
+    // to all GameObjects.
     canvas.addEventListener('mousedown', function (event) {
         var rect = canvas.getBoundingClientRect();
         const x = (event.clientX - rect.left) * (canvas.width / rect.width);
@@ -167,10 +176,9 @@ function setup() {
             switch (event.key) {
                 case 'c':
                     localStorage.clear()
-                    gameState.completedLevels = {}
                     break
                 case 's':
-                    gameState.completedLevels[gameState.sceneName] = true
+                    gameState.stored.planetCompletedLevels[gameState.stored.planetIndex][gameState.stored.sceneName] = true
                     break
                 case 'r':
                     localStorage.setItem("startScene", gameState.sceneName)
@@ -240,35 +248,29 @@ function setup() {
         }
 
         if (build == 'dev') {
-            //console.log(gameState.sceneName)
+            //console.log(gameState.stored.sceneName)
+        }
 
-        }
-        if (current_sceneName != gameState.sceneName || gameState.refresh) {
-            current_sceneName = gameState.sceneName
-            gameState.refresh = false
-            loadScene(gameState)
-            if (build == "layout") {
-                gameState.layout.ind = 0
-            }
-        }
+        // 
+        // if (currentSceneName != gameState.stored.sceneName || gameState.refresh) {
+        //     currentSceneName = gameState.sceneName
+        //     gameState.refresh = false
+        //     loadScene(gameState)
+        //     if (build == "layout") {
+        //         gameState.layout.ind = 0
+        //     }
+        // }
         gameState.update()
         var ctx = canvas.getContext('2d');
 
-        // Flag writeToStorage tells us to save the completedLevels
-        if (gameState.writeToStorage) {
-            Object.keys(gameState.completedLevels).forEach(key => {
-                localStorage.setItem(key, "solved")
-            })
-            gameState.writeToStorage = false
-        }
-
-        //Background
+        // Draw background
         Color.setColor(ctx, Color.black)
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         Color.setColor(ctx, new Color(10, 10, 10))
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
 
+        // Draw all GameObjects
         for (let i = 0; i < Object.values(gameState.objects).length; i++) {
             Object.values(gameState.objects)[i].draw(ctx);
         }
