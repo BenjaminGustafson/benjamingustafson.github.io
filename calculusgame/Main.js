@@ -186,6 +186,12 @@ function setup() {
                 case '0':
                     gameState.stored.totalDistance = 0
                     break
+                case 'ArrowRight':
+                    gameState.stored.totalDistance++
+                    break
+                case 'ArrowLeft':
+                    gameState.stored.totalDistance = Math.floor(gameState.stored.totalDistance) - 1
+                    break
             }
         }
 
@@ -193,16 +199,16 @@ function setup() {
             const obj = gameState.objects[gameState.layout.ind]
             switch (event.key) {
                 case 'w':
-                    obj.origin_y -= gameState.layout.prec
+                    obj.originY -= gameState.layout.prec
                     break
                 case 'a':
-                    obj.origin_x -= gameState.layout.prec
+                    obj.originX -= gameState.layout.prec
                     break
                 case 's':
-                    obj.origin_y += gameState.layout.prec
+                    obj.originY += gameState.layout.prec
                     break
                 case 'd':
-                    obj.origin_x += gameState.layout.prec
+                    obj.originX += gameState.layout.prec
 
                     break
                 case 'e':
@@ -227,7 +233,7 @@ function setup() {
                     gameState.layout.prec = 5
                     break
                 case 'p':
-                    console.log(obj.origin_x + "," + obj.origin_y)
+                    console.log(obj.originX + "," + obj.originY)
                     break
             }
         }
@@ -278,8 +284,8 @@ function setup() {
         if (build == 'layout') {
             const layout_obj = gameState.objects[gameState.layout.ind]
             ctx.strokeStyle = 'rgb(255,0,0)'
-            Shapes.Line(ctx, 0, layout_obj.origin_y, canvas.width, layout_obj.origin_y, 1)
-            Shapes.Line(ctx, layout_obj.origin_x, 0, layout_obj.origin_x, canvas.height, 1)
+            Shapes.Line(ctx, 0, layout_obj.originY, canvas.width, layout_obj.originY, 1)
+            Shapes.Line(ctx, layout_obj.originX, 0, layout_obj.originX, canvas.height, 1)
         }
 
         window.requestAnimationFrame(update);

@@ -24,8 +24,8 @@ class Slider{
      * 
      * value = axis - (y - top_y)/unitLength
      * 
-     * @param {*} origin_x x-value of middle of slider (vertical)
-     * @param {*} origin_y y-value of top of slider (vertical)
+     * @param {*} originX x-value of middle of slider (vertical)
+     * @param {*} originY y-value of top of slider (vertical)
      * @param {*} length 
      * @param {*} numDivision The slider will have numDivision+1 tick marks.
      * @param {*} startValue 
@@ -35,13 +35,13 @@ class Slider{
      * @param {*} vertical 
      * @param {*} circleRadius 
      */
-    constructor(origin_x, origin_y, length, numDivision, startValue,  axis, increment = 0.1, visible = true, vertical = true, circleRadius=15){
+    constructor(originX, originY, length, numDivision, startValue,  axis, increment = 0.1, visible = true, vertical = true, circleRadius=15){
         this.lineWidth = 5
         this.active = true
         this.circleColorActive = Color.red
         this.circleColor = Color.red
-        this.origin_x = origin_x
-        this.origin_y = origin_y
+        this.originX = originX
+        this.originY = originY
         this.length = length
         this.numDivision = numDivision
         this.grabbed = false
@@ -60,23 +60,28 @@ class Slider{
         this.unitLength = this.length/this.numDivision
         // The circle goes at the tick mark given by the value
         if (vertical){
-            this.circle_pos = this.origin_y + (this.axis - this.value) * this.unitLength
+            this.circle_pos = this.originY + (this.axis - this.value) * this.unitLength
         }else{
-            this.circle_pos = this.origin_x + this.length - (this.axis - this.value)* this.unitLength
+            this.circle_pos = this.originX + this.length - (this.axis - this.value)* this.unitLength
         }
 
         this.vertical = vertical
-        this.end_x = origin_x + length
-        this.end_y = origin_y
+        this.end_x = originX + length
+        this.end_y = originY
         if (vertical){
-            this.end_x = origin_x
-            this.end_y = origin_y + length
+            this.end_x = originX
+            this.end_y = originY + length
         }
+        this.maxVal = axis
+        this.minVal = axis-numDivision
     }
 
     setValue(val){
+        console.log('value',this.minVal,this.maxVal,val)
+        if (val < this.minVal) val = this.minVal
+        if (val > this.maxVal) val = this.maxVal
         this.value = val
-        this.circle_pos = this.origin_y + (this.axis - this.value)* this.unitLength
+        this.circle_pos = this.originY + (this.axis - this.value)* this.unitLength
     }
 
     draw(ctx){
@@ -92,7 +97,7 @@ class Slider{
 
             Color.setColor(ctx, Color.white)
             if (this.visible){
-                Shapes.RoundedLine(ctx, this.origin_x, this.origin_y, this.end_x, this.end_y, this.lineWidth)
+                Shapes.RoundedLine(ctx, this.originX, this.originY, this.end_x, this.end_y, this.lineWidth)
                 for (let i = 0; i <= this.numDivision; i++){
                     const crossLength = 15
                     const lineWidth = this.lineWidth
@@ -110,12 +115,12 @@ class Slider{
                         lineType = "arrow"
                     }
                     if (this.vertical){
-                        Shapes.Line(ctx, this.origin_x-crossLength, this.origin_y+i*this.unitLength,
-                        this.origin_x+crossLength, this.origin_y+i*this.unitLength, 
+                        Shapes.Line(ctx, this.originX-crossLength, this.originY+i*this.unitLength,
+                        this.originX+crossLength, this.originY+i*this.unitLength, 
                         lineWidth, lineType)
                     }else{
-                        Shapes.Line(ctx, this.origin_x+i*this.unitLength, this.origin_y -crossLength,
-                            this.origin_x+i*this.unitLength, this.origin_y+crossLength, 
+                        Shapes.Line(ctx, this.originX+i*this.unitLength, this.originY -crossLength,
+                            this.originX+i*this.unitLength, this.originY+crossLength, 
                             lineWidth, lineType)
                     }
                 }
@@ -124,9 +129,9 @@ class Slider{
 
         Color.setColor(ctx, this.circleColor)
         if (this.vertical){
-            Shapes.Circle(ctx, this.origin_x,this.circle_pos, this.circleRadius)
+            Shapes.Circle(ctx, this.originX,this.circle_pos, this.circleRadius)
         }else{
-            Shapes.Circle(ctx, this.circle_pos,this.origin_y, this.circleRadius)
+            Shapes.Circle(ctx, this.circle_pos,this.originY, this.circleRadius)
         }
 
     }
@@ -137,25 +142,25 @@ class Slider{
         }
         if (this.grabbed){
             
-            this.circle_pos = Math.max(Math.min(y - this.grab_pos, this.origin_y+this.length), this.origin_y)
-            var value =  this.axis - Math.round((this.circle_pos-this.origin_y)/this.unitLength/this.increment)*this.increment
+            this.circle_pos = Math.max(Math.min(y - this.grab_pos, this.originY+this.length), this.originY)
+            var value =  this.axis - Math.round((this.circle_pos-this.originY)/this.unitLength/this.increment)*this.increment
             if (!this.vertical){
-                this.circle_pos = Math.max(Math.min(x - this.grab_pos, this.origin_x+this.length), this.origin_x)
-                value = - this.axis + Math.round((this.circle_pos-this.origin_x)/this.unitLength/this.increment)*this.increment
+                this.circle_pos = Math.max(Math.min(x - this.grab_pos, this.originX+this.length), this.originX)
+                value = - this.axis + Math.round((this.circle_pos-this.originX)/this.unitLength/this.increment)*this.increment
             }
             if (value != this.value){
                 // new Audio('audio/click_003.mp3').play()
                 this.value = value
             }
             if (this.vertical){
-                this.circle_pos = this.origin_y + (this.axis - this.value)* this.unitLength
+                this.circle_pos = this.originY + (this.axis - this.value)* this.unitLength
             }else{
-                this.circle_pos = this.origin_x + this.length - (this.axis - this.value)* this.unitLength
+                this.circle_pos = this.originX + this.length - (this.axis - this.value)* this.unitLength
             }
             return 'grabbing'
         }
-        if ((this.vertical && (this.origin_x - x)*(this.origin_x - x) + (this.circle_pos - y)*(this.circle_pos- y) <= this.circleRadius*this.circleRadius)
-        || (!this.vertical && (this.origin_y - y)*(this.origin_y - y) + (this.circle_pos - x)*(this.circle_pos- x) <= this.circleRadius*this.circleRadius)){
+        if ((this.vertical && (this.originX - x)*(this.originX - x) + (this.circle_pos - y)*(this.circle_pos- y) <= this.circleRadius*this.circleRadius)
+        || (!this.vertical && (this.originY - y)*(this.originY - y) + (this.circle_pos - x)*(this.circle_pos- x) <= this.circleRadius*this.circleRadius)){
             return 'grab'
         }
         return null
@@ -165,8 +170,8 @@ class Slider{
         if (!this.active){
             return null
         }
-        if ((this.vertical && (this.origin_x - x)*(this.origin_x - x) + (this.circle_pos - y)*(this.circle_pos- y) <= this.circleRadius*this.circleRadius)
-            || (!this.vertical && (this.origin_y - y)*(this.origin_y - y) + (this.circle_pos - x)*(this.circle_pos- x) <= this.circleRadius*this.circleRadius)){
+        if ((this.vertical && (this.originX - x)*(this.originX - x) + (this.circle_pos - y)*(this.circle_pos- y) <= this.circleRadius*this.circleRadius)
+            || (!this.vertical && (this.originY - y)*(this.originY - y) + (this.circle_pos - x)*(this.circle_pos- x) <= this.circleRadius*this.circleRadius)){
             this.grabbed = true
             if (this.vertical){
                 this.grab_pos = y - this.circle_pos
@@ -185,14 +190,14 @@ class Slider{
             return null
         }
         this.grabbed = false
-        if ((this.vertical && (this.origin_x - x)*(this.origin_x - x) + (this.circle_pos - y)*(this.circle_pos- y) <= this.circleRadius*this.circleRadius)
-            || (!this.vertical && (this.origin_y - y)*(this.origin_y - y) + (this.circle_pos - x)*(this.circle_pos- x) <= this.circleRadius*this.circleRadius)){
+        if ((this.vertical && (this.originX - x)*(this.originX - x) + (this.circle_pos - y)*(this.circle_pos- y) <= this.circleRadius*this.circleRadius)
+            || (!this.vertical && (this.originY - y)*(this.originY - y) + (this.circle_pos - x)*(this.circle_pos- x) <= this.circleRadius*this.circleRadius)){
             return 'grab'
         }
         return null
         //new Audio('audio/click_001.ogg').play();
-        // this.value = Math.round((this.circle_pos-this.origin_y)/this.length*this.numDivision)
-        // this.circle_y = this.origin_y + this.value* this.length/this.numDivision
+        // this.value = Math.round((this.circle_pos-this.originY)/this.length*this.numDivision)
+        // this.circle_y = this.originY + this.value* this.length/this.numDivision
     }
 
     solved(){

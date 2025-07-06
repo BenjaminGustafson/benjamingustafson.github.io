@@ -25,7 +25,9 @@ const PLANET_DATA = [
         puzzles: ["intro1", "intro2", "intro4Pos", "introNeg", "introFrac", "introCombined", "intro8", "intro16"]
     },
     {name: "Quadratic", distance: 10, scene:"quadDoor",
-         puzzles:["quad4", "quad8", "quad16", "quad32", "quad400", "quad2x", "quadHalf", "quadShiftLeft", "quadShiftRight"]
+         puzzles:["quad4", "quad8", "quad16", "quad32", "quadSmooth", "quadShort4", "quadShort8", "quadShort16", "quadShort32", "quadShortSmooth",
+            "quadNeg4", "quadNeg8", "quadNeg16", "quadNeg32", "quadNegSmooth",
+         ]
     },
     {name: "Exponential", distance: 30, scene:"expDoor", 
         puzzles: ["exp1", "exp2"]
@@ -78,24 +80,24 @@ function updateNavigationProgress(gameState, puzzleType, wasCorrect){
 function rngLevel(gameState) {
     const gs = gameState.stored
     const prevPlanet = PLANET_DATA[gs.planetIndex]
-    const nextPlanet = PLANET_DATA[gs.planetIndex]
+    const nextPlanet = PLANET_DATA[gs.planetIndex+1]
 
     const grid_setting = { grid_width: 4, grid_height: 4, x_axis: 2, y_axis: 2 }
     const blocks = [[MathBlock.CONSTANT, ""]]
 
-    const randM = Math.floor(Math.random()*4*10)/10 
-    const randB = gameState.stored.totalDistance
-    const fun = x => randM * x + randB
-    const funString = "f(x)=" + randM + "x+" + randB
+    const m = Math.floor(Math.random()*4*10)/10 
+    const b = gameState.stored.totalDistance
+    const fun = x => m * x + b
+    const funString = "f(x)=" + m + "x+" + b
 
-    const y_adjust = 100
-    const x_adjust = 100
-    const gridLeftX = 150
+    const padLeft = 50
+    const gridDim = 400
+    const padBottom = 50
     const intDist = Math.floor(gameState.stored.totalDistance)
-    const gridLeft = new Grid(gridLeftX, 250 + y_adjust, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, 4+intDist, 0, labels=true)
-    const gridRight = new Grid(600 + x_adjust, 250 + y_adjust, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
-    const leftSlider = new Slider(1100 + x_adjust, 250 + y_adjust, 400, 4, 0, 4, 0.1, true, true)
-    const sy_slider = new Slider(1200 + x_adjust, 250 + y_adjust, 400, 8, 1, 4, 0.1, true, true)
+    const gridLeft = new Grid(padLeft, 650, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, 4+intDist, 0, labels=true)
+    const gridRight = new Grid(600, 250, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
+    const leftSlider = new Slider(1100, 250, 400, 4, 0, 4, 0.1, true, true)
+    const sy_slider = new Slider(1200, 250, 400, 8, 1, 4, 0.1, true, true)
     const funRight = new FunctionTracer(gridRight)
     //const funLeft = new FunctionTracer(gridLeft, (x => x*x))
     //funLeft.color = Color.red
@@ -103,9 +105,9 @@ function rngLevel(gameState) {
 
     const math_blocks = []
     for (let i = 0; i < blocks.length; i++) {
-        math_blocks.push(new MathBlock(blocks[i][0], blocks[i][1], 1300 + x_adjust, 150 + y_adjust + 100 * i))
+        math_blocks.push(new MathBlock(blocks[i][0], blocks[i][1], 1300, 150 + 100 * i))
     }
-    const mngr = new MathBlockManager(math_blocks, 600 + x_adjust, 150 + y_adjust, leftSlider, sy_slider, { type: "fun_tracer", fun_tracer: funRight })
+    const mngr = new MathBlockManager(math_blocks, 600, 150, leftSlider, sy_slider, { type: "fun_tracer", fun_tracer: funRight })
     
     const target_coords = []
     const num_targets = 200
@@ -134,13 +136,9 @@ function rngLevel(gameState) {
         originX: 300,
         length: 500,
         updateDistance: function(d){
-            const startDist = prevPlanet.distance
-            const endDist = nextPlanet.distance
-            this.dist = (d - prevPlanet.distance) * this.length / (nextPlanet.distance - startDist)
+            this.dist = (d - prevPlanet.distance) * this.length / (nextPlanet.distance - prevPlanet.distance)
         },
         draw: function(ctx){
-            const startDist = prevPlanet.distance
-            const endDist = nextPlanet.distance
             const originY = 150
             const numTicks = 10
             const tickLength = 10
@@ -156,8 +154,8 @@ function rngLevel(gameState) {
             ctx.fillText(prevPlanet.name+" Planet", this.originX, originY-60)
             ctx.fillText(nextPlanet.name+" Planet", this.originX+this.length, originY-60)
             ctx.fillText(gameState.stored.totalDistance+" u charted", this.originX+this.length/2, originY-60)
-            ctx.fillText(startDist+" u", this.originX, originY+25)
-            ctx.fillText(endDist+" u", this.originX+this.length, originY+25)
+            ctx.fillText(prevPlanet.distance+" u", this.originX, originY+25)
+            ctx.fillText(nextPlanet.distance+" u", this.originX+this.length, originY+25)
             
 
             for (let i = 0; i < numTicks + 1; i++) {
@@ -190,20 +188,20 @@ function rngLevel(gameState) {
         if (gameState.stored.totalDistance >= nextPlanet.distance){
             loadScene(gameState,"ship")
         }else{
-            gameState.refresh = true
+            loadScene(gameState,"navigation")
         }
     })
     nextButton.visible = false
-    const targetText = new TextBox(gridLeftX, 300, funString, font = '40px monospace', color = Color.white)
+    const targetText = new TextBox(padLeft, 300, funString, font = '40px monospace', color = Color.white)
     const axisLabels = {
         draw: function(ctx){
             ctx.font = '20px monospace'
             ctx.textAlign = 'center'
             ctx.textBaseline = 'top'
             Color.setColor(ctx, Color.white)
-            ctx.fillText("Time (s)", gridLeftX + 200, 800)
+            ctx.fillText("Time (s)", padLeft + 200, 800)
             ctx.fillText("Time (s)", 900, 800)
-            ctx.translate(gridLeftX -60,550)
+            ctx.translate(padLeft -60,550)
             ctx.rotate(-Math.PI/2)
             ctx.fillText("Position (units)", 0, 0)
             ctx.resetTransform()
@@ -388,9 +386,9 @@ function puzzleMenu(gameState, menu_num, levels, exitTo) {
     var x = start_x
     var y = 300
     for (let i = 0; i < buttons.length; i++) {
-        buttons[i].origin_x = x
-        buttons[i].origin_y = y
-        if (build == "dev") console.log(x - buttons[i].width / 2 == buttons[i].origin_x)
+        buttons[i].originX = x
+        buttons[i].originY = y
+        if (build == "dev") console.log(x - buttons[i].width / 2 == buttons[i].originX)
         x += 200
         if (i % 6 == 5) {
             x = start_x
@@ -422,7 +420,7 @@ function puzzleMenu(gameState, menu_num, levels, exitTo) {
  * Relies on gameState.stored.menuScene
  * and gameState.stored.levels 
  * 
- * Adds an back button that returns to the menu 
+ * Adds a back button that returns to the menu 
  * and next button that goes to the next level.
  * 
  * @param {function} winCon the win condition for the level
@@ -457,6 +455,88 @@ function levelNavigation(gameState, winCon) {
     gameState.update = update
 }
 
+/**
+ * 
+ * @param {*} gameState 
+ * @param {*} num_sliders 
+ * @param {*} withButton 
+ * @param {*} func 
+ */
+function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => x * x / 2)) {    
+    const gridLeft = new Grid(300, 350, 400, 400, 4, 4, 5, 2, 2)
+    const gridRight = new Grid(900, 350, 400, 400, 4, 4, 5, 2, 2)
+    var sliders = []
+    const slider_spacing = 400 / num_sliders
+    var slider_size = 15
+    if (num_sliders >= 16) slider_size = 10
+    if (num_sliders >= 64) slider_size = 5
+    for (let i = 0; i < num_sliders; i++) {
+        const slider = new Slider(900 + slider_spacing * i, 350, 400, 4, 0, 2, 0.01, false, vertical = true, circleRadius = slider_size)
+        sliders.push(slider)
+    }
+    const target_coords = []
+    for (let i = 0; i < num_sliders; i++) {
+        const x = -2 + (i + 1) / num_sliders * 4
+        target_coords.push([x, func(x)])
+    }
+    var targets = []
+    var targetSize = 15
+    if (num_sliders >= 16) targetSize = 15
+    if (num_sliders >= 64) targetSize = 5
+    for (let i = 0; i < target_coords.length; i++) {
+        const coord = gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
+        const target = new Target(coord.x, coord.y, targetSize)
+        targets.push(target)
+    }
+    const tracerStart = gridLeft.gridToCanvas(-2,func(-2))
+    const tracer = new Tracer(tracerStart.x, tracerStart.y, gridLeft,
+        { type: "sliders", sliders: sliders, slider_spacing: slider_spacing },
+        4, targets)
+
+
+    const ty_slider = new Slider(1400, 350, 400, 4, 0, 2, 0.1, true, true)
+    ty_slider.circleColorActive = Color.green
+    ty_slider.active = false
+    const sy_slider = new Slider(1500, 350, 400, 4, 1, 2, 0.1, true, true)
+    sy_slider.circleColorActive = Color.green
+    sy_slider.active = false
+
+    gameState.objects = [gridLeft, gridRight,tracer].concat(sliders).concat(targets)
+
+    if (withButton) {
+        const linearButton = new Button(900, 220, 50, 50, () => { }, "x")
+        const fun = x => x
+        function set_linear() {
+            if (!linearButton.toggled) {
+                linearButton.toggled = true
+                linearButton.color = Color.green
+                ty_slider.active = true
+                sy_slider.active = true
+            } else {
+                linearButton.toggled = false
+                linearButton.color = Color.white
+                ty_slider.active = false
+                sy_slider.active = false
+            }
+        }
+        linearButton.onclick = set_linear
+
+        gameState.objects = gameState.objects.concat([linearButton,ty_slider,sy_slider])
+
+        gameState.update = () => {
+            if (ty_slider.active) {
+                for (let i = 0; i < num_sliders; i++) {
+                    const val = ty_slider.value + sy_slider.value * fun(gridRight.canvasToGrid(sliders[i].originX, 0).x)
+                    console.log(val)
+                    sliders[i].setValue(val)
+                }
+            }
+        }
+    } else {
+        gameState.update = () => { }
+    }
+    levelNavigation(gameState, () => tracer.solved)
+}
 
 
 
@@ -495,7 +575,7 @@ function levelNavigation(gameState, winCon) {
 //     sy_slider.active = false
 
 //     //const mngr = new MathBlockManager(math_blocks,900,150, ty_slider, sy_slider, {type:"sliders", sliders:sliders})
-//     const linear_button = new Button(900, 220, 50, 50, () => { }, "x")
+//     const linearButton = new Button(900, 220, 50, 50, () => { }, "x")
 //     const fun = x => x
 //     function set_linear() {
 //         if (!linear_button.toggled) {
@@ -514,7 +594,7 @@ function levelNavigation(gameState, winCon) {
 
 //     const objs = [gridLeft, gridRight, tracer].concat(targets).concat(sliders)
 //     if (withButton) {
-//         objs.push(linear_button)
+//         push(linear_button)
 //         objs.push(ty_slider)
 //         if (withSySlider) {
 //             objs.push(sy_slider)
@@ -524,87 +604,13 @@ function levelNavigation(gameState, winCon) {
 //     gameState.update = () => {
 //         if (ty_slider.active) {
 //             for (let i = 0; i < num_sliders; i++) {
-//                 sliders[i].setValue(ty_slider.value + sy_slider.value * fun(gridRight.canvasToGrid(sliders[i].origin_x, 0).x))
+//                 sliders[i].setValue(ty_slider.value + sy_slider.value * fun(gridRight.canvasToGrid(sliders[i].originX, 0).x))
 //             }
 //         }
 //     }
 //     levelNavigation(gameState, () => tracer.solved)
 // }
 
-
-// function quadDiscLevel(gameState, num_sliders, withButton = false, withSySlider = false, func = (x => x * x / 2)) {
-//     gameState.objects = {}
-//     let objs = gameState.objects
-//     objs.gridLeft = new Grid(300, 350, 400, 400, 4, 4, 5, 2, 2)
-//     objs.gridRight = new Grid(900, 350, 400, 400, 4, 4, 5, 2, 2)
-//     var sliders = []
-//     const slider_spacing = 400 / num_sliders
-//     var slider_size = 15
-//     if (num_sliders >= 16) slider_size = 10
-//     if (num_sliders >= 64) slider_size = 5
-//     for (let i = 0; i < num_sliders; i++) {
-//         const slider = new Slider(900 + slider_spacing * i, 350, 400, 4, 0, 2, 0.01, false, vertical = true, circleRadius = slider_size)
-//         sliders.push(slider)
-//         objs["slider" + i] = slider
-//     }
-//     const target_coords = []
-//     for (let i = 0; i < num_sliders; i++) {
-//         const x = -2 + (i + 1) / num_sliders * 4
-//         target_coords.push([x, func(x)])
-//     }
-//     var targets = []
-//     for (let i = 0; i < target_coords.length; i++) {
-//         const coord = objs.gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
-//         const target = new Target(coord.x, coord.y, slider_size)
-//         targets.push(target)
-//     }
-//     const tracer = new Tracer(300, 350, objs.gridLeft,
-//         { type: "sliders", sliders: sliders, slider_spacing: slider_spacing },
-//         4, targets)
-//     objs.tracer = tracer
-//     // We have to do this to order the layers correctly, maybe in future game objects can get a layer property
-//     for (let i = 0; i < target_coords.length; i++) {
-//         objs["target" + i] = targets[i]
-//     }
-
-
-//     objs.ty_slider = new Slider(1400, 350, 400, 4, 0, 2, 0.1, true, true)
-//     objs.ty_slider.circleColorActive = Color.green
-//     objs.ty_slider.active = false
-//     objs.sy_slider = new Slider(1500, 350, 400, 8, 1, 4, 0.1, true, true)
-//     objs.sy_slider.circleColorActive = Color.green
-//     objs.sy_slider.active = false
-
-//     if (withButton) {
-//         objs.linear_button = new Button(900, 220, 50, 50, () => { }, "x")
-//         const fun = x => x
-//         function set_linear() {
-//             if (!objs.linear_button.toggled) {
-//                 objs.linear_button.toggled = true
-//                 objs.linear_button.color = Color.green
-//                 objs.ty_slider.active = true
-//                 objs.sy_slider.active = true
-//             } else {
-//                 objs.linear_button.toggled = false
-//                 objs.linear_button.color = Color.white
-//                 objs.ty_slider.active = false
-//                 objs.sy_slider.active = false
-//             }
-//         }
-//         objs.linear_button.onclick = set_linear
-
-//         gameState.update = () => {
-//             if (objs.ty_slider.active) {
-//                 for (let i = 0; i < num_sliders; i++) {
-//                     sliders[i].setValue(objs.ty_slider.value + objs.sy_slider.value * fun(objs.gridRight.canvasToGrid(sliders[i].origin_x, 0).x))
-//                 }
-//             }
-//         }
-//     } else {
-//         gameState.update = () => { }
-//     }
-//     levelNavigationObj(gameState, () => tracer.solved)
-// }
 
 // function twoGridLevel(gameState, num_sliders, buttons, func) {
 //     gameState.objects = {}
@@ -692,7 +698,7 @@ function levelNavigation(gameState, winCon) {
 //         gameState.update = () => {
 //             if (objs.ty_slider.active) {
 //                 for (let i = 0; i < num_sliders; i++) {
-//                     sliders[i].setValue(objs.ty_slider.value + objs.sy_slider.value * fun(objs.gridRight.canvasToGrid(sliders[i].origin_x, 0).x))
+//                     sliders[i].setValue(objs.ty_slider.value + objs.sy_slider.value * fun(objs.gridRight.canvasToGrid(sliders[i].originX, 0).x))
 //                 }
 //             }
 //         }
@@ -800,7 +806,7 @@ function levelNavigation(gameState, winCon) {
 //     var sliders = []
 //     const slider_spacing = 400 / num_sliders
 //     for (let i = 0; i < num_sliders; i++) {
-//         sliders.push(new Slider(grid3.origin_x + slider_spacing * i, 250, 400, grid_size, 0, grid_size / 2, 0.01, false, vertical = true, circleRadius = 10))
+//         sliders.push(new Slider(grid3.originX + slider_spacing * i, 250, 400, grid_size, 0, grid_size / 2, 0.01, false, vertical = true, circleRadius = 10))
 //     }
 //     const target_coords = []
 //     for (let i = 0; i < num_sliders - 1; i++) {
@@ -857,7 +863,7 @@ function levelNavigation(gameState, winCon) {
 
 //     const y_adjust = 100
 //     const x_adjust = 100
-//     const gridLeft = new Grid(100 + x_adjust, 250 + y_adjust, 400, 400, 4, 4, 5, 2, 2)
+//     const gridLeft = new Grid(100 + x_adjust, 250, 400, 400, 4, 4, 5, 2, 2)
 //     const gridRight = new Grid(600 + x_adjust, 250 + y_adjust, 400, 400, 4, 4, 5, 2, 2)
 //     const block1 = new MathBlock(MathBlock.VARIABLE, "x", 1300 + x_adjust, 250 + y_adjust)
 //     const block2 = new MathBlock(MathBlock.POWER, "2", 1300 + x_adjust, 350 + y_adjust)
@@ -1058,9 +1064,9 @@ function loadScene(gameState, sceneName, clearTemp = true) {
         case "intro1": {
             const gridLeft = new Grid(560, 430, 100, 100, 1, 1, 5)
             const gridRight = new Grid(900, 430, 100, 100, 1, 1, 5)
-            const slider = new Slider(gridRight.origin_x, gridRight.origin_y, 100, 1, 0, 1, 0.1, false)
-            const target = new Target(gridLeft.origin_x + 100, gridLeft.origin_y, 15)
-            const tracer = new Tracer(gridLeft.origin_x, gridLeft.origin_y + 100, gridLeft,
+            const slider = new Slider(gridRight.originX, gridRight.originY, 100, 1, 0, 1, 0.1, false)
+            const target = new Target(gridLeft.originX + 100, gridLeft.originY, 15)
+            const tracer = new Tracer(gridLeft.originX, gridLeft.originY + 100, gridLeft,
                 { type: "sliders", sliders: [slider], slider_spacing: 100 },
                 4, [target])
             gameState.objects = [gridLeft, gridRight, slider, target, tracer]
@@ -1076,14 +1082,14 @@ function loadScene(gameState, sceneName, clearTemp = true) {
             const gridLeft = new Grid(560, 430, 200, 200, 2, 2, 5)
             const gridRight = new Grid(900, 430, 200, 200, 2, 2, 5)
             const sliders = [
-                new Slider(gridRight.origin_x, gridRight.origin_y, 200, 2, 0, 1, 0.1, false),
-                new Slider(gridRight.origin_x + 100, gridRight.origin_y, 200, 2, 0, 1, 0.1, false)
+                new Slider(gridRight.originX, gridRight.originY, 200, 2, 0, 1, 0.1, false),
+                new Slider(gridRight.originX + 100, gridRight.originY, 200, 2, 0, 1, 0.1, false)
             ]
             const targets = [
-                new Target(gridLeft.origin_x + 100, gridRight.origin_y + 100, 15),
-                new Target(gridLeft.origin_x + 200, gridRight.origin_y, 15)
+                new Target(gridLeft.originX + 100, gridRight.originY + 100, 15),
+                new Target(gridLeft.originX + 200, gridRight.originY, 15)
             ]
-            const tracer = new Tracer(gridLeft.origin_x, gridLeft.origin_y + 200, gridLeft,
+            const tracer = new Tracer(gridLeft.originX, gridLeft.originY + 200, gridLeft,
                 { type: "sliders", sliders: sliders, slider_spacing: 100 },
                 4, targets)
             gameState.objects = [gridLeft, gridRight, tracer].concat(sliders).concat(targets)
@@ -1161,11 +1167,6 @@ function loadScene(gameState, sceneName, clearTemp = true) {
                 new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "shipDoorOpen_img" ),
                 doorButton, title, puzzleButton
             ]
-            gameState.keyPressed = key => {
-                if (key == 'Enter' || key == ' ' || key == 'ArrowRight') {
-                    //loadScene(gameState,(open ? "ship" : "intro")
-                }
-            }
             break
         }
 
@@ -1176,7 +1177,7 @@ function loadScene(gameState, sceneName, clearTemp = true) {
          * quadratic as $x^2$ until the next section.
          */
         case "quadMenu": {
-            puzzleMenu(gameState, 2, PLANET_DATA[2].puzzles,"quadDoor")
+            puzzleMenu(gameState, 2, PLANET_DATA[1].puzzles,"quadDoor") 
             break
         }
 
@@ -1198,113 +1199,62 @@ function loadScene(gameState, sceneName, clearTemp = true) {
         }
 
         case "quad16": {
-            quadDiscLevel(gameState, 16, withButton = true)
+            quadDiscLevel(gameState, 16, true)
             break
         }
 
         case "quad32": {
-            quadDiscLevel(gameState, 32, withButton = true)
+            quadDiscLevel(gameState, 32, true)
             break
         }
 
-        case "quad400": {
-            quadDiscLevel(gameState, 400, withButton = true)
+        case "quadSmooth": {
+            quadDiscLevel(gameState, 200, true)
             break
         }
 
-        case "quad2x": {
-            quadDiscLevel(gameState, 400, withButton = true, withSySlider = true, func = (x => x * x - 2))
+
+        case "quadShort4": {
+            quadDiscLevel(gameState, 4, false, x => x*x/4)
+            break
+        }
+        case "quadShort8": {
+            quadDiscLevel(gameState, 8, false, x => x*x/4)
+            break
+        }
+        case "quadShort16": {
+            quadDiscLevel(gameState, 16, true, x => x*x/4)
+            break
+        }
+        case "quadShort32": {
+            quadDiscLevel(gameState, 16, true, x => x*x/4)
+            break
+        }
+        case "quadShortSmooth": {
+            quadDiscLevel(gameState, 200, true, x => x*x/4)
             break
         }
 
-        case "quadNeg": {
-            quadDiscLevel(gameState, 400, withButton = true, withSySlider = true, func = (x => -x * x / 2))
+        case "quadNeg4": {
+            quadDiscLevel(gameState, 4, false, x => -x*x/2+2)
             break
         }
-
-        case "quadHalf": {
-            quadDiscLevel(gameState, 400, withButton = true, withSySlider = true, func = (x => x * x / 4))
-            gameState.objects.tracer.origin_y += 100
+        case "quadNeg8": {
+            quadDiscLevel(gameState, 8, false, x => -x*x/2+2)
             break
         }
-
-        case "quadShiftLeft": {
-            quadDiscLevel(gameState, 400, withButton = true, withSySlider = true, func = (x => (x + 1) * (x + 1) / 2 - 2))
-            gameState.objects.tracer.origin_y += 350
+        case "quadNeg16": {
+            quadDiscLevel(gameState, 16, true, x => -x*x/2+2)
             break
         }
-
-        case "quadShiftRight": {
-            quadDiscLevel(gameState, 400, withButton = true, withSySlider = true, func = (x => (x - 1) * (x - 1) / 4 - 1))
-            gameState.objects.tracer.origin_y += 75
+        case "quadNeg32": {
+            quadDiscLevel(gameState, 32, true, x => -x*x/2+2)
             break
         }
-
-        /**
-         * - We introduce symbols for the first time. The level solves itself.
-         * - You have to drag the mathblocks to the field.
-         */
-        case "quad4": {
-            const fun = x => x * x / 2
-            const blocks = [[MathBlock.VARIABLE, "x"]]
-            genContLevel(gameState, fun, blocks)
+        case "quadNegSmooth": {
+            quadDiscLevel(gameState, 200, true, x => -x*x/2+2)
             break
         }
-
-        /**
-         * Scaling the line smaller scales the quadratic smaller.
-         */
-        case "quad5": {
-            const fun = x => x * x / 4
-            const blocks = [[MathBlock.VARIABLE, "x"]]
-            genContLevel(gameState, fun, blocks)
-            break
-        }
-
-        /**
-         * Scaling the line larger scales the quadratic larger.
-         */
-        case "quad6": {
-            const fun = x => x * x
-            const blocks = [[MathBlock.VARIABLE, "x"]]
-            genContLevel(gameState, fun, blocks, { grid_width: 4, grid_height: 4, x_axis: 4, y_axis: 2 })
-            break
-        }
-
-        /**
-         * Shifting the line up/down shifts the quadratic left/right.
-         * This happens because shifting the function left shifts the integral left.
-         * I'm not sure this is an effective way of teaching this connection. Maybe a discrete puzzle would be better.
-         */
-        case "quad7": {
-            const fun = x => x * x / 4 + x - 1
-            const blocks = [[MathBlock.VARIABLE, "x"]]
-            genContLevel(gameState, fun, blocks)
-            break
-        }
-
-        /**
-         * - Scaling the line by a negative flips it.
-         */
-        case "quad8": {
-            const fun = x => -x * x / 2 + 2
-            const blocks = [[MathBlock.VARIABLE, "x"]]
-            genContLevel(gameState, fun, blocks)
-            break
-        }
-
-        /**
-         *  Shifting the line up/down shifts the quadratic left/right.
-         */
-        case "quad9": {
-            const fun = x => x * x / 4 - x - 1
-            const blocks = [[MathBlock.VARIABLE, "x"]]
-            genContLevel(gameState, fun, blocks)
-            break
-        }
-
-        // I vote no more puzzles here to reduce fatigue of quadratic
-        //  style puzzles. Can cover negative scaling and shifting in cubic 5-8.
 
         /**
          * Cubic levels

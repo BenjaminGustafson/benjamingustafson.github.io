@@ -15,10 +15,10 @@ class MathBlockManager {
     grab_y = 0
     frozen = false
 
-    constructor (blocks, origin_x, origin_y, translate_y_slider,scale_y_slider, output){
+    constructor (blocks, originX, originY, translate_y_slider,scale_y_slider, output){
         this.blocks = blocks
-        this.origin_x = origin_x
-        this.origin_y = origin_y
+        this.originX = originX
+        this.originY = originY
         this.width = 400
         this.height = 50
         this.translate_y_slider = translate_y_slider
@@ -59,7 +59,7 @@ class MathBlockManager {
             }
             // Draw the placeholder for the block
             Color.setColor(ctx,this.field_color)
-            Shapes.Rectangle(ctx,this.origin_x,this.origin_y,this.width,this.height,10,true)
+            Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,10,true)
         }
         this.tool_bar.forEach(b => b.draw(ctx))
         if (this.grabbed){
@@ -150,7 +150,7 @@ class MathBlockManager {
     }
 
     checkInField(x,y){
-        return x >= this.origin_x && x <= this.origin_x + this.width && y >= this.origin_y && y <= this.origin_y + this.height
+        return x >= this.originX && x <= this.originX + this.width && y >= this.originY && y <= this.originY + this.height
     }
 
 
@@ -174,11 +174,11 @@ class MathBlockManager {
                 // The block is over the field and the field is empty
                 this.field_block = this.grabbed
                 this.grabbed.attached = true
-                this.grabbed.x = this.origin_x
-                this.grabbed.y = this.origin_y
+                this.grabbed.x = this.originX
+                this.grabbed.y = this.originY
                 if (g.on_tool_bar){
                     g.on_tool_bar = false
-                    const new_g = new MathBlock(g.type,g.token,g.origin_x,g.origin_y)
+                    const new_g = new MathBlock(g.type,g.token,g.originX,g.originY)
                     this.blocks.push(new_g)
                     this.tool_bar.push(new_g)
                 }
@@ -199,7 +199,7 @@ class MathBlockManager {
                     g.parent = attach.block
                     if (g.on_tool_bar){
                         g.on_tool_bar = false
-                        const new_g = new MathBlock(g.type,g.token,g.origin_x,g.origin_y)
+                        const new_g = new MathBlock(g.type,g.token,g.originX,g.originY)
                         this.blocks.push(new_g)
                         this.tool_bar.push(new_g)
                     }
@@ -208,8 +208,8 @@ class MathBlockManager {
                     if(g.on_tool_bar){
                         // The block came from the tool bar
                         this.tool_bar.push(this.grabbed)
-                        this.grabbed.x = this.grabbed.origin_x
-                        this.grabbed.y = this.grabbed.origin_y
+                        this.grabbed.x = this.grabbed.originX
+                        this.grabbed.y = this.grabbed.originY
                         
                     }else{
                         // The block did not come from the tool bar

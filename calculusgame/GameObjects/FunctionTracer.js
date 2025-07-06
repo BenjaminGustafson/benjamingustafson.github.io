@@ -13,10 +13,10 @@ class FunctionTracer {
     constructor(grid, fun = (x => 0)){
         this.grid = grid
         this.fun = fun
-        this.origin_x = grid.origin_x
-        this.max_x = grid.origin_x + grid.width
-        this.min_y = grid.origin_y
-        this.max_y = grid.origin_y + grid.height
+        this.originX = grid.originX
+        this.max_x = grid.originX + grid.width
+        this.min_y = grid.originY
+        this.max_y = grid.originY + grid.height
         this.color = Color.red
         this.x_step = 2
 
@@ -30,8 +30,8 @@ class FunctionTracer {
             ctx.strokeWidth = 10;
             ctx.beginPath();
             
-            var cy = this.grid.gridToCanvas(this.fun(this.grid.canvasToGrid(this.origin_x,0).x))
-            var cx = this.origin_x
+            var cy = this.grid.gridToCanvas(this.fun(this.grid.canvasToGrid(this.originX,0).x))
+            var cx = this.originX
             ctx.moveTo(cx,cy);
             for (; cx < this.max_x; cx+=this.x_step){
                 const gx = this.grid.canvasToGrid(cx,0).x

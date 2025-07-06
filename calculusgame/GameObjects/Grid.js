@@ -9,8 +9,8 @@ class Grid{
     /**
      * 
      * 
-     * @param {*} origin_x 
-     * @param {*} origin_y 
+     * @param {*} originX 
+     * @param {*} originY 
      * @param {*} width width in pixels
      * @param {*} height 
      * @param {*} gridWidth width in grid squares
@@ -19,9 +19,9 @@ class Grid{
      * @param {*} x_axis The location of the x-axis, counting from the top starting at 0.
      * @param {*} y_axis The location of the y-axis, counting from the left starting at 0.
      */
-    constructor(origin_x, origin_y, width, height, gridWidth, gridHeight, lineWidthMax, x_axis = -1, y_axis = -1, labels = false){
-        this.origin_x = origin_x
-        this.origin_y = origin_y
+    constructor(originX, originY, width, height, gridWidth, gridHeight, lineWidthMax, x_axis = -1, y_axis = -1, labels = false){
+        this.originX = originX
+        this.originY = originY
         this.width = width
         this.height = height
         this.gridWidth = gridWidth
@@ -46,13 +46,13 @@ class Grid{
         ctx.textBaseline = 'middle'
         for (let i = 0; i <= this.gridHeight; i++){
             const lineWidth = this.lineWidthMax// * (i % (this.gridSize/2) == 0 ? 1 : 1/2)
-            const y = this.origin_y+this.height/this.gridHeight*i
+            const y = this.originY+this.height/this.gridHeight*i
             Shapes.Line(ctx,
-                        this.origin_x,            y, 
-                        this.origin_x+this.width, y, 
+                        this.originX,            y, 
+                        this.originX+this.width, y, 
                         (i == this.x_axis ? lineWidth : lineWidth), (i == this.x_axis ? "arrow" : "rounded"))
             if (this.labels){
-                ctx.fillText(this.x_axis-i, this.origin_x - 20, y)
+                ctx.fillText(this.x_axis-i, this.originX - 20, y)
             }
             
         }
@@ -62,23 +62,23 @@ class Grid{
         ctx.textBaseline = 'top'
         for (let i = 0; i <= this.gridWidth; i++){
             const lineWidth = this.lineWidthMax
-            const x = this.origin_x+this.width/this.gridWidth*i
+            const x = this.originX+this.width/this.gridWidth*i
             Shapes.Line(ctx,
-                        x, this.origin_y, 
-                        x, this.origin_y+this.height, 
+                        x, this.originY, 
+                        x, this.originY+this.height, 
                         lineWidth, (i == this.y_axis ? "c" : "rounded"))
             if (this.labels){
-                ctx.fillText(i, x, this.origin_y + this.height+20)
+                ctx.fillText(i, x, this.originY + this.height+20)
             }
 
         }
         Color.setColor(ctx,Color.red)
         for (let i = 0; i < this.lines.length; i++){
             const line = this.lines[i]
-            Shapes.LineSegment(ctx, this.origin_x+(line.start_x)*this.width/this.gridWidth, 
-                                    this.origin_y+this.height+(-line.start_y)*this.height/this.gridHeight,
-                                    this.origin_x+(line.end_x)*this.width/this.gridWidth,
-                                    this.origin_y+this.height+(-line.end_y)*this.height/this.gridHeight,
+            Shapes.LineSegment(ctx, this.originX+(line.start_x)*this.width/this.gridWidth, 
+                                    this.originY+this.height+(-line.start_y)*this.height/this.gridHeight,
+                                    this.originX+(line.end_x)*this.width/this.gridWidth,
+                                    this.originY+this.height+(-line.end_y)*this.height/this.gridHeight,
                                     this.lineWidthMax, this.lineWidthMax*1.5)
         }
 
@@ -92,14 +92,14 @@ class Grid{
         // -- gy = -2
         // -- 
         
-        const cx = this.origin_x + this.width/this.gridWidth * (gx + this.y_axis)
-        const cy = this.origin_y - this.height/this.gridHeight * (gy - this.x_axis)
+        const cx = this.originX + this.width/this.gridWidth * (gx + this.y_axis)
+        const cy = this.originY - this.height/this.gridHeight * (gy - this.x_axis)
         return {x: cx, y: cy,oob:true}
     }
 
     canvasToGrid(cx, cy){
-        const gx = (cx - this.origin_x) * (this.gridWidth/this.width) - this.y_axis
-        const gy = (cy - this.origin_y) * (-this.gridHeight/this.height) + this.x_axis
+        const gx = (cx - this.originX) * (this.gridWidth/this.width) - this.y_axis
+        const gy = (cy - this.originY) * (-this.gridHeight/this.height) + this.x_axis
         return {x: gx, y:gy}
     }
 

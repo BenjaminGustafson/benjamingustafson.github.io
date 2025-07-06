@@ -13,7 +13,7 @@ class MathBlock {
     static POWER = 1    // m[]^2+b
     static EXPONENT = 2 // me^[]+b
     static FUNCTION = 3 // mf([])+b
-    static BIN_OP = 4   // m([]+[])+b ?include scale or no... []*[] it would have weird interactions with the inside...
+    static BIN_OP = 4   // m([]+[])+b
     static CONSTANT = 5 // c
 
     depth = 0
@@ -43,12 +43,12 @@ class MathBlock {
     prefix = ""
     suffix = ""
 
-    constructor (type, token, origin_x, origin_y){
-        // origin_x, _y is where the block is spawned. x,y is where it currently is
-        this.origin_x = origin_x
-        this.origin_y = origin_y
-        this.x = origin_x
-        this.y = origin_y
+    constructor (type, token, originX, originY){
+        // originX, _y is where the block is spawned. x,y is where it currently is
+        this.originX = originX
+        this.originY = originY
+        this.x = originX
+        this.y = originY
         this.type = type
         switch (type){
             case MathBlock.POWER:

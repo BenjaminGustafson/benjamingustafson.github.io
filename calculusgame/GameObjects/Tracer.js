@@ -18,16 +18,16 @@ class Tracer {
 
     /**
      * 
-     * @param {number} origin_x 
-     * @param {number} origin_y 
+     * @param {number} originX 
+     * @param {number} originY 
      * @param {Grid} grid 
      * @param {*} input type: "sliders" or "mathBlock" or "tracer"
      * @param {*} frames_per_unit 
      * @param {*} targets 
      */
-    constructor(origin_x, origin_y, grid, input, frames_per_unit, targets){
-        this.origin_x = origin_x
-        this.origin_y = origin_y
+    constructor(originX, originY, grid, input, frames_per_unit, targets){
+        this.originX = originX
+        this.originY = originY
         this.type = input.type
         if (input.type == "sliders"){
             this.sliders = input.sliders
@@ -62,13 +62,13 @@ class Tracer {
         var canvas_ys = []
         var grid_ys = []
 
-        var x = this.origin_x
-        var y = this.origin_y
+        var x = this.originX
+        var y = this.originY
 
         if (this.type == "sliders"){
             var i = 0 // the slope index
             var slider_ind = 0
-            while (x < this.origin_x + this.frame){
+            while (x < this.originX + this.frame){
                 const gx = this.grid.canvasToGrid(x,0).x
                 const cy = y - this.sliders[slider_ind].value
                 grid_ys.push(this.grid.canvasToGrid(0,cy).y)
@@ -88,7 +88,7 @@ class Tracer {
                 const fun = this.mathBlockMngr.field_block.toFunction()
                 var i = 0
                 var onGrid = true
-                while (x < this.origin_x + this.frame && onGrid){
+                while (x < this.originX + this.frame && onGrid){
                     const gx = this.grid.canvasToGrid(x,0).x
                     const cy = y - fun(gx)
                     const gy = this.grid.canvasToGrid(0,cy).y
@@ -107,7 +107,7 @@ class Tracer {
             }
         } else if (this.type == "tracer") {
             var i = 0
-            while (x < this.origin_x + this.frame){
+            while (x < this.originX + this.frame){
                 const cy = y - this.source_tracer.grid_ys[i]
                 canvas_ys.push(cy)
                 grid_ys.push(this.grid.canvasToGrid(0,cy).y)
@@ -149,10 +149,10 @@ class Tracer {
         ctx.strokeWidth = 10
         Color.setColor(ctx, this.solved ? this.solved_color : this.unsolved_color)
 
-        var x = this.origin_x
-        var y = this.origin_y
+        var x = this.originX
+        var y = this.originY
         var i = 0
-        while (x < this.origin_x + this.frame){
+        while (x < this.originX + this.frame){
             const cy = this.canvas_ys[i]
             Shapes.Line(ctx,x,y, x+1, cy, 5)
             this.targets.forEach(t => {

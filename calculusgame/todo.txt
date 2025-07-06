@@ -2,43 +2,34 @@
 
 Issues:
 - Leaving the nav puzzle and coming back results in a new puzzle, or refreshing the page
-
+    - Solution: keep track of the current nav puzzle in the state storage
 
 Todo:
-1. Arrival at quadratic planet
-4. Make quadratic scene
-5. Put puzzle ramp in quadratic
-6. Door opens to quadratic
-7. Nav puzzles after go to exp
-8. Nav puzzles mix in quad puzzles
-9. Make projectile launch scene (more similar to puzzle than navigation), i.e. don't use mathblocks...
-- If not using mathblocks, then how to make function continuous?
-10. Vary only launch velocity with a slider, display gravity, and show trajectory before launch
-11. Only target is landing spot
-12. Move between launches with next button, but art makes it seem like you are moving across the planet?
+- Generate asteroids locations, and put them on left grid
+- Move nav grids down to make room
+- Show asteroids on progress bar
+    - How long is ship icon? is it too big
+
+- Swap out new art
+- Nav puzzles not available when planet is in progress
+
+- What if the whole navigation is a HUD with stars in the background? what are the ship interior scenes then?
+- Nav puzzles mix in quad puzzles
+- Nav puzzles serve according to mastery score
+- Make projectile launch scene (more similar to puzzle than navigation), i.e. don't use mathblocks...
+- Vary only launch velocity with a slider, display gravity, and show trajectory before launch
+- Only target is landing spot
+
+- Quad puzzles are somehow connected with the environment,
+
+- NPCs with dialogue
+- Ship computer
+
+- Bonus distance accumulates with correct answers
 
 
-
-1. Course charted confirmation
-6. Bonus distance
-7. Puzzle accuracy (do this after there are multiple types of puzzles)
-8. star animation during travel (want)
-
-
-
-
-
-
-Art:
-I don't like how dark the current art is, replace it with more cheerful
-
-Youtube videos:
-1. 
-
-
-
-Want to have features:
-- Nonlinear exploration, e.g. you could go to cubic or exp after quadratic
-- Map
-- Teleportation to completed planets
+- Exponential puzzles
+- Ramp where targets match to function value
+- Ramp where target match to twice function value?
+- Really need dialogue here explaining what is going on
 

@@ -10,16 +10,16 @@ class Button{
 
     /**
      * 
-     * @param {number} origin_x x-value of left of button rectangle 
-     * @param {number} origin_y y-value of top of button rectangle
+     * @param {number} originX x-value of left of button rectangle 
+     * @param {number} originY y-value of top of button rectangle
      * @param {number} width
      * @param {number} height 
      * @param {Function} onclick function that is called when button is clicked
      * @param {string} label the text to go in the button
      */
-    constructor(origin_x, origin_y, width, height, onclick, label){
-        this.origin_x = origin_x
-        this.origin_y = origin_y
+    constructor(originX, originY, width, height, onclick, label){
+        this.originX = originX
+        this.originY = originY
         this.width = width
         this.height = height
         this.onclick = onclick
@@ -42,7 +42,7 @@ class Button{
         }else{
             Color.setColor(ctx,Color.gray)
         }
-        Shapes.Rectangle(ctx,this.origin_x,this.origin_y,this.width,this.height,10)
+        Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,10)
         ctx.font = "40px monospace"
         ctx.textBaseline = 'alphabetic'
         ctx.textAlign = 'start'
@@ -52,12 +52,12 @@ class Button{
         ctx.font = font_size + "px monospace"
         text_size = ctx.measureText(this.label)
         // text baseline = top + half of height + half of font...
-        ctx.fillText(this.label, this.origin_x + this.width/2-text_size.width/2, this.origin_y + this.height/2 + text_size.actualBoundingBoxAscent/2)
+        ctx.fillText(this.label, this.originX + this.width/2-text_size.width/2, this.originY + this.height/2 + text_size.actualBoundingBoxAscent/2)
     }
 
     // When mouse is over button, change cursor to pointer
     mouseMove(x,y){
-        if (this.active && this.origin_x <= x && x <= this.origin_x + this.width && this.origin_y <= y && y <= this.origin_y + this.height){
+        if (this.active && this.originX <= x && x <= this.originX + this.width && this.originY <= y && y <= this.originY + this.height){
             return 'pointer'
         }
         return null
@@ -65,7 +65,7 @@ class Button{
 
     // When clicked, call the onclick method
     mouseDown(x,y){
-        if (this.active && this.origin_x <= x && x <= this.origin_x + this.width && this.origin_y <= y && y <= this.origin_y + this.height){
+        if (this.active && this.originX <= x && x <= this.originX + this.width && this.originY <= y && y <= this.originY + this.height){
             this.onclick()
             return 'pointer'
         }
@@ -74,7 +74,7 @@ class Button{
 
     // When released, keep cursor as pointer
     mouseUp(x,y){
-        if (this.active && this.origin_x <= x && x <= this.origin_x + this.width && this.origin_y <= y && y <= this.origin_y + this.height){
+        if (this.active && this.originX <= x && x <= this.originX + this.width && this.originY <= y && y <= this.originY + this.height){
             return 'pointer'
         }
         return null

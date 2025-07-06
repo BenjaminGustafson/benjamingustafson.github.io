@@ -12,9 +12,9 @@
  */
 class TextBox{
 
-    constructor(origin_x,origin_y,content,font='40px sans-serif',color=Color.white, align='start',baseline='alphabetic'){
-        this.origin_x = origin_x
-        this.origin_y = origin_y
+    constructor(originX,originY,content,font='40px sans-serif',color=Color.white, align='start',baseline='alphabetic'){
+        this.originX = originX
+        this.originY = originY
         this.content = content
         this.font = font
         this.align = align
@@ -27,7 +27,7 @@ class TextBox{
         ctx.font = this.font
         ctx.textAlign = this.align
         ctx.textBaseline = this.baseline
-        ctx.fillText(this.content, this.origin_x, this.origin_y);
+        ctx.fillText(this.content, this.originX, this.originY);
     }
 
 }
