@@ -18,6 +18,7 @@ class Color {
     static magenta = new Color(204,121,167) // highlight 2
     static blue = new Color(86,180,233) // solved
     static yellow = new Color(240,228,66) 
+    
 
     // This is fine for now, we never draw any objects with different fill and stroke
     static setColor(ctx, color){

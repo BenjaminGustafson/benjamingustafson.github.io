@@ -3,6 +3,9 @@
 Issues:
 - Leaving the nav puzzle and coming back results in a new puzzle, or refreshing the page
     - Solution: keep track of the current nav puzzle in the state storage
+- MathBlock height causes layout issues
+    - Could make them not get taller with more nesting ... would it still be possible to tell how it is nested?
+        Then you need parantheses. Is it bad to not have parantheses? Teaching a bad habit
 
 Todo:
 - Generate asteroids locations, and put them on left grid

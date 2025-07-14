@@ -63,7 +63,7 @@ function planetCompletion(gameState){
  * alpha is a parameter of how quickly the mastery changes 
  * 
  * @param {*} gameState
- * @param {*} puzzleType  
+ * @param {number} puzzleType  
  * @param {number} wasCorrect 0 if incorrect, 1 if correct
  */
 function updateNavigationProgress(gameState, puzzleType, wasCorrect){
@@ -72,30 +72,100 @@ function updateNavigationProgress(gameState, puzzleType, wasCorrect){
     gameState.stored.puzzleMastery[puzzleType] = alpha * wasCorrect + (1-alpha) * gameState.stored.puzzleMastery[puzzleType]
 }
 
+
+/**
+ * 
+ * Assuming that there is one type of puzzle for each planet,
+ * gameState.stored.puzzleMastery is indexed the same as other planet arrays.
+ * 
+ * @param {*} gameState 
+ * @returns 
+ */
+function newRNGPuzzle (gameState){
+
+    const gss = gameState.stored
+
+    // Pick puzzle type so that probability of each type is proportional to (1-mastery)
+    var sum = 0
+    for (let i = 0; i <= gss.planetIndex; i++){
+        sum += 1- gss.puzzleMastery[i]
+        if (build == 'dev') console.log("mastery",i,gss.puzzleMastery[i])
+    }
+    const randPuzzleType = Math.random()*sum
+    var puzzleType = 0
+    var sum2 = 0
+    for (let i = 0; i <= gss.planetIndex; i++){
+        sum2 += 1- gss.puzzleMastery[i]
+        if (randPuzzleType < sum2){
+            puzzleType = i
+            break
+        }
+    }
+    console.log(gss.planetIndex, sum, randPuzzleType,puzzleType)
+ 
+    const puzzlePlanetName = PLANET_DATA[puzzleType].name
+    var mathBlockFun = null
+    switch (puzzlePlanetName){
+        case "Quadratic":{
+            const m = Math.floor(Math.random()*4*10)/10 
+            const b = gameState.stored.totalDistance
+            mathBlockFun = new MathBlock(MathBlock.POWER, '2',100,320)
+            mathBlockFun.translate_y = b
+            mathBlockFun.scale_y = m
+            mathBlockFun.children[0] = new MathBlock(MathBlock.VARIABLE, 'x',0,0)
+            break
+        }
+        default:
+        case "Linear":
+            const m = Math.floor(Math.random()*4*10)/10 
+            const b = gameState.stored.totalDistance
+            mathBlockFun = new MathBlock(MathBlock.VARIABLE, 'x',100,320)
+            mathBlockFun.translate_y = b
+            mathBlockFun.scale_y = m
+        break
+    }
+    
+
+    gss.currentNavFunction = mathBlockFun
+    return mathBlockFun
+}
+
+function asteroids(gameState){
+
+}
+
 /**
  * 
  * The randomly generated navigation levels
  * 
  */
 function rngLevel(gameState) {
-    const gs = gameState.stored
-    const prevPlanet = PLANET_DATA[gs.planetIndex]
-    const nextPlanet = PLANET_DATA[gs.planetIndex+1]
+    const gss = gameState.stored
+    const prevPlanet = PLANET_DATA[gss.planetIndex]
+    const nextPlanet = PLANET_DATA[gss.planetIndex+1]
 
     const grid_setting = { grid_width: 4, grid_height: 4, x_axis: 2, y_axis: 2 }
     const blocks = [[MathBlock.CONSTANT, ""]]
 
-    const m = Math.floor(Math.random()*4*10)/10 
-    const b = gameState.stored.totalDistance
-    const fun = x => m * x + b
-    const funString = "f(x)=" + m + "x+" + b
+    var mathBlockFun = new MathBlock()
+    console.log(gss.currentNavFunction)
+    if (gss.currentNavFunction != null){
+        // Rehydrate object
+        mathBlockFun = MathBlock.rehydrate(gss.currentNavFunction)        
+    }else{
+        mathBlockFun = newRNGPuzzle(gameState)
+    }
+    const fun = mathBlockFun.toFunction()
 
-    const padLeft = 50
+
+    const padLeft = 100
     const gridDim = 400
-    const padBottom = 50
+    const padBottom = 100
     const intDist = Math.floor(gameState.stored.totalDistance)
-    const gridLeft = new Grid(padLeft, 650, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, 4+intDist, 0, labels=true)
-    const gridRight = new Grid(600, 250, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
+    const gridY = CANVAS_HEIGHT-padBottom-gridDim
+    const gridLeft = new Grid(padLeft, gridY, gridDim, gridDim, grid_setting.grid_width, grid_setting.grid_height,
+         5, 4+intDist, 0, labels=true)
+    const gridRight = new Grid(padLeft+gridDim+100, gridY, gridDim, gridDim, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
     const leftSlider = new Slider(1100, 250, 400, 4, 0, 4, 0.1, true, true)
     const sy_slider = new Slider(1200, 250, 400, 8, 1, 4, 0.1, true, true)
     const funRight = new FunctionTracer(gridRight)
@@ -107,7 +177,7 @@ function rngLevel(gameState) {
     for (let i = 0; i < blocks.length; i++) {
         math_blocks.push(new MathBlock(blocks[i][0], blocks[i][1], 1300, 150 + 100 * i))
     }
-    const mngr = new MathBlockManager(math_blocks, 600, 150, leftSlider, sy_slider, { type: "fun_tracer", fun_tracer: funRight })
+    const mngr = new MathBlockManager(math_blocks, 600, 320, leftSlider, sy_slider, { type: "fun_tracer", fun_tracer: funRight })
     
     const target_coords = []
     const num_targets = 200
@@ -177,7 +247,7 @@ function rngLevel(gameState) {
         }
     }
 
-    const backButton = new Button(100, 100, 100, 100, (() => loadScene(gameState,"ship")), "↑")
+    const backButton = new Button(padLeft, padBottom, 100, 100, (() => loadScene(gameState,"ship")), "↑")
     const startButton = new Button(925, 100, 100, 100, (() => { }), "Start")
     startButton.onclick = (() => {
         tracer.reset();
@@ -192,22 +262,22 @@ function rngLevel(gameState) {
         }
     })
     nextButton.visible = false
-    const targetText = new TextBox(padLeft, 300, funString, font = '40px monospace', color = Color.white)
+    //const targetText = new TextBox(padLeft, gridY-40, funString, font = '40px monospace', color = Color.white)
     const axisLabels = {
         draw: function(ctx){
             ctx.font = '20px monospace'
             ctx.textAlign = 'center'
             ctx.textBaseline = 'top'
             Color.setColor(ctx, Color.white)
-            ctx.fillText("Time (s)", padLeft + 200, 800)
-            ctx.fillText("Time (s)", 900, 800)
-            ctx.translate(padLeft -60,550)
+            ctx.fillText("Time (s)", padLeft + 200, gridY+gridDim+50)
+            ctx.fillText("Time (s)", 800, gridY+gridDim+50)
+            ctx.translate(padLeft -70,600)
             ctx.rotate(-Math.PI/2)
-            ctx.fillText("Position (units)", 0, 0)
+            ctx.fillText("Position (u)", 0, 0)
             ctx.resetTransform()
-            ctx.translate(620,550)
+            ctx.translate(540,600)
             ctx.rotate(-Math.PI/2)
-            ctx.fillText("Velocity (units/s)", 0, 0)
+            ctx.fillText("Velocity (u/s)", 0, 0)
             ctx.resetTransform()
         }
     }
@@ -247,7 +317,7 @@ function rngLevel(gameState) {
     }
 
     gameState.temp.state = "Input"
-    gameState.objects = [toolTip, gridLeft, gridRight, leftSlider, funRight, tracer, backButton, startButton, nextButton, targetText,
+    gameState.objects = [toolTip, gridLeft, gridRight, leftSlider, funRight, tracer, backButton, startButton, nextButton, mathBlockFun,
         progressBar, strikes, axisLabels
     ].concat(targets)
     gameState.objects.push(mngr)
@@ -974,7 +1044,7 @@ function loadScene(gameState, sceneName, clearTemp = true) {
             about_button = new Button(750, 100, 200, 100, (() => window.location.replace("about.html")), "About")
             about_button.color = Color.black
             gameState.objects = [
-                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "start_img"),
+                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
                 new TextBox(100, 150, "Calculus I", font = "60px monospace", color = Color.black),
                 startButton, about_button
             ]
@@ -987,12 +1057,22 @@ function loadScene(gameState, sceneName, clearTemp = true) {
         case "introDoor": {
             const completion = planetCompletion(gameState)
             const open = completion == 1
-            const door_button = new Button(1212, 470, 110, 200, (() => { loadScene(gameState, open ? "ship" : "intro") }), "")
+            const door_button = new Button(1160, 460, 100, 150, (() => { loadScene(gameState, open ? "ship" : "intro") }), "")
             door_button.visible = false
+            
             gameState.objects = [
-                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, open ? "shipDoorOpen_img" : "start2_img"),
+                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
+                new ImageObject(1000, 250, 400, 500, "ship_img"),
                 door_button
             ]
+            if (true){
+                gameState.objects.push({
+                    draw: function(ctx){
+                        Color.setColor(ctx,Color.black)
+                        ctx.fillRect(1186,480,48,114)
+                    }
+                })   
+            }
             break
         }
         case "escapeMenu": {
@@ -1023,13 +1103,48 @@ function loadScene(gameState, sceneName, clearTemp = true) {
             const nav_button = new Button(670, 470, 410, 190, (() => { loadScene(gameState,"navigation") }), "")
             nav_button.visible = false
             door_button.active = landed
+            const stars = {
+                frame: 0,
+                hash: function(x){
+                    x = ((x >>> 16) ^ x) * 0x45d9f3b;
+                    x = ((x >>> 16) ^ x) * 0x45d9f3b;
+                    x = (x >>> 16) ^ x;
+                    return (x >>> 0) / 4294967296;
+                },
+                coords:[],
+                draw: function(ctx){
+                    ctx.fillStyle = 'rgb(0,0,0)'
+                    ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT)
+                    ctx.strokeStyle = 'rgb(255,255,255)'
+                    ctx.strokeWidth = 10
+                    if (this.coords.length == 0){
+                        for (let i = 0; i < 200; i++){
+                            this.coords.push(this.hash(i) * CANVAS_WIDTH)
+                            this.coords.push(this.hash(i+1) * CANVAS_HEIGHT) 
+                        }
+                    }
+                    for (let i = 0; i < this.coords.length-1; i+=2){
+                        const x = this.coords[i]
+                        const y = this.coords[i+1]
+                        ctx.moveTo(x,y);
+                        ctx.lineTo(x,y+1);
+                        ctx.stroke();
+                    }
+                    this.frame++
+                    if (this.frame >= 100){
+                        this.frame = 0
+                    }
+                }
+            }
             gameState.objects = [
+                //stars,
                 new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "interior_img"),
                 new TextBox(580, 160, text_content[0], "30px monospace", Color.green),
                 new TextBox(580, 220, text_content[1], "30px monospace", Color.green),
                 //new TextBox(580, 280, text_content[2], "30px monospace", Color.green),
                 door_button, nav_button
             ]
+            
             gameState.update(() => {
             })
             break

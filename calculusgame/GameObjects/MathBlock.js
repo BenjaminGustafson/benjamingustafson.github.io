@@ -4,6 +4,14 @@
  * A MathBlock is a draggable rectangle that has a function or operation.
  * MathBlocks can nest in each other to form more complex functions.
  * MathBlocks are an input option for defining a function in a puzzle.
+ * 
+ * Types of MathBlock:
+ * constant - has a slider for the value
+ * variable - has 2 sliders for mx+b
+ * power - has a slider for the power
+ * exponent - just e^x
+ * bin op - no sliders
+ * 
  */
 
 
@@ -70,6 +78,14 @@ class MathBlock {
         this.color = Color.white
     }
 
+    static rehydrate(block){
+        var obj = new MathBlock()
+        Object.assign(obj, block)
+        for (let i = 0; i < block.num_children; i++){
+            obj.children[i] = MathBlock.rehydrate(block.children[i])
+        }
+        return obj
+    }
 
     checkGrab(x,y){
         return x >= this.x && x <= this.x + this.w && y >= this.y && y <= this.y + this.h
@@ -428,6 +444,56 @@ class MathBlock {
         }
     }
     
+    toString(){
+        switch(this.type){
+            case MathBlock.CONSTANT:
+                return x => this.translate_y
+            case MathBlock.VARIABLE:
+                return (x => this.translate_y + this.scale_y*x)
+            case MathBlock.POWER:
+                if (this.children[0] != null && this.children[0].toFunction() != null){
+                    return (x => (this.translate_y + this.scale_y*(this.children[0].toFunction()(x))**this.token))
+                }else{
+                    return null
+                }
+            case MathBlock.EXPONENT:
+                if (this.children[0] != null && this.children[0].toFunction() != null){
+                    var tokenval = this.token
+                    if (this.token == "e"){
+                        tokenval = Math.E
+                    }
+                    return (x => (this.translate_y + this.scale_y*(tokenval**this.children[0].toFunction()(x))))
+                }else{
+                    return null
+                }
+            case MathBlock.FUNCTION:
+                if (this.children[0] == null || this.children[0].toFunction() == null){
+                    return null
+                }
+                switch (this.token){
+                    case "sin":
+                        return (x => this.translate_y + this.scale_y*Math.sin(this.children[0].toFunction()(x)))
+                    case "cos":
+                        return (x => this.translate_y + this.scale_y*Math.cos(this.children[0].toFunction()(x)))
+                    default:
+                        return null
+                }
+            case MathBlock.BIN_OP:
+                if (this.children[0] == null || this.children[0].toFunction() == null || this.children[1] == null || this.children[1].toFunction() == null){
+                    return null
+                }
+                switch (this.token){
+                    case "+":
+                        return (x => this.translate_y + this.scale_y*(this.children[0].toFunction()(x) + this.children[1].toFunction()(x)))
+                    case "*":
+                        return (x => this.translate_y + this.scale_y*(this.children[0].toFunction()(x) * this.children[1].toFunction()(x)))
+                    default:
+                        return null
+                }
+            default:
+                return null
 
+        }
+    }
 
 }

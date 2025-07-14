@@ -45,7 +45,7 @@ function setup() {
         gameState.stored = {
             sceneName: "startMenu",
             landed:true, // true if the ship is on a planet, false if it is in space
-            planetIndex:0,// The current planet landed on, or the planet we just left
+            planetIndex:0,// The current planet in progress (if landed), or the planet just completed
             planetCompletedLevels: initCompletedLevels, // objects storing completed levels, like {"level1":true}, indexed by planet
             totalDistance: 0, // the total distance the ship has traveled
             currentNavFunction: null, // the puzzle that the navigation is currently on
@@ -63,26 +63,27 @@ function setup() {
         console.log('No stored data. Creating new save')
         initStoredState()
     }else{ // Try to parse stored data
-        const parsed = JSON.parse(storedState);
-        if (parsed == null){ // Data has parse error
+        try {
+            const parsed = JSON.parse(storedState);
+            if (parsed == null){ // Data has parse error
+                console.log('Stored state is null')
+                initStoredState()
+            }else { // Save data exists
+                gameState.stored = parsed
+                console.log("Loaded save")
+                if (build != 'dev') {
+                    gameState.temp.nextScene = gameState.stored.sceneName
+                    gameState.stored.sceneName = 'startMenu' // always start at menu
+                }
+            }
+        }catch (e){
             console.log('Unable to parse stored state')
             initStoredState()
-        }else { // Save data exists
-            gameState.stored = parsed
-            console.log("Loaded save")   
-            gameState.temp.nextScene = gameState.stored.sceneName
-            gameState.stored.sceneName = 'startMenu' // always start at menu
         }
+        
     }
     
-    if (build == 'dev') {
-        const startScene = localStorage.getItem('startScene')
-        if (startScene) gameState.sceneName = startScene
-    }
-
-    var currentSceneName = gameState.stored.sceneName
-
-    loadScene(gameState, 'startMenu', false)
+    loadScene(gameState, gameState.stored.sceneName, false)
 
     // const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     // const desiredFreq = 440;
@@ -191,6 +192,12 @@ function setup() {
                     break
                 case 'ArrowLeft':
                     gameState.stored.totalDistance = Math.floor(gameState.stored.totalDistance) - 1
+                    break
+                case 'p':
+                    gameState.stored.planetIndex = 0 
+                    break
+                case 'f':
+                    gameState.stored.currentNavFunction = null 
                     break
             }
         }
