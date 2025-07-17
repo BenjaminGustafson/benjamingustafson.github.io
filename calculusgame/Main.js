@@ -36,8 +36,12 @@ function setup() {
         var initCompletedLevels = []
         var initPuzzleMastery = []
         var initNumPuzzles = []
+        var initCompletedTrials = []
+        var initCompletedRule = []
         for (let i = 0; i < PLANET_DATA.length; i++){
             initCompletedLevels.push({})
+            initCompletedRule.push(false)
+            initCompletedTrials.push(0)
             initPuzzleMastery.push(0)
             initNumPuzzles.push(0)
         }
@@ -47,6 +51,8 @@ function setup() {
             landed:true, // true if the ship is on a planet, false if it is in space
             planetIndex:0,// The current planet in progress (if landed), or the planet just completed
             planetCompletedLevels: initCompletedLevels, // objects storing completed levels, like {"level1":true}, indexed by planet
+            planetCompletedTrials: initCompletedTrials,
+            planetCompletedRule: initCompletedRule,
             totalDistance: 0, // the total distance the ship has traveled
             currentNavFunction: null, // the puzzle that the navigation is currently on
             strikes: 0, // the number of strikes (incorrect answers) at the navigation puzzle
@@ -280,6 +286,7 @@ function setup() {
         Color.setColor(ctx, Color.black)
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         Color.setColor(ctx, new Color(10, 10, 10))
+        ctx.lineWidth = 5
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
 

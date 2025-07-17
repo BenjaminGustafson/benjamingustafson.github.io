@@ -1,38 +1,9 @@
 
 
-Issues:
-- Leaving the nav puzzle and coming back results in a new puzzle, or refreshing the page
-    - Solution: keep track of the current nav puzzle in the state storage
-- MathBlock height causes layout issues
-    - Could make them not get taller with more nesting ... would it still be possible to tell how it is nested?
-        Then you need parantheses. Is it bad to not have parantheses? Teaching a bad habit
 
-Todo:
-- Generate asteroids locations, and put them on left grid
-- Move nav grids down to make room
-- Show asteroids on progress bar
-    - How long is ship icon? is it too big
+1. Expirement scene
+    1. Text describing what f(x) f'(x) are
+    2. allow multiple mathblock fields
+    3.
 
-- Swap out new art
-- Nav puzzles not available when planet is in progress
-
-- What if the whole navigation is a HUD with stars in the background? what are the ship interior scenes then?
-- Nav puzzles mix in quad puzzles
-- Nav puzzles serve according to mastery score
-- Make projectile launch scene (more similar to puzzle than navigation), i.e. don't use mathblocks...
-- Vary only launch velocity with a slider, display gravity, and show trajectory before launch
-- Only target is landing spot
-
-- Quad puzzles are somehow connected with the environment,
-
-- NPCs with dialogue
-- Ship computer
-
-- Bonus distance accumulates with correct answers
-
-
-- Exponential puzzles
-- Ramp where targets match to function value
-- Ramp where target match to twice function value?
-- Really need dialogue here explaining what is going on
-
+2. Rule guess scene

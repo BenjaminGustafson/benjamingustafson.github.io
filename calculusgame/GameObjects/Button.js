@@ -23,6 +23,7 @@ class Button{
         this.width = width
         this.height = height
         this.onclick = onclick
+        this.lineWidth = 10
         if (onclick == null){
             this.onclick = () => {}
         }
@@ -42,7 +43,7 @@ class Button{
         }else{
             Color.setColor(ctx,Color.gray)
         }
-        Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,10)
+        Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,this.lineWidth)
         ctx.font = "40px monospace"
         ctx.textBaseline = 'alphabetic'
         ctx.textAlign = 'start'

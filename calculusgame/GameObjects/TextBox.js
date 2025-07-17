@@ -1,12 +1,6 @@
 
 /**
- * Why do we have a wrapper class for a function built into canvas?
- * Because it needs to be a gameobject.
- * 
- * Is there a better option?
- * Maybe. The issue is that the scenes do not access the context. 
- * Each game object in a scene gets access to the context when 
- * it needs to be drawn. 
+ * A GameObject to simplify drawing text.
  * 
  * See https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_text
  */

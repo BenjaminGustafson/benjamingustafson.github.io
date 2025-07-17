@@ -11,6 +11,8 @@
 const CANVAS_WIDTH = 1600
 const CANVAS_HEIGHT = 900
 
+
+
 /**
  * name: the name of the planet
  * distance: the distance from the start to the planet
@@ -21,13 +23,15 @@ const CANVAS_HEIGHT = 900
  * 
  */
 const PLANET_DATA = [
-    {name: "Linear", distance: 0, scene:"introDoor", 
-        puzzles: ["intro1", "intro2", "intro4Pos", "introNeg", "introFrac", "introCombined", "intro8", "intro16"]
+    {name: "Linear", distance: 0, scene:"introDoor", imgId :"linear_img",
+        puzzles: ["intro1", "intro2", "intro4Pos", "introNeg", "introFrac", "introCombined", "intro8", "intro16"],
+        trials: ["linearTrial1","linearTrial2","linearTrial3","linearTrial4","linearTrial5"]
     },
     {name: "Quadratic", distance: 10, scene:"quadDoor",
          puzzles:["quad4", "quad8", "quad16", "quad32", "quadSmooth", "quadShort4", "quadShort8", "quadShort16", "quadShort32", "quadShortSmooth",
             "quadNeg4", "quadNeg8", "quadNeg16", "quadNeg32", "quadNegSmooth",
-         ]
+         ],
+          imgId :"quad_img"
     },
     {name: "Exponential", distance: 30, scene:"expDoor", 
         puzzles: ["exp1", "exp2"]
@@ -483,6 +487,86 @@ function puzzleMenu(gameState, menu_num, levels, exitTo) {
     })
     gameState.objects = buttons
 
+}
+
+
+function experimentTrial(gameState, exitTo){
+    const gss = gameState.stored
+    const backButton = new Button(50, 50, 50, 50, (() => loadScene(gameState,exitTo)), "↑")
+    backButton.lineWidth = 5
+
+    var showExp = true
+    const showExpButton = new Button(800, 50, 50, 50, (() => showExp = !showExp), "↔")
+    showExpButton.lineWidth = 5
+    
+    const padLeft = 100
+    const gridDim = 400
+    const padBottom = 100
+    const intDist = Math.floor(gameState.stored.totalDistance)
+    const gridY = CANVAS_HEIGHT-padBottom-gridDim
+    const gridLeft = new Grid(padLeft, gridY, gridDim, gridDim, 4, 4, 5, 4+intDist, 0, labels=true)
+    const gridRight = new Grid(padLeft+gridDim+100, gridY, gridDim, gridDim, 4, 4, 5, 4, 0, labels=true)
+    const leftSlider = new Slider(1100, 250, 400, 4, 0, 4, 0.1, true, true)
+    const sy_slider = new Slider(1200, 250, 400, 8, 1, 4, 0.1, true, true)
+    const math_blocks = [new MathBlock(MathBlock.BIN_OP,"+",1400,100),
+        new MathBlock(MathBlock.CONSTANT,"0",1400,200)
+    ]
+    const funRight = new FunctionTracer(gridRight)
+    const mngr = new MathBlockManager(math_blocks, 600, 320, leftSlider, sy_slider, { type: "fun_tracer", fun_tracer: funRight })
+
+    const mainObjs = [backButton, gridLeft, showExpButton]
+    const gridObjs = [gridRight,mngr, funRight, leftSlider, sy_slider]
+    const expObjs = []
+    gameState.update = () => {
+        if (showExp){
+            gameState.objects = mainObjs.concat(expObjs) 
+        }else{
+            gameState.objects = mainObjs.concat(gridObjs)
+        }
+    }
+
+}
+
+function experimentMenu(gameState, exitTo){
+    const gss = gameState.stored
+    const backButton = new Button(50, 50, 50, 50, (() => loadScene(gameState,exitTo)), "↑")
+    backButton.lineWidth = 5
+    const trialButtons = []
+    const planetIndex = gss.planetIndex
+    const completedRule = gss.planetCompletedRule[planetIndex]
+    const completedTrials = gss.planetCompletedTrials[planetIndex]
+
+    for (let i = 0; i < 10; i++){
+        if (PLANET_DATA[planetIndex].trials.length <= i) break
+        const button = new Button(200,150+i*60,100,50, (() => loadScene(gameState,PLANET_DATA[planetIndex].trials[i])),i+1)
+        button.lineWidth = 5
+        if (completedTrials < i){
+            button.active = false
+        }
+        trialButtons.push(button)
+    }
+    const ruleButton = new Button(200,780,100,50, (() => loadScene(gameState,exitTo)),"Rule")
+    ruleButton.lineWidth = 5
+    const table = {
+        draw: function(ctx){
+            Color.setColor(ctx,Color.white)
+            ctx.font = '40px monospace'
+            ctx.textAlign = 'start'
+            ctx.textBaseline = 'alphabetic'
+            ctx.fillText('Trial', 200,100);
+            ctx.fillText('f(x)', 400,100);
+            ctx.fillText('f\'(x)', 800,100);
+            Color.setColor(ctx,Color.light_gray)
+            Shapes.Line(ctx,150,120,1500,120);
+            Shapes.Line(ctx,350,50,350,850);
+            Shapes.Line(ctx,750,50,750,850);
+            Shapes.Line(ctx,150,760,1500,760);
+        }
+    }
+    gameState.objects = [
+        backButton,table,ruleButton
+    ]
+    gameState.objects = gameState.objects.concat(trialButtons)
 }
 
 /**
@@ -1029,11 +1113,16 @@ function loadScene(gameState, sceneName, clearTemp = true) {
     gameState.keyPressed = null
     switch (sceneName) {
         case "":
+        case "mapMenu": {
+            var buttons = []
+
+            break
+        }
         /**
          * The main menu of the game.
          */
         case "startMenu": {
-            startButton = new Button(500, 100, 200, 100, (() => loadScene(gameState,"introDoor")), "Start")
+            const startButton = new Button(500, 100, 200, 100, (() => loadScene(gameState,"introDoor")), "Start")
             startButton.color = Color.black
             const nextScene = gameState.temp.nextScene
             if (nextScene && nextScene != "startMenu"){
@@ -1041,7 +1130,7 @@ function loadScene(gameState, sceneName, clearTemp = true) {
                 startButton.onclick = (() => loadScene(gameState,nextScene))
                 startButton.label = "Continue"
             }
-            about_button = new Button(750, 100, 200, 100, (() => window.location.replace("about.html")), "About")
+            const about_button = new Button(750, 100, 200, 100, (() => window.location.replace("about.html")), "About")
             about_button.color = Color.black
             gameState.objects = [
                 new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
@@ -1057,22 +1146,18 @@ function loadScene(gameState, sceneName, clearTemp = true) {
         case "introDoor": {
             const completion = planetCompletion(gameState)
             const open = completion == 1
-            const door_button = new Button(1160, 460, 100, 150, (() => { loadScene(gameState, open ? "ship" : "intro") }), "")
+            const door_button = new Button(1160, 460, 100, 150, (() => { loadScene(gameState,"ship") }), "")
             door_button.visible = false
             
+            const puzzleButton = new Button(400, 400, 150, 100, (() => { loadScene(gameState, "intro") }), "Puzzles")
+            const experimentButton = new Button(400, 600, 200, 100, (() => { loadScene(gameState, "linearExperiment") }), "Experiment")
+
             gameState.objects = [
                 new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
                 new ImageObject(1000, 250, 400, 500, "ship_img"),
+                puzzleButton, experimentButton,
                 door_button
             ]
-            if (true){
-                gameState.objects.push({
-                    draw: function(ctx){
-                        Color.setColor(ctx,Color.black)
-                        ctx.fillRect(1186,480,48,114)
-                    }
-                })   
-            }
             break
         }
         case "escapeMenu": {
@@ -1097,50 +1182,24 @@ function loadScene(gameState, sceneName, clearTemp = true) {
                 "Current location: " + (!landed ?  "In space" : "Landed on "+PLANET_DATA[planetIndex].name + " Planet"),
                 "Navigating to: " + PLANET_DATA[planetIndex+1].name + " Planet",
             ]
+
+
+
+            const background = new ImageObject(200, 50, CANVAS_WIDTH*0.8, CANVAS_HEIGHT*0.8, 
+                landed ? PLANET_DATA[planetIndex].imgId : "")
+
             var exitTo = PLANET_DATA[planetIndex].scene
-            const door_button = new Button(90, 90, 250, 800, (() => { loadScene(gameState,exitTo) }), "")
+            const door_button = new Button(40, 200, 180, 560, (() => { loadScene(gameState,exitTo) }), "")
             door_button.visible = false
-            const nav_button = new Button(670, 470, 410, 190, (() => { loadScene(gameState,"navigation") }), "")
+            const nav_button = new Button(350, 550, 890, 240, (() => { loadScene(gameState,"navigation") }), "")
             nav_button.visible = false
             door_button.active = landed
-            const stars = {
-                frame: 0,
-                hash: function(x){
-                    x = ((x >>> 16) ^ x) * 0x45d9f3b;
-                    x = ((x >>> 16) ^ x) * 0x45d9f3b;
-                    x = (x >>> 16) ^ x;
-                    return (x >>> 0) / 4294967296;
-                },
-                coords:[],
-                draw: function(ctx){
-                    ctx.fillStyle = 'rgb(0,0,0)'
-                    ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT)
-                    ctx.strokeStyle = 'rgb(255,255,255)'
-                    ctx.strokeWidth = 10
-                    if (this.coords.length == 0){
-                        for (let i = 0; i < 200; i++){
-                            this.coords.push(this.hash(i) * CANVAS_WIDTH)
-                            this.coords.push(this.hash(i+1) * CANVAS_HEIGHT) 
-                        }
-                    }
-                    for (let i = 0; i < this.coords.length-1; i+=2){
-                        const x = this.coords[i]
-                        const y = this.coords[i+1]
-                        ctx.moveTo(x,y);
-                        ctx.lineTo(x,y+1);
-                        ctx.stroke();
-                    }
-                    this.frame++
-                    if (this.frame >= 100){
-                        this.frame = 0
-                    }
-                }
-            }
+
             gameState.objects = [
-                //stars,
+                background,
                 new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "interior_img"),
-                new TextBox(580, 160, text_content[0], "30px monospace", Color.green),
-                new TextBox(580, 220, text_content[1], "30px monospace", Color.green),
+                new TextBox(400, 260, text_content[0], "30px monospace", Color.green),
+                new TextBox(400, 300, text_content[1], "30px monospace", Color.green),
                 //new TextBox(580, 280, text_content[2], "30px monospace", Color.green),
                 door_button, nav_button
             ]
@@ -1263,25 +1322,38 @@ function loadScene(gameState, sceneName, clearTemp = true) {
             break
         }
 
+        // -----------------------------------------------------------------------------------------------------
+        case "linearExperiment":{
+            experimentMenu(gameState, "introDoor")
+            break
+        }
+
+        case "linearTrial1":{
+            experimentTrial(gameState, "linearExperiment")
+            break
+        }
+
         //------------------------------------------------------------------------------------------------------
         // Quadratic Planet
         //------------------------------------------------------------------------------------------------------
         case "quadDoor": {
-            const title = {
-                draw: function(ctx){
-                    ctx.font = '40px monospace'
-                    Color.setColor(ctx,Color.black)
-                    ctx.fillText("Quadratic Planet",100,100)
-                }
-            }
-            const doorButton = new Button(1212, 470, 110, 200, (() => { loadScene(gameState,"ship")}),"")
-            doorButton.visible = false
-            const puzzleButton = new Button(500, 500, 200, 100, (() => { loadScene(gameState,"quadMenu")}),"Puzzles")
-            puzzleButton.color = Color.black
+            const completion = planetCompletion(gameState)
+            const door_button = new Button(1160, 460, 100, 150, (() => { loadScene(gameState, "ship") }), "")
+            door_button.visible = false
+
+
+            
             gameState.objects = [
-                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "shipDoorOpen_img" ),
-                doorButton, title, puzzleButton
+                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "quad_img"),
+                new ImageObject(1000, 250, 400, 500, "ship_img"),
+                door_button
             ]
+            gameState.objects.push({
+                draw: function(ctx){
+                    Color.setColor(ctx,Color.black)
+                    ctx.fillRect(1186,480,48,114)
+                }
+            })   
             break
         }
 
