@@ -19,19 +19,21 @@ class FunctionTracer {
         this.max_y = grid.originY + grid.height
         this.color = Color.red
         this.x_step = 2
-
+        this.targets = []
     }
     
 
     draw(ctx){
         if (this.display){
-
+            this.targets.forEach(t => t.hit = false)
             Color.setColor(ctx, this.color)
             ctx.strokeWidth = 10;
             ctx.beginPath();
             
             var cy = this.grid.gridToCanvas(this.fun(this.grid.canvasToGrid(this.originX,0).x))
             var cx = this.originX
+            var px = cx
+            var py = cy
             ctx.moveTo(cx,cy);
             for (; cx < this.max_x; cx+=this.x_step){
                 const gx = this.grid.canvasToGrid(cx,0).x
@@ -42,6 +44,14 @@ class FunctionTracer {
                 }else{
                     ctx.moveTo(cx, cy);
                 }
+                // Check target collision
+                this.targets.forEach(t => {
+                    if (t.lineIntersect(px,py,cx,cy) || t.pointIntersect(cx,cy)){
+                        t.hit = true
+                    }
+                })
+                px = cx
+                py = cy
             }
             ctx.stroke();       
         }

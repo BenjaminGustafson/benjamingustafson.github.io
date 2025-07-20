@@ -76,6 +76,7 @@ class MathBlock {
         this.attach_squares = new Array(this.num_children)
         this.token = token
         this.color = Color.white
+        this.asString = ""
     }
 
     static rehydrate(block){
@@ -116,6 +117,16 @@ class MathBlock {
         this.parent.children[this.child_num] = null
         this.parent = null
         this.child_num = null
+    }
+
+    /**
+     * Call this function when drawing to keep track of the string
+     * 
+     * Always adds () when we go down a level
+     */
+    drawTextHelper(ctx, str, x, y){
+        this.asString += str
+        ctx.fillText(str, x, y);
     }
 
     draw (ctx){
@@ -393,58 +404,6 @@ class MathBlock {
      * @returns 
      */
     toFunction(scale = 1, offset = 0){
-        switch(this.type){
-            case MathBlock.CONSTANT:
-                return x => this.translate_y
-            case MathBlock.VARIABLE:
-                return (x => this.translate_y + this.scale_y*x)
-            case MathBlock.POWER:
-                if (this.children[0] != null && this.children[0].toFunction() != null){
-                    return (x => (this.translate_y + this.scale_y*(this.children[0].toFunction()(x))**this.token))
-                }else{
-                    return null
-                }
-            case MathBlock.EXPONENT:
-                if (this.children[0] != null && this.children[0].toFunction() != null){
-                    var tokenval = this.token
-                    if (this.token == "e"){
-                        tokenval = Math.E
-                    }
-                    return (x => (this.translate_y + this.scale_y*(tokenval**this.children[0].toFunction()(x))))
-                }else{
-                    return null
-                }
-            case MathBlock.FUNCTION:
-                if (this.children[0] == null || this.children[0].toFunction() == null){
-                    return null
-                }
-                switch (this.token){
-                    case "sin":
-                        return (x => this.translate_y + this.scale_y*Math.sin(this.children[0].toFunction()(x)))
-                    case "cos":
-                        return (x => this.translate_y + this.scale_y*Math.cos(this.children[0].toFunction()(x)))
-                    default:
-                        return null
-                }
-            case MathBlock.BIN_OP:
-                if (this.children[0] == null || this.children[0].toFunction() == null || this.children[1] == null || this.children[1].toFunction() == null){
-                    return null
-                }
-                switch (this.token){
-                    case "+":
-                        return (x => this.translate_y + this.scale_y*(this.children[0].toFunction()(x) + this.children[1].toFunction()(x)))
-                    case "*":
-                        return (x => this.translate_y + this.scale_y*(this.children[0].toFunction()(x) * this.children[1].toFunction()(x)))
-                    default:
-                        return null
-                }
-            default:
-                return null
-
-        }
-    }
-    
-    toString(){
         switch(this.type){
             case MathBlock.CONSTANT:
                 return x => this.translate_y

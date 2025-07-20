@@ -32,6 +32,27 @@ class MathBlockManager {
         this.output = output
     }
 
+    reset(){
+        this.blocks = this.tool_bar
+        this.field_block = null
+        this.highlighted = null
+    }
+
+    checkFunctionEquals(f, min=-10, max=10, step=1, precision=0.000001){
+        if (this.field_block){
+            const g = this.field_block.toFunction()
+            if (g){
+                for (let x = min; x < max; x+= step){
+                    if (Math.abs(g(x) - f(x)) > precision){
+                        return false
+                    }
+                }
+                return true
+            }
+            
+        }
+        return false
+    }
 
     draw(ctx){
         if (this.field_block){             

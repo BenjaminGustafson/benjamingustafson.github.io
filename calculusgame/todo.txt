@@ -2,8 +2,41 @@
 
 
 1. Expirement scene
-    1. Text describing what f(x) f'(x) are
-    2. allow multiple mathblock fields
-    3.
+    8. Sliders on right graph adjust tracer on left between measurement points?
+    9. Mathblock for guessing f'(x), only shows f'(x), not the corresponding f(x)
+    10. scene takes you to menu when correct
+    11. menu updates
+    12. scenes save progress (fn solved)
+
+Experiments are in four stages:
+    1. add measurements
+    2. and guess f(x)
+    3. adjust derivatives
+    4. and guess f'(x) 
 
 2. Rule guess scene
+    1. Text with mathblock vars now instead of numbers - does that work if the token isnt x?
+    2. Set vars with sliders? Maybe not. How are you going to do like f(x) or f'(x) in the future. It might work
+    3. If thats too much work, just have two mathblock fields <-
+
+
+3. Ship scene
+    1. gives planet progress when on planet
+    2. 
+
+4. Navigation
+    1. Doesn't let you go past incomplete planet
+    2. puzzles cycle
+
+5. Quadratic
+    1. set up levels menu like linear
+    2. Experimnet: like linear but with an apple
+
+6 Exponential
+    1. Puzzles
+    2. Expirement
+
+
+7. Audio
+
+8. Art

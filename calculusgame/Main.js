@@ -38,12 +38,16 @@ function setup() {
         var initNumPuzzles = []
         var initCompletedTrials = []
         var initCompletedRule = []
+        var initTrialSolutions = []
         for (let i = 0; i < PLANET_DATA.length; i++){
             initCompletedLevels.push({})
             initCompletedRule.push(false)
             initCompletedTrials.push(0)
             initPuzzleMastery.push(0)
             initNumPuzzles.push(0)
+            for (let j = 0; j < PLANET_DATA[i].trials.length; j++){
+                initTrialSolutions.push([])
+            }
         }
 
         gameState.stored = {
@@ -53,6 +57,7 @@ function setup() {
             planetCompletedLevels: initCompletedLevels, // objects storing completed levels, like {"level1":true}, indexed by planet
             planetCompletedTrials: initCompletedTrials,
             planetCompletedRule: initCompletedRule,
+            planetTrialSolutions: initTrialSolutions,
             totalDistance: 0, // the total distance the ship has traveled
             currentNavFunction: null, // the puzzle that the navigation is currently on
             strikes: 0, // the number of strikes (incorrect answers) at the navigation puzzle

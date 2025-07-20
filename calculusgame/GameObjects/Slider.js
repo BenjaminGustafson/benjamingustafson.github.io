@@ -49,6 +49,8 @@ class Slider{
         this.visible = visible
         this.increment = increment
         this.circleRadius = circleRadius
+        this.vertical = vertical
+
         if (axis == -1 || axis == null){
             this.axis = this.numDivision
             this.showAxis = false
@@ -59,21 +61,26 @@ class Slider{
         this.value = startValue // The true value of the slider
         this.unitLength = this.length/this.numDivision
         // The circle goes at the tick mark given by the value
-        if (vertical){
+        if (this.vertical){
             this.circle_pos = this.originY + (this.axis - this.value) * this.unitLength
         }else{
-            this.circle_pos = this.originX + this.length - (this.axis - this.value)* this.unitLength
+            this.circle_pos = this.originX - (this.axis - this.value)* this.unitLength
         }
 
-        this.vertical = vertical
-        this.end_x = originX + length
-        this.end_y = originY
-        if (vertical){
+        
+        
+        if (this.vertical){
             this.end_x = originX
             this.end_y = originY + length
+            this.maxVal = axis
+            this.minVal = axis-numDivision
+        }else{
+            this.end_x = originX + length
+            this.end_y = originY
+            this.maxVal = numDivision-axis // Definitely bugged, but works if axis = 0
+            this.minVal = axis
         }
-        this.maxVal = axis
-        this.minVal = axis-numDivision
+        
     }
 
     setValue(val){
@@ -81,7 +88,11 @@ class Slider{
         if (val < this.minVal) val = this.minVal
         if (val > this.maxVal) val = this.maxVal
         this.value = val
-        this.circle_pos = this.originY + (this.axis - this.value)* this.unitLength
+        if (this.vertical){
+            this.circle_pos = this.originY + (this.axis - this.value)* this.unitLength// TODO duplicate code
+        }else{
+            this.circle_pos = this.originX  - (this.axis - this.value)* this.unitLength
+        }
     }
 
     draw(ctx){
@@ -98,6 +109,7 @@ class Slider{
             Color.setColor(ctx, Color.white)
             if (this.visible){
                 Shapes.RoundedLine(ctx, this.originX, this.originY, this.end_x, this.end_y, this.lineWidth)
+
                 for (let i = 0; i <= this.numDivision; i++){
                     const crossLength = 15
                     const lineWidth = this.lineWidth
@@ -105,15 +117,18 @@ class Slider{
                     if (!this.vertical){
                         value = -this.axis + i
                     }
+                    // If we are on a tick, color it
                     if (value == this.value && !this.grabbed){
                         Color.setColor(ctx, this.circleColor)
                     }else{
                         Color.setColor(ctx, Color.white)
                     }
+                    // Draw 0 tick with arrows
                     var lineType = "rounded"
                     if (this.showAxis == true && i == this.axis){
                         lineType = "arrow"
                     }
+                    // Tick marks
                     if (this.vertical){
                         Shapes.Line(ctx, this.originX-crossLength, this.originY+i*this.unitLength,
                         this.originX+crossLength, this.originY+i*this.unitLength, 
@@ -127,13 +142,14 @@ class Slider{
             }
         }
 
+        // Draw slider handle (circle)
         Color.setColor(ctx, this.circleColor)
         if (this.vertical){
             Shapes.Circle(ctx, this.originX,this.circle_pos, this.circleRadius)
         }else{
             Shapes.Circle(ctx, this.circle_pos,this.originY, this.circleRadius)
         }
-
+        ctx.resetTransform()
     }
 
     mouseMove(x,y){
@@ -155,7 +171,7 @@ class Slider{
             if (this.vertical){
                 this.circle_pos = this.originY + (this.axis - this.value)* this.unitLength
             }else{
-                this.circle_pos = this.originX + this.length - (this.axis - this.value)* this.unitLength
+                this.circle_pos = this.originX - (this.axis - this.value)* this.unitLength
             }
             return 'grabbing'
         }

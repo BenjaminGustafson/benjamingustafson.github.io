@@ -36,6 +36,7 @@ class Grid{
         this.grid_x_max = gridWidth-y_axis
         this.grid_y_max = x_axis
         this.labels = labels
+        this.arrows = true
     }
 
     draw(ctx){
@@ -50,7 +51,7 @@ class Grid{
             Shapes.Line(ctx,
                         this.originX,            y, 
                         this.originX+this.width, y, 
-                        (i == this.x_axis ? lineWidth : lineWidth), (i == this.x_axis ? "arrow" : "rounded"))
+                        (i == this.x_axis ? lineWidth : lineWidth), (i == this.x_axis && this.arrows ? "arrow" : "rounded"))
             if (this.labels){
                 ctx.fillText(this.x_axis-i, this.originX - 20, y)
             }
@@ -66,7 +67,7 @@ class Grid{
             Shapes.Line(ctx,
                         x, this.originY, 
                         x, this.originY+this.height, 
-                        lineWidth, (i == this.y_axis ? "c" : "rounded"))
+                        lineWidth, (i == this.y_axis && this.arrows ? "arrow" : "rounded"))
             if (this.labels){
                 ctx.fillText(i, x, this.originY + this.height+20)
             }
