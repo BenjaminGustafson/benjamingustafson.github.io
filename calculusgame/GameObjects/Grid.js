@@ -1,118 +1,115 @@
 /**
- * Class Grid
  * 
- * Lines on the grid are supplied with the addLine method.
- * There is no mouse interaction with the object.
+ * A Grid is a GameObject that draws a grid to the canvas.
+ * The Grid itself has no interactivity. 
+ * Other GameObjects like FunctionTracers draw themselves on the Grid.
+ *
+ * The grid class has functions gridToCanvas and canvasToGrid to convert between 
+ * pixel coordinates on the canvas and the coordinates on the grid itself.
+ * 
+ * Depends on Shapes.js, Color.js
  */
 class Grid{
 
     /**
+     * Grid constructor
      * 
+     * Note on variable names:
+     * grid- is used as a prefix to refer to the coordinate system of the grid itself. 
+     * canvas- is used as a prefix to refer to the coordinate system of the canvas.
      * 
-     * @param {*} originX 
-     * @param {*} originY 
-     * @param {*} width width in pixels
-     * @param {*} height 
-     * @param {*} gridWidth width in grid squares
-     * @param {*} gridHeight height in grid squares
-     * @param {*} lineWidthMax 
-     * @param {*} x_axis The location of the x-axis, counting from the top starting at 0.
-     * @param {*} y_axis The location of the y-axis, counting from the left starting at 0.
+     * @param {Object} config - Configuration object.
+     * @param {number} config.canvasX - x-coordinate of the top-left corner on the canvas.
+     * @param {number} config.canvasY - y-coordinate of the top-left corner on the canvas.
+     * @param {number} config.canvasWidth - Width in pixels.
+     * @param {number} config.canvasHeight - Height in pixels.
+     * @param {number} config.gridXMin - Min x-value.
+     * @param {number} config.gridYMin - Min y-value.
+     * @param {number} config.gridXMax - Max x-value.
+     * @param {number} config.gridYMax - Max y-value
+     * @param {boolean} config.labels - Whether to draw axis labels.
+     * @param {boolean} config.arrows - Whether to draw arrows on the axes.
+     * @param {number} config.lineWidthMax - Maximum line width for grid rendering.
      */
-    constructor(originX, originY, width, height, gridWidth, gridHeight, lineWidthMax, x_axis = -1, y_axis = -1, labels = false){
-        this.originX = originX
-        this.originY = originY
-        this.width = width
-        this.height = height
-        this.gridWidth = gridWidth
-        this.gridHeight = gridHeight
-        this.lineWidthMax = lineWidthMax
-        this.lines = []
-        this.x_axis = x_axis
-        this.y_axis = y_axis
-        this.unit_scale = gridWidth/width
-        this.grid_x_min = -y_axis // grid value of left
-        this.grid_y_min = x_axis - gridHeight // grid value of the bottom
-        this.grid_x_max = gridWidth-y_axis
-        this.grid_y_max = x_axis
-        this.labels = labels
-        this.arrows = true
+    constructor({ 
+        canvasX, canvasY, canvasWidth=400, canvasHeight=400,
+        gridXMin = -2, gridYMin = -2,
+        gridXMax = 2, gridYMax = 2,
+        labels = false, arrows = true,
+        lineWidthMax = 5
+    }){
+        Object.assign(this, {
+            canvasX, canvasY, canvasWidth, canvasHeight,
+            gridXMin, gridYMin,
+            gridXMax, gridYMax,
+            labels, arrows,
+            lineWidthMax
+        });
+        // The location of the x-axis (horizontal axis), starting from 0 at the top of the grid
+        this.xAxis = gridYMax
+        // Likewise the location of the y-axis, starting from 0 at the leftmost tick
+        this.yAxis = -gridXMin
+        this.gridWidth = gridXMax - gridXMin
+        this.gridHeight = gridYMax - gridYMin
+        // The number of pixels per grid unit on the x-axis
+        this.xScale = this.canvasWidth / this.gridWidth
+        //
+        this.yScale = this.canvasHeight / this.gridHeight
     }
 
+    gridToCanvas(gx,gy){
+        const cx = this.canvasX + this.xScale * (gx - this.gridXMin)
+        const cy = this.canvasY - this.yScale * (gy - this.gridYMax)
+        return {x: cx, y: cy}
+    }
+
+    canvasToGrid(cx, cy){
+        const gx = (cx - this.canvasX) / this.xScale + this.gridXMin
+        const gy = (cy - this.canvasY) / - this.yScale + this.gridYMax
+        return {x: gx, y:gy}
+    }
+
+    /**
+     * Draws the grid on the canvas.
+     * @param {CanvasRenderingContext2D} ctx 
+     */
     draw(ctx){
         Color.setColor(ctx,Color.white)
+
         // Horizontal lines. Starting at top = 0
         ctx.font = '20px monospace'
         ctx.textAlign = 'right'
         ctx.textBaseline = 'middle'
         for (let i = 0; i <= this.gridHeight; i++){
-            const lineWidth = this.lineWidthMax// * (i % (this.gridSize/2) == 0 ? 1 : 1/2)
-            const y = this.originY+this.height/this.gridHeight*i
+            const lineWidth = this.lineWidthMax // Here is where you could implement varied grid line canvasWidth
+            const cy = this.canvasY+this.yScale*i
             Shapes.Line(ctx,
-                        this.originX,            y, 
-                        this.originX+this.width, y, 
-                        (i == this.x_axis ? lineWidth : lineWidth), (i == this.x_axis && this.arrows ? "arrow" : "rounded"))
+                        this.canvasX, cy,
+                        this.canvasX+this.canvasWidth, cy, 
+                        lineWidth, 
+                        (i == this.xAxis && this.arrows ? "arrow" : "rounded"))
             if (this.labels){
-                ctx.fillText(this.x_axis-i, this.originX - 20, y)
+                ctx.fillText(this.gridYMax-i, this.canvasX - 20, cy)
             }
             
         }
-        // Vertical lines
+
+        // Vertical lines. Starting at left = 0
         ctx.font = '20px monospace'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'top'
         for (let i = 0; i <= this.gridWidth; i++){
             const lineWidth = this.lineWidthMax
-            const x = this.originX+this.width/this.gridWidth*i
+            const cx = this.canvasX+this.xScale*i
             Shapes.Line(ctx,
-                        x, this.originY, 
-                        x, this.originY+this.height, 
-                        lineWidth, (i == this.y_axis && this.arrows ? "arrow" : "rounded"))
+                        cx, this.canvasY, 
+                        cx, this.canvasY+this.canvasHeight, 
+                        lineWidth, 
+                        (i == this.yAxis && this.arrows ? "arrow" : "rounded"))
             if (this.labels){
-                ctx.fillText(i, x, this.originY + this.height+20)
+                ctx.fillText(this.gridXMin + i, cx, this.canvasY + this.canvasHeight+20)
             }
-
         }
-        Color.setColor(ctx,Color.red)
-        for (let i = 0; i < this.lines.length; i++){
-            const line = this.lines[i]
-            Shapes.LineSegment(ctx, this.originX+(line.start_x)*this.width/this.gridWidth, 
-                                    this.originY+this.height+(-line.start_y)*this.height/this.gridHeight,
-                                    this.originX+(line.end_x)*this.width/this.gridWidth,
-                                    this.originY+this.height+(-line.end_y)*this.height/this.gridHeight,
-                                    this.lineWidthMax, this.lineWidthMax*1.5)
-        }
-
-
-    }
-
-
-    gridToCanvas(gx,gy){
-        // -- y_axis = 3       
-        // --
-        // -- gy = -2
-        // -- 
-        
-        const cx = this.originX + this.width/this.gridWidth * (gx + this.y_axis)
-        const cy = this.originY - this.height/this.gridHeight * (gy - this.x_axis)
-        return {x: cx, y: cy,oob:true}
-    }
-
-    canvasToGrid(cx, cy){
-        const gx = (cx - this.originX) * (this.gridWidth/this.width) - this.y_axis
-        const gy = (cy - this.originY) * (-this.gridHeight/this.height) + this.x_axis
-        return {x: gx, y:gy}
-    }
-
-
-    /**
-     * A line is encoded as an object of the form {start_x:start_x,start_y:start_y,end_x:end_x,end_y:end_y}
-     * 
-     *  TODO: delete this as it is never used?
-     *  
-    */ 
-    addLine(line){
-        this.lines.push(line)
     }
 
 }

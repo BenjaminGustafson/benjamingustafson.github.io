@@ -3,6 +3,8 @@
  * Traces the numeric integral of a given input
  * 
  * ISSUE: too high speed might miss targets
+ * 
+ * Depends on: Color.js, Shapes.js, Grid.js
  */
 
 class Tracer {
@@ -38,7 +40,7 @@ class Tracer {
             this.source_tracer = input.source_tracer
         }
         this.grid = grid
-        this.scale = grid.width/grid.gridWidth
+        this.scale = grid.xScale
         this.frames_per_unit = frames_per_unit
         this.targets = targets
     }
@@ -92,7 +94,7 @@ class Tracer {
                     const gx = this.grid.canvasToGrid(x,0).x
                     const cy = y - fun(gx)
                     const gy = this.grid.canvasToGrid(0,cy).y
-                    if (gy >= this.grid.grid_y_max){
+                    if (gy >= this.grid.gridYMax){
                         onGrid = false
                     }
                     grid_ys.push(gy)
@@ -166,7 +168,7 @@ class Tracer {
         }        
 
         // Before we have drawn past the end of the grid, increment frames
-        if (this.frame <= this.grid.width){
+        if (this.frame < this.grid.canvasWidth){
             if (!this.stopped){
                 this.frame += this.frames_per_unit
             }

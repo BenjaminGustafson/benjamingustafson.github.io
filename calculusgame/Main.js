@@ -15,7 +15,6 @@
 
 const build = "dev"
 // = "dev" c key clears local storage, s key sets solved
-// = "layout" wasd keys moves gameobjects, qe to cycle objs, 12345 changes layout precision
 // = "play" no console logs, no dev tools
 // = ""
 keysPressed = {}
@@ -23,6 +22,18 @@ function setup() {
     "use strict";
 
     var canvas = document.getElementById('myCanvas');
+
+    const audioManager = new AudioManager();
+    const audioPaths = ["click_001.mp3"];
+
+    Promise.all(
+        audioPaths.map(path => {
+            const name = path.split(".")[0]; // e.g., "click_001"
+            return audioManager.load(name, "audio/" + path);
+        })
+    ).then(() => {
+        console.log("All audio loaded.");
+    });
 
     var gameState = {
         objects: [], // The GameObjects in the current scene
@@ -125,6 +136,7 @@ function setup() {
     // When the mouse is clicked, the (x,y) of the click is broadcast
     // to all GameObjects.
     canvas.addEventListener('mousedown', function (event) {
+        new Audio('audio/click_001.mp3').play();
         var rect = canvas.getBoundingClientRect();
         const x = (event.clientX - rect.left) * (canvas.width / rect.width);
         const y = (event.clientY - rect.top) * (canvas.height / rect.height);
@@ -212,49 +224,6 @@ function setup() {
                     break
             }
         }
-
-        if (build == "layout") {
-            const obj = gameState.objects[gameState.layout.ind]
-            switch (event.key) {
-                case 'w':
-                    obj.originY -= gameState.layout.prec
-                    break
-                case 'a':
-                    obj.originX -= gameState.layout.prec
-                    break
-                case 's':
-                    obj.originY += gameState.layout.prec
-                    break
-                case 'd':
-                    obj.originX += gameState.layout.prec
-
-                    break
-                case 'e':
-                    gameState.layout.ind = (gameState.layout.ind + 1) % gameState.objects.length
-                    break
-                case 'q':
-                    gameState.layout.ind = (gameState.objects.length + gameState.layout.ind - 1) % gameState.objects.length
-                    break
-                case '1':
-                    gameState.layout.prec = 1
-                    break
-                case '2':
-                    gameState.layout.prec = 10
-                    break
-                case '3':
-                    gameState.layout.prec = 100
-                    break
-                case '4':
-                    gameState.layout.prec = 25
-                    break
-                case '5':
-                    gameState.layout.prec = 5
-                    break
-                case 'p':
-                    console.log(obj.originX + "," + obj.originY)
-                    break
-            }
-        }
     });
 
 
@@ -297,7 +266,7 @@ function setup() {
 
         // Draw all GameObjects
         for (let i = 0; i < Object.values(gameState.objects).length; i++) {
-            Object.values(gameState.objects)[i].draw(ctx);
+            Object.values(gameState.objects)[i].draw(ctx, audioManager);
         }
 
         if (build == 'layout') {

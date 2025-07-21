@@ -8,6 +8,9 @@ class Slider{
 
     /**
      * 
+     * TODO: refactor to not use positional optional args
+     * And specify with maxVal rather than axis.
+     * 
      * Sliders values example: 
      *
      * _____ i=0 value = 2   y = y 
@@ -95,7 +98,7 @@ class Slider{
         }
     }
 
-    draw(ctx){
+    draw(ctx, audioManager){
         if (this.hidden){
             return
         }
@@ -104,6 +107,13 @@ class Slider{
         }else{
             this.circleColor = Color.gray
         }
+
+        if (this.playSound){
+            console.log('Playing')
+            audioManager.play('click')
+            this.playSound = false
+        }
+
         if(this.lineWidth != -1){
 
             Color.setColor(ctx, Color.white)
@@ -165,7 +175,7 @@ class Slider{
                 value = - this.axis + Math.round((this.circle_pos-this.originX)/this.unitLength/this.increment)*this.increment
             }
             if (value != this.value){
-                // new Audio('audio/click_003.mp3').play()
+                this.playSound = true
                 this.value = value
             }
             if (this.vertical){
@@ -183,6 +193,7 @@ class Slider{
     }
 
     mouseDown(x,y){
+        //new Audio('audio/click_001.ogg').play();
         if (!this.active){
             return null
         }
@@ -196,8 +207,8 @@ class Slider{
             }
             return 'grabbing'
         }
+        
         return null
-        //new Audio('audio/click_003.ogg').play();
           
     }
 
