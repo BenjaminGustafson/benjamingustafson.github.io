@@ -100,11 +100,19 @@ class Grid{
         return {y: y, out:out}
     }
 
-    canvasToGrid(cx, cy){
-        const gx = (cx - this.canvasX) / this.xScale + this.gridXMin
-        const gy = (cy - this.canvasY) / - this.yScale + this.gridYMax
-        return {x: gx, y:gy}
+    canvasToGridX(cx){
+        return (cx - this.canvasX) / this.xScale + this.gridXMin
     }
+
+    canvasToGridY(cy){
+        return (cy - this.canvasY) / - this.yScale + this.gridYMax
+    }
+
+    canvasToGrid(cx, cy){
+        return {x: canvasToGridX(cx), y:canvasToGridY(cy)}
+    }
+
+    
 
     /**
      * Draws the grid on the canvas.
