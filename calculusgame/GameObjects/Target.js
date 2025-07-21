@@ -3,19 +3,24 @@
  */
 class Target{
 
-    hit = false
 
-    /**
-     * 
-     * @param {number} x center x value
-     * @param {number} y center y value
-     * @param {number} size sidelength of the square
-     */
-    constructor(originX,originY,size){
-        this.unhit_color = Color.magenta
-        this.hit_color = Color.blue
+    constructor({
+        canvasX,canvasY,
+        grid,gridX,gridY,
+        size=10,
+    }){
         this.size = size
-        this.setPosition(originX,originY)
+        if (canvasX != null && canvasY != null){
+            this.setPosition(canvasX,canvasY)
+        }else if (grid != null && gridX != null && gridY != null){
+            const canvasCoord = grid.gridToCanvas(gridX, gridY)
+            this.setPosition(canvasCoord.x, canvasCoord.y)
+        } else {
+            throw new Error("Must provide either (canvasX, canvasY) or (grid, gridX, gridY)")
+        }
+        this.unhitColor = Color.magenta
+        this.hitColor = Color.blue
+        this.hit = false
     }
 
     /**
@@ -32,9 +37,8 @@ class Target{
     }
 
     draw(ctx){
-        Color.setColor(ctx,this.hit ? this.hit_color : this.unhit_color)
+        Color.setColor(ctx,this.hit ? this.hitColor : this.unhitColor)
         Shapes.Rectangle(ctx,this.left,this.top,this.size,this.size,this.size*0.5,true)
-        
     }
 
     /**
