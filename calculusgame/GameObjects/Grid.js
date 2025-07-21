@@ -23,7 +23,7 @@ class Grid{
      * @param {number} config.canvasY - y-coordinate of the top-left corner on the canvas.
      * @param {number} config.canvasWidth - Width in pixels.
      * @param {number} config.canvasHeight - Height in pixels.
-     * @param {number} config.gridXMin - Min x-value.
+     * @param {number} config.gridXMin - Min x-value. Integer.
      * @param {number} config.gridYMin - Min y-value.
      * @param {number} config.gridXMax - Max x-value.
      * @param {number} config.gridYMax - Max y-value
@@ -32,14 +32,16 @@ class Grid{
      * @param {number} config.lineWidthMax - Maximum line width for grid rendering.
      */
     constructor({ 
-        canvasX, canvasY, canvasWidth=400, canvasHeight=400,
+        canvasX, canvasY,
+        canvasWidth=400, canvasHeight=400,
         gridXMin = -2, gridYMin = -2,
         gridXMax = 2, gridYMax = 2,
         labels = false, arrows = true,
         lineWidthMax = 5
     }){
         Object.assign(this, {
-            canvasX, canvasY, canvasWidth, canvasHeight,
+            canvasX, canvasY,
+            canvasWidth, canvasHeight,
             gridXMin, gridYMin,
             gridXMax, gridYMax,
             labels, arrows,
@@ -57,10 +59,45 @@ class Grid{
         this.yScale = this.canvasHeight / this.gridHeight
     }
 
+    
+    gridToCanvasX(gx){
+        return this.canvasX + this.xScale * (gx - this.gridXMin)
+    }
+
+    gridToCanvasY(gy){
+        return this.canvasY - this.yScale * (gy - this.gridYMax)
+    }
+
     gridToCanvas(gx,gy){
-        const cx = this.canvasX + this.xScale * (gx - this.gridXMin)
-        const cy = this.canvasY - this.yScale * (gy - this.gridYMax)
-        return {x: cx, y: cy}
+        return {x: this.gridToCanvasX(gx), y: this.gridToCanvasY(gy)}
+    }
+
+    gridToCanvasBoundedX(gx){
+        var x = this.gridToCanvasX(gx)
+        var out = false
+        if (x < this.canvasX) {
+            x = this.canvasX
+            out = true
+        }
+        if (x > this.canvasX + this.canvasWidth){
+            x = this.canvasX + this.canvasWidth
+            out = true
+        }
+        return {x: x, out:out}
+    }
+
+    gridToCanvasBoundedY(gy){
+        var y = this.gridToCanvasY(gy)
+        var out = false
+        if (y < this.canvasY){
+            y = this.canvasY
+            out = true
+        }
+        if (y > this.canvasY + this.canvasHeight){
+            y = this.canvasY + this.canvasHeight
+            out = true
+        }
+        return {y: y, out:out}
     }
 
     canvasToGrid(cx, cy){
@@ -74,6 +111,7 @@ class Grid{
      * @param {CanvasRenderingContext2D} ctx 
      */
     draw(ctx){
+        ctx.translate(this.canvasX,this.canvasY)
         Color.setColor(ctx,Color.white)
 
         // Horizontal lines. Starting at top = 0
@@ -82,10 +120,10 @@ class Grid{
         ctx.textBaseline = 'middle'
         for (let i = 0; i <= this.gridHeight; i++){
             const lineWidth = this.lineWidthMax // Here is where you could implement varied grid line canvasWidth
-            const cy = this.canvasY+this.yScale*i
+            const cy = this.yScale*i
             Shapes.Line(ctx,
-                        this.canvasX, cy,
-                        this.canvasX+this.canvasWidth, cy, 
+                        0, cy,
+                        this.canvasWidth, cy, 
                         lineWidth, 
                         (i == this.xAxis && this.arrows ? "arrow" : "rounded"))
             if (this.labels){
@@ -100,16 +138,18 @@ class Grid{
         ctx.textBaseline = 'top'
         for (let i = 0; i <= this.gridWidth; i++){
             const lineWidth = this.lineWidthMax
-            const cx = this.canvasX+this.xScale*i
+            const cx = this.xScale*i
             Shapes.Line(ctx,
-                        cx, this.canvasY, 
-                        cx, this.canvasY+this.canvasHeight, 
+                        cx, 0, 
+                        cx, this.canvasHeight, 
                         lineWidth, 
                         (i == this.yAxis && this.arrows ? "arrow" : "rounded"))
             if (this.labels){
-                ctx.fillText(this.gridXMin + i, cx, this.canvasY + this.canvasHeight+20)
+                ctx.fillText(this.gridXMin + i, cx, this.canvasHeight+20)
             }
         }
+
+        ctx.resetTransform()
     }
 
 }
