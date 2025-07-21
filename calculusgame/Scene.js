@@ -1352,15 +1352,19 @@ function loadScene(gameState, sceneName, clearTemp = true) {
          * 1x1 to gradually introduce the slider/target mechanics
          */
         case "intro1": {
-            const gridLeft = new Grid({canvasX:560, canvasY:430, canvasWidth:100, canvasHeight:100, 
-                gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false})
+            const gridLeft = new Grid({
+                canvasX:560, canvasY:430, canvasWidth:100, canvasHeight:100, 
+                gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false
+            })
+
             const gridRight = new Grid({canvasX:900, canvasY:430, canvasWidth:100, canvasHeight:100,
-                gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false})
-            const slider = new Slider(gridRight.canvasX, gridRight.canvasY, 100, 1, 0, 1, 0.1, false)
-            const target = new Target(gridLeft.canvasX + gridLeft.canvasWidth, gridLeft.canvasY, 15)
-            const tracer = new Tracer(gridLeft.canvasX, gridLeft.canvasY + 100, gridLeft,
-                { type: "sliders", sliders: [slider], slider_spacing: 100 },
-                4, [target])
+                gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false
+            })
+            
+            const slider = new Slider({grid:gridRight, gridPos:0})
+
+            const target = new Target({grid: gridLeft, gridX:1, gridY:1, size:15})
+            const tracer = new IntegralTracer({grid: gridLeft, sliders: [slider], targets:[target]})
             gameState.objects = [gridLeft, gridRight, slider, target, tracer]
             gameState.update = () => { }
             levelNavigation(gameState, (() => tracer.solved))
@@ -1371,7 +1375,9 @@ function loadScene(gameState, sceneName, clearTemp = true) {
          * 2x2
          */
         case "intro2": {
-            const gridLeft = new Grid(560, 430, 200, 200, 2, 2, 5)
+            const gridLeft = new Grid({canvasX:560, canvasY:430, canvasWidth:100, canvasHeight:100, 
+                gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false})
+            //const gridLeft = new Grid(560, 430, 200, 200, 2, 2, 5)
             const gridRight = new Grid(900, 430, 200, 200, 2, 2, 5)
             const sliders = [
                 new Slider(gridRight.originX, gridRight.originY, 200, 2, 0, 1, 0.1, false),
