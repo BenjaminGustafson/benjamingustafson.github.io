@@ -56,7 +56,7 @@ class MathBlockManager {
 
     update(ctx, audioManager, mouse){
         if (this.field_block){             
-            this.field_block.draw(ctx)
+            this.field_block.update(ctx, audioManager, mouse)
             const field_block_fun = this.field_block.toFunction()
             // Check that the function is not incomplete
             if (field_block_fun != null){
@@ -82,7 +82,7 @@ class MathBlockManager {
             Color.setColor(ctx,this.field_color)
             Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,10,true)
         }
-        this.tool_bar.forEach(b => b.draw(ctx))
+        this.tool_bar.forEach(b => b.update(ctx,audioManager,mouse))
         if (this.grabbed){
             this.grabbed.draw(ctx)
         }

@@ -223,7 +223,7 @@ function rngLevel(gameState) {
         updateDistance: function(d){
             this.dist = (d - prevPlanet.distance) * this.length / (nextPlanet.distance - prevPlanet.distance)
         },
-        draw: function(ctx){
+        update: function(ctx){
             const originY = 150
             const numTicks = 10
             const tickLength = 10
@@ -279,7 +279,7 @@ function rngLevel(gameState) {
     nextButton.visible = false
     //const targetText = new TextBox(padLeft, gridY-40, funString, font = '40px monospace', color = Color.white)
     const axisLabels = {
-        draw: function(ctx){
+        update: function(ctx){
             ctx.font = '20px monospace'
             ctx.textAlign = 'center'
             ctx.textBaseline = 'top'
@@ -300,7 +300,7 @@ function rngLevel(gameState) {
 
     gameState.stored.strikes = 0
     const strikes = {
-        draw: (ctx) => {
+        update: (ctx) => {
             for (let i = 0; i < 3; i++) {
                 if (gameState.stored.strikes <= i) {
                     Color.setColor(ctx, Color.white)
@@ -317,7 +317,7 @@ function rngLevel(gameState) {
 
     const toolTip = {
         visible: true,
-        draw: function(ctx) {
+        update: function(ctx) {
             if (!this.visible){
                 return
             }
@@ -538,7 +538,7 @@ function experimentTrial(gameState, exitTo, solution){
    
 
     const bgImage = {
-        draw: function(ctx){
+        update: function(ctx){
             const image = document.getElementById("quad_img")
             ctx.drawImage(image, 0,0,1600*600/900,900, 600, 200, 950, 600)
         }
@@ -552,7 +552,7 @@ function experimentTrial(gameState, exitTo, solution){
     const turtle = {
         originX:800,
         originY:600,
-        draw: function(ctx){
+        update: function(ctx){
             const width = 100
             Color.setColor(ctx,Color.green)
             ctx.fillRect(this.originX - width + (solution.function(time) * maxDist/maxTime), this.originY, 100, 100)
@@ -565,7 +565,7 @@ function experimentTrial(gameState, exitTo, solution){
     playPauseButton.lineWidth = 5
 
     const numberLine = {
-        draw: function(ctx){
+        update: function(ctx){
             const originX = turtle.originX 
             const originY = turtle.originY-50
             const length = maxDist
@@ -589,7 +589,7 @@ function experimentTrial(gameState, exitTo, solution){
     }
 
     const text = {
-        draw: function(ctx){
+        update: function(ctx){
             Color.setColor(ctx,Color.white)
             ctx.font = '20px monospace'
             ctx.textAlign = 'start'
@@ -669,7 +669,7 @@ function experimentMenu(gameState, exitTo){
     const ruleButton = new Button(200,780,100,50, (() => loadScene(gameState,exitTo)),"Rule")
     ruleButton.lineWidth = 5
     const table = {
-        draw: function(ctx){
+        update: function(ctx){
             Color.setColor(ctx,Color.white)
             ctx.font = '40px monospace'
             ctx.textAlign = 'start'
@@ -1477,7 +1477,7 @@ function loadScene(gameState, sceneName, clearTemp = true) {
                 door_button
             ]
             gameState.objects.push({
-                draw: function(ctx){
+                update: function(ctx){
                     Color.setColor(ctx,Color.black)
                     ctx.fillRect(1186,480,48,114)
                 }

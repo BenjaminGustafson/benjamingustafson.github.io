@@ -59,7 +59,6 @@ class Slider{
                 this.sliderLength = grid.gridHeight
                 this.maxValue = grid.gridYMax
                 this.minValue = grid.gridYMin
-                console.log(this.canvasX, this.canvasY, this.minValue, this.maxValue, this.sliderLength, this.canvasLength)
             }else{
                 this.canvasX = grid.canvasX
                 this.canvasY = grid.gridToCanvasY(gridPos)
@@ -144,7 +143,30 @@ class Slider{
             return
         }
 
+
+        if (!mouse.held){
+            this.grabbed = false
+        }
         
+        if (this.mouseOverCircle(mouse.x,mouse.y)){
+            if (mouse.down){
+                this.grabbed = true
+                //this.grabPos = this.vertical ? mouse.y - this.circlePos :  mouse.x - this.circlePos
+            }
+            if (!mouse.held){
+                this.circleColor = Color.adjustLightness(this.baseCircleColor, 50)
+                mouse.cursor = 'grab'
+            }
+        }else{
+            this.circleColor = this.baseCircleColor
+        }
+
+        if (this.grabbed){
+            this.mouseValue = this.canvasToValueBounded(this.vertical ? mouse.y : mouse.x)
+            this.circleColor = Color.adjustLightness(this.baseCircleColor, -50)
+            mouse.cursor =  'grabbing'
+        }
+
         if (this.mouseValue != this.value){
             const dir = this.mouseValue > this.value ? 1 : -1
             this.setValue(this.value + dir*this.increment)
@@ -213,62 +235,6 @@ class Slider{
         }
     }
 
-    mouseMove(x,y){
-        if (!this.active){
-            return null
-        }
-        if (this.grabbed){
-            const newValue = this.canvasToValueBounded(this.vertical ? y : x)
-            this.mouseValue = newValue
-            // if (newValue != this.value){
-            //     this.valueChanged = true
-            //     this.mouseValue = newValue
-            // }
-            this.updateCircle()
-            return 'grabbing'
-        }
-        if (this.mouseOverCircle(x,y)){
-            this.circleColor = Color.adjustLightness(this.baseCircleColor, 50)
-            return 'grab'
-        }else{
-            this.circleColor = this.baseCircleColor
-        }
-        return null
-    }
-
-    mouseDown(x,y){
-        if (!this.active){
-            return null
-        }
-        if (this.mouseOverCircle(x,y)){
-            this.grabbed = true
-            if (this.vertical){
-                this.grabPos = y - this.circlePos
-            }else{
-                this.grabPos = x - this.circlePos
-            }
-            this.circleColor = Color.adjustLightness(this.baseCircleColor, -60)
-            return 'grabbing'
-        }
-        
-        return null
-          
-    }
-
-    mouseUp(x,y){
-        //this.mouseValue = this.value
-        if (!this.active){
-            return null
-        }
-        this.grabbed = false
-        if (this.mouseOverCircle(x,y)){
-            this.circleColor = Color.adjustLightness(this.baseCircleColor, 50)
-            return 'grab'
-        }else{
-            this.circleColor = this.baseCircleColor
-        }
-        return null
-    }
 
     solved(){
         this.circleColor = Color.green

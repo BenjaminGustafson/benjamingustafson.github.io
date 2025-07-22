@@ -24,7 +24,8 @@ function setup() {
     var canvas = document.getElementById('myCanvas');
 
     const audioManager = new AudioManager();
-    const audioPaths = ["click_001.ogg","drop_002.ogg","confirmation_001.ogg", "glass_002.ogg", "switch_009.ogg"];
+    const audioPaths = ["click_001.ogg","drop_002.ogg","confirmation_001.ogg",
+         "glass_002.ogg", "switch_009.ogg", 'click_003.ogg'];
 
     const mouse = {
         x:0,
@@ -125,7 +126,7 @@ function setup() {
     });
 
     canvas.addEventListener('mouseup', function (event) {
-        mouse.down = false
+        mouse.held = false
     });
 
     canvas.addEventListener('mousemove', function (event) {
@@ -208,7 +209,6 @@ function setup() {
         for (let i = 0; i < gameState.objects.length; i++) {
             gameState.objects[i].update(ctx, audioManager, mouse);
         }
-
         mouse.down = false
         canvas.style.cursor = mouse.cursor
 

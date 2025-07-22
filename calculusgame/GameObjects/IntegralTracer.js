@@ -114,7 +114,6 @@ class IntegralTracer {
             const gx = this.grid.canvasToGridX(cx)
             gy += this.inputGridY(gx)/this.grid.xScale
             newGridYs.push(gy)
-            console.log(gx, gy,this.inputGridY(gx))
             if (Math.abs(newGridYs[i]-this.gridYs[i]) > 0.001){
                 this.reset()
             }
@@ -133,6 +132,14 @@ class IntegralTracer {
             this.reset()
             return
         }
+
+        for (let i = 0; i < this.sliders.length; i++){
+            if (this.sliders[i].grabbed){
+                this.reset()
+                return
+            }
+        }
+
 
         this.calculateYs()
 
@@ -154,7 +161,6 @@ class IntegralTracer {
             this.targets.forEach(t => {
                 if (t.lineIntersect(x,y,x+1,cy) || t.pointIntersect(x,y)){
                     if (!t.hit){
-                        console.log(this.gridYs[i])
                         audioManager.playWithPitch('drop_002',this.gridYs[i]/this.grid.gridHeight*12)
                     }
                     t.hit = true

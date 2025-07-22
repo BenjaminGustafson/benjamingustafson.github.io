@@ -35,9 +35,7 @@ class Button{
     }
 
     update(ctx, audioManager, mouse){
-        if (!this.visible){
-            return
-        }
+        
         if (this.active){
             Color.setColor(ctx,this.color)
         }else{
@@ -46,12 +44,19 @@ class Button{
 
         if (this.active && this.originX <= mouse.x && mouse.x <= this.originX + this.width && this.originY <= mouse.y && mouse.y <= this.originY + this.height){
             if (mouse.down){
+                mouse.down = false // don't allow clicking multiple things
+                audioManager.play('click_003')
                 this.onclick()
             }
+            Color.setColor(ctx,Color.adjustLightness(this.color,50))
             mouse.cursor = 'pointer'
         }
 
 
+        // Drawing:
+        if (!this.visible){
+            return
+        }
 
         Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,this.lineWidth)
         ctx.font = "40px monospace"
