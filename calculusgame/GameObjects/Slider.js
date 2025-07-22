@@ -85,6 +85,10 @@ class Slider{
         this.grabbed = false
         this.grabPos = 0
         this.value = startValue
+        this.mouseValue = this.value
+        this.prevTime = 0
+
+        this.baseCircleColor = this.circleColor
 
         this.updateCircle()
     }
@@ -129,14 +133,27 @@ class Slider{
     setValue(val){
         if (val < this.minValue) val = this.minValue
         if (val > this.maxValue) val = this.maxValue
+        val = Math.round(val/this.increment)*this.increment
         this.value = val
         this.updateCircle()
     }
 
-    draw(ctx){
+
+   draw(ctx, audioManager){
         if (this.hidden){
             return
         }
+
+        if (this.mouseValue != this.value){
+            if ( Date.now() - this.prevTime > 20){
+                audioManager.play('click_001')
+                this.prevTime = Date.now()
+            }
+            const dir = this.mouseValue > this.value ? 1 : -1
+            this.setValue(this.value + dir*this.increment)
+            //this.setValue(this.mouseValue)
+        }
+        //console.log(elapsedTime)
 
         // Draw line and tick marks
         if (this.showLines){
@@ -187,6 +204,7 @@ class Slider{
         }else{
             Shapes.Circle(ctx, this.circlePos, this.canvasY, this.circleRadius)
         }
+        
     }
 
 
@@ -205,14 +223,19 @@ class Slider{
         }
         if (this.grabbed){
             const newValue = this.canvasToValueBounded(this.vertical ? y : x)
-            if (newValue != this.value){
-                this.value = newValue
-            }
+            this.mouseValue = newValue
+            // if (newValue != this.value){
+            //     this.valueChanged = true
+            //     this.mouseValue = newValue
+            // }
             this.updateCircle()
             return 'grabbing'
         }
         if (this.mouseOverCircle(x,y)){
+            this.circleColor = Color.adjustLightness(this.baseCircleColor, 50)
             return 'grab'
+        }else{
+            this.circleColor = this.baseCircleColor
         }
         return null
     }
@@ -228,6 +251,7 @@ class Slider{
             }else{
                 this.grabPos = x - this.circlePos
             }
+            this.circleColor = Color.adjustLightness(this.baseCircleColor, -60)
             return 'grabbing'
         }
         
@@ -236,12 +260,16 @@ class Slider{
     }
 
     mouseUp(x,y){
+        //this.mouseValue = this.value
         if (!this.active){
             return null
         }
         this.grabbed = false
         if (this.mouseOverCircle(x,y)){
+            this.circleColor = Color.adjustLightness(this.baseCircleColor, 50)
             return 'grab'
+        }else{
+            this.circleColor = this.baseCircleColor
         }
         return null
     }

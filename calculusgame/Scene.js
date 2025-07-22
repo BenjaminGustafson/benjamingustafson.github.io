@@ -150,9 +150,8 @@ function rngLevel(gameState) {
     const prevPlanet = PLANET_DATA[gss.planetIndex]
     const nextPlanet = PLANET_DATA[gss.planetIndex+1]
 
-    const grid_setting = { grid_width: 4, grid_height: 4, x_axis: 2, y_axis: 2 }
     const blocks = [[MathBlock.CONSTANT, ""]]
-
+    
     var mathBlockFun = new MathBlock()
     console.log(gss.currentNavFunction)
     if (gss.currentNavFunction != null){
@@ -162,21 +161,36 @@ function rngLevel(gameState) {
         mathBlockFun = newRNGPuzzle(gameState)
     }
     const fun = mathBlockFun.toFunction()
-
-
+    
+    
     const padLeft = 100
     const gridDim = 400
     const padBottom = 100
     const intDist = Math.floor(gameState.stored.totalDistance)
     const gridY = CANVAS_HEIGHT-padBottom-gridDim
-    const gridLeft = new Grid(padLeft, gridY, gridDim, gridDim, grid_setting.grid_width, grid_setting.grid_height,
-         5, 4+intDist, 0, labels=true)
-    const gridRight = new Grid(padLeft+gridDim+100, gridY, gridDim, gridDim, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
+
+    const gridLeft = new Grid({canvasX:padLeft, canvasY:gridY, canvasWidth:400, canvasHeight:400, 
+        gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:true, arrows:true})
+    const gridRight = new Grid({canvasX:padLeft, canvasY:gridY, canvasWidth:400, canvasHeight:400, 
+        gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:true, arrows:true})
+    //const gridRight = new Grid(padLeft+gridDim+100, gridY, gridDim, gridDim, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
     const leftSlider = new Slider(1100, 250, 400, 4, 0, 4, 0.1, true, true)
     const sy_slider = new Slider(1200, 250, 400, 8, 1, 4, 0.1, true, true)
     const funRight = new FunctionTracer(gridRight)
     //const funLeft = new FunctionTracer(gridLeft, (x => x*x))
     //funLeft.color = Color.red
+
+
+    // const spacing = gridLeft.gridWidth/targetVals.length
+    // var sliders = []
+    // for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
+    //     sliders.push(new Slider({grid:gridRight, gridPos:i,increment:0.1,circleRadius:sliderSize}))
+    // }
+    // var targets = []
+    // for (let i = 0; i < targetVals.length; i++) {
+    //     targets.push(new Target({grid: gridLeft, gridX:gridLeft.gridXMin+(i+1)*spacing, gridY:targetVals[i], size:targetSize}))
+    // }
+    // const tracer = new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets, gridY:tracerStart})
     
 
     const math_blocks = []
@@ -400,7 +414,7 @@ function rngLevel(gameState) {
  * @param {*} tracerStart y-intercept where the tracer starts from
  * @param {number} targetSize The size of the targets and sliders
  */
-function simpleDiscLevel(gameState, targetVals, tracerStart = 0, targetSize = 15) {
+function simpleDiscLevel(gameState, targetVals, tracerStart = 0, targetSize = 15, sliderSize = 15) {
     const gridLeft = new Grid({canvasX:300, canvasY:250, canvasWidth:400, canvasHeight:400, 
         gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:false, arrows:true})
     const gridRight = new Grid({canvasX:900, canvasY:250, canvasWidth:400, canvasHeight:400, 
@@ -408,7 +422,7 @@ function simpleDiscLevel(gameState, targetVals, tracerStart = 0, targetSize = 15
     const spacing = gridLeft.gridWidth/targetVals.length
     var sliders = []
     for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
-        sliders.push(new Slider({grid:gridRight, gridPos:i}))
+        sliders.push(new Slider({grid:gridRight, gridPos:i,increment:0.1,circleRadius:sliderSize}))
     }
     var targets = []
     for (let i = 0; i < targetVals.length; i++) {
@@ -1372,7 +1386,7 @@ function loadScene(gameState, sceneName, clearTemp = true) {
          */
         case "intro2": {
             const gridLeft = new Grid({canvasX:560, canvasY:430, canvasWidth:200, canvasHeight:200, 
-                gridXMin:-1, gridYMin:-1, gridXMax:1, gridYMax:1, labels:false, arrows:false})
+                gridXMin:-1, gridYMin:0, gridXMax:1, gridYMax:2, labels:false, arrows:false})
             //const gridLeft = new Grid(560, 430, 200, 200, 2, 2, 5)
             const gridRight = new Grid({canvasX:900, canvasY:430, canvasWidth:200, canvasHeight:200, 
                 gridXMin:-1, gridYMin:-1, gridXMax:1, gridYMax:1, labels:false, arrows:false})
@@ -1381,8 +1395,8 @@ function loadScene(gameState, sceneName, clearTemp = true) {
                 new Slider({grid:gridRight, gridPos:0}),
             ]
             const targets = [
-                new Target({grid: gridLeft, gridX:0, gridY:0, size:15}),
-                new Target({grid: gridLeft, gridX:1, gridY:1, size:15})
+                new Target({grid: gridLeft, gridX:0, gridY:1, size:15}),
+                new Target({grid: gridLeft, gridX:1, gridY:2, size:15})
             ]
             const tracer =  new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets})
             gameState.objects = [gridLeft, gridRight, tracer].concat(sliders).concat(targets)
@@ -1437,7 +1451,7 @@ function loadScene(gameState, sceneName, clearTemp = true) {
          */
         case "intro16": {
             simpleDiscLevel(gameState, [0.25, 0.5, 0.75, 1, 1.25, 1, 0.75, 0.5,
-                0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1], tracerStart = 0, targetSize = 12)
+                0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1], tracerStart = 0, targetSize = 12, sliderSize = 12)
             break
         }
 

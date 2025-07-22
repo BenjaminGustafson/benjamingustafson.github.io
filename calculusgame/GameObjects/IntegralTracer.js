@@ -125,7 +125,7 @@ class IntegralTracer {
     //     return this.gridYs[this.gridYs.length-1]
     // }
 
-    draw(ctx){
+    draw(ctx, audioManager){
         // If the mathblock is not defined, don't trace
         if (this.type == "mathBlock" && 
             (!this.mathBlockMngr.field_block || !this.mathBlockMngr.field_block.toFunction())){
@@ -151,6 +151,10 @@ class IntegralTracer {
             Shapes.Line(ctx,x,y, x+1, cy, this.lineWidth)
             this.targets.forEach(t => {
                 if (t.lineIntersect(x,y,x+1,cy) || t.pointIntersect(x,y)){
+                    if (!t.hit){
+                        console.log("play")
+                        audioManager.play('drop_002')
+                    }
                     t.hit = true
                 }
             })
@@ -166,12 +170,17 @@ class IntegralTracer {
             }
             this.doneTracing = false
         }else{ // After we reach the end, check if solved
-            this.solved = true
-            this.targets.forEach(t => {
-                if (!t.hit){
-                    this.solved = false
+            if (!this.doneTracing){ // First time only
+                this.solved = true
+                this.targets.forEach(t => {
+                    if (!t.hit){
+                        this.solved = false
+                    }
+                })
+                if (this.solved){
+                    audioManager.play('confirmation_001')
                 }
-            })
+            }
             this.doneTracing = true
         }
     }

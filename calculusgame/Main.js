@@ -24,7 +24,7 @@ function setup() {
     var canvas = document.getElementById('myCanvas');
 
     const audioManager = new AudioManager();
-    const audioPaths = ["click_001.mp3"];
+    const audioPaths = ["click_001.ogg","drop_002.ogg","confirmation_001.ogg"];
 
     Promise.all(
         audioPaths.map(path => {
@@ -107,28 +107,6 @@ function setup() {
     
     loadScene(gameState, gameState.stored.sceneName, false)
 
-    // const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    // const desiredFreq = 440;
-    // const sampleRate = audioCtx.sampleRate;
-    // const samplesPerCycle = Math.round(sampleRate / desiredFreq);
-    // const baseFreq = sampleRate / samplesPerCycle;
-
-    // const buffer = audioCtx.createBuffer(1, samplesPerCycle, sampleRate);
-    // const data = buffer.getChannelData(0);
-
-    // for (let i = 0; i < samplesPerCycle; i++) {
-    //   data[i] = 0.01*Math.sin((2 * Math.PI * i) / samplesPerCycle);
-    // }
-
-    // const source = audioCtx.createBufferSource();
-    // source.buffer = buffer;
-    // source.loop = true;
-    // source.playbackRate.value = desiredFreq / baseFreq;
-
-    // source.connect(audioCtx.destination);
-    //source.start();
-
-
     // ----------------------------------------------------------------------------------------------
     // Mouse events
     // ----------------------------------------------------------------------------------------------
@@ -136,12 +114,11 @@ function setup() {
     // When the mouse is clicked, the (x,y) of the click is broadcast
     // to all GameObjects.
     canvas.addEventListener('mousedown', function (event) {
-        new Audio('audio/click_001.mp3').play();
         var rect = canvas.getBoundingClientRect();
         const x = (event.clientX - rect.left) * (canvas.width / rect.width);
         const y = (event.clientY - rect.top) * (canvas.height / rect.height);
         canvas.style.cursor = 'default'
-        Object.values(gameState.objects).forEach(obj => {
+        gameState.objects.forEach(obj => {
             if (typeof obj.mouseDown === 'function') {
                 const cursor = obj.mouseDown(x, y)
                 if (cursor != null) {
@@ -240,19 +217,6 @@ function setup() {
             timer = 0
         }
 
-        if (build == 'dev') {
-            //console.log(gameState.stored.sceneName)
-        }
-
-        // 
-        // if (currentSceneName != gameState.stored.sceneName || gameState.refresh) {
-        //     currentSceneName = gameState.sceneName
-        //     gameState.refresh = false
-        //     loadScene(gameState)
-        //     if (build == "layout") {
-        //         gameState.layout.ind = 0
-        //     }
-        // }
         gameState.update()
         var ctx = canvas.getContext('2d');
 
@@ -265,8 +229,8 @@ function setup() {
 
 
         // Draw all GameObjects
-        for (let i = 0; i < Object.values(gameState.objects).length; i++) {
-            Object.values(gameState.objects)[i].draw(ctx, audioManager);
+        for (let i = 0; i < gameState.objects.length; i++) {
+            gameState.objects[i].draw(ctx, audioManager);
         }
 
         if (build == 'layout') {
