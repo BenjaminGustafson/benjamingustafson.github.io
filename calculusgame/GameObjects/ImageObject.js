@@ -8,7 +8,7 @@ class ImageObject{
         this.height= height
     }
 
-    draw(ctx){
+    update(ctx, audioManager, mouse){
         ctx.drawImage(this.image, this.originX, this.originY, this.width, this.height)
     }
 

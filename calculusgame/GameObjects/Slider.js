@@ -139,21 +139,17 @@ class Slider{
     }
 
 
-   draw(ctx, audioManager){
+    update(ctx, audioManager, mouse){
         if (this.hidden){
             return
         }
 
+        
         if (this.mouseValue != this.value){
-            if ( Date.now() - this.prevTime > 20){
-                audioManager.play('click_001')
-                this.prevTime = Date.now()
-            }
             const dir = this.mouseValue > this.value ? 1 : -1
             this.setValue(this.value + dir*this.increment)
-            //this.setValue(this.mouseValue)
+            audioManager.playWithPitch('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6)
         }
-        //console.log(elapsedTime)
 
         // Draw line and tick marks
         if (this.showLines){

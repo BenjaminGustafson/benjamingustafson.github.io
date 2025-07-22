@@ -16,7 +16,7 @@ class TargetAdder{
     }   
 
 
-    draw(ctx){
+    update(ctx, audioManager, mouse){
         for (let i = 0; i < this.targets.length; i++){
             this.targets[i].draw(ctx)
         }

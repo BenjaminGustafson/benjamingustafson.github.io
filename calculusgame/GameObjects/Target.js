@@ -36,7 +36,7 @@ class Target{
         this.bottom = this.y+this.size/2
     }
 
-    draw(ctx){
+    update(ctx, audioManager, mouse){
         Color.setColor(ctx,this.hit ? this.hitColor : this.unhitColor)
         Shapes.Rectangle(ctx,this.left,this.top,this.size,this.size,this.size*0.5,true)
     }

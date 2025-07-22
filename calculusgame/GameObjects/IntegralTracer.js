@@ -58,6 +58,7 @@ class IntegralTracer {
         this.solved = false
         this.stopped = false
         this.doneTracing = false
+        this.currentValue = 0
 
         this.solvedColor = Color.blue
         this.unsolvedColor = Color.red
@@ -90,9 +91,10 @@ class IntegralTracer {
                 return this.sliders[sliderIndex].value
             case 'mathBlock':
                 if (!this.mathBlockMngr.field_block || !this.mathBlockMngr.field_block.toFunction()){
+                    throw new Error('MathBlockManager does not have valid function')
                     return 0
                 }
-                return this.mathBlockMngr.field_block.toFunction(gx)
+                return this.mathBlockMngr.field_block.toFunction()(gx)
             case 'tracer':
                 const index = Math.round(this.inputTracer.grid.gridToCanvasX(gx) - this.inputTracer.grid.canvasX)
                 if (index < 0 || index >= this.inputTracer.gridYs.length) return 0
@@ -112,20 +114,19 @@ class IntegralTracer {
             const gx = this.grid.canvasToGridX(cx)
             gy += this.inputGridY(gx)/this.grid.xScale
             newGridYs.push(gy)
+            console.log(gx, gy,this.inputGridY(gx))
             if (Math.abs(newGridYs[i]-this.gridYs[i]) > 0.001){
                 this.reset()
             }
         }
 
         this.gridYs = newGridYs
+        this.currentValue = this.gridYs[this.gridYs.length-1]
     }
 
 
-    // getValue(){
-    //     return this.gridYs[this.gridYs.length-1]
-    // }
 
-    draw(ctx, audioManager){
+    update(ctx, audioManager, mouse){
         // If the mathblock is not defined, don't trace
         if (this.type == "mathBlock" && 
             (!this.mathBlockMngr.field_block || !this.mathBlockMngr.field_block.toFunction())){
@@ -148,12 +149,13 @@ class IntegralTracer {
                 continue
             }
             const cy = cyObj.y
+            //console.log(cyObj,x,y, this.gridYs[i], i)
             Shapes.Line(ctx,x,y, x+1, cy, this.lineWidth)
             this.targets.forEach(t => {
                 if (t.lineIntersect(x,y,x+1,cy) || t.pointIntersect(x,y)){
                     if (!t.hit){
-                        console.log("play")
-                        audioManager.play('drop_002')
+                        console.log(this.gridYs[i])
+                        audioManager.playWithPitch('drop_002',this.gridYs[i]/this.grid.gridHeight*12)
                     }
                     t.hit = true
                 }

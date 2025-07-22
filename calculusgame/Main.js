@@ -24,7 +24,15 @@ function setup() {
     var canvas = document.getElementById('myCanvas');
 
     const audioManager = new AudioManager();
-    const audioPaths = ["click_001.ogg","drop_002.ogg","confirmation_001.ogg"];
+    const audioPaths = ["click_001.ogg","drop_002.ogg","confirmation_001.ogg", "glass_002.ogg", "switch_009.ogg"];
+
+    const mouse = {
+        x:0,
+        y:0,
+        down:false, // the mouse has just been pressed
+        held:false, // the mouse is being pressed
+        cursor: 'default'
+    }
 
     Promise.all(
         audioPaths.map(path => {
@@ -111,56 +119,22 @@ function setup() {
     // Mouse events
     // ----------------------------------------------------------------------------------------------
 
-    // When the mouse is clicked, the (x,y) of the click is broadcast
-    // to all GameObjects.
     canvas.addEventListener('mousedown', function (event) {
-        var rect = canvas.getBoundingClientRect();
-        const x = (event.clientX - rect.left) * (canvas.width / rect.width);
-        const y = (event.clientY - rect.top) * (canvas.height / rect.height);
-        canvas.style.cursor = 'default'
-        gameState.objects.forEach(obj => {
-            if (typeof obj.mouseDown === 'function') {
-                const cursor = obj.mouseDown(x, y)
-                if (cursor != null) {
-                    canvas.style.cursor = cursor
-                }
-            }
-        })
-        if (gameState.mouseDown) {
-            gameState.mouseDown(x, y)
-        }
+        mouse.held = true
+        mouse.down = true
+    });
 
+    canvas.addEventListener('mouseup', function (event) {
+        mouse.down = false
     });
 
     canvas.addEventListener('mousemove', function (event) {
         var rect = canvas.getBoundingClientRect();
-        const x = (event.clientX - rect.left) * (canvas.width / rect.width);
-        const y = (event.clientY - rect.top) * (canvas.height / rect.height);
-        canvas.style.cursor = 'default'
-        Object.values(gameState.objects).forEach(obj => {
-            if (typeof obj.mouseMove === 'function') {
-                const cursor = obj.mouseMove(x, y)
-                if (cursor != null) {
-                    canvas.style.cursor = cursor
-                }
-            }
-        })
+        mouse.x = (event.clientX - rect.left) * (canvas.width / rect.width);
+        mouse.y = (event.clientY - rect.top) * (canvas.height / rect.height);
     });
 
-    canvas.addEventListener('mouseup', function (event) {
-        var rect = canvas.getBoundingClientRect();
-        const x = (event.clientX - rect.left) * (canvas.width / rect.width);
-        const y = (event.clientY - rect.top) * (canvas.height / rect.height);
-        canvas.style.cursor = 'default'
-        Object.values(gameState.objects).forEach(obj => {
-            if (typeof obj.mouseUp === 'function') {
-                const cursor = obj.mouseUp(x, y)
-                if (cursor != null) {
-                    canvas.style.cursor = cursor
-                }
-            }
-        })
-    });
+    
 
 
     document.addEventListener('keyup', function (event) {
@@ -228,10 +202,15 @@ function setup() {
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
 
+        mouse.cursor = 'default'
+
         // Draw all GameObjects
         for (let i = 0; i < gameState.objects.length; i++) {
-            gameState.objects[i].draw(ctx, audioManager);
+            gameState.objects[i].update(ctx, audioManager, mouse);
         }
+
+        mouse.down = false
+        canvas.style.cursor = mouse.cursor
 
         if (build == 'layout') {
             const layout_obj = gameState.objects[gameState.layout.ind]

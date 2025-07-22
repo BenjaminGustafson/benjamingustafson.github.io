@@ -34,7 +34,7 @@ class Button{
         this.active = true // when false the button is not clickable and is drawn in gray
     }
 
-    draw(ctx){
+    update(ctx, audioManager, mouse){
         if (!this.visible){
             return
         }
@@ -43,6 +43,16 @@ class Button{
         }else{
             Color.setColor(ctx,Color.gray)
         }
+
+        if (this.active && this.originX <= mouse.x && mouse.x <= this.originX + this.width && this.originY <= mouse.y && mouse.y <= this.originY + this.height){
+            if (mouse.down){
+                this.onclick()
+            }
+            mouse.cursor = 'pointer'
+        }
+
+
+
         Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,this.lineWidth)
         ctx.font = "40px monospace"
         ctx.textBaseline = 'alphabetic'
@@ -54,31 +64,6 @@ class Button{
         text_size = ctx.measureText(this.label)
         // text baseline = top + half of height + half of font...
         ctx.fillText(this.label, this.originX + this.width/2-text_size.width/2, this.originY + this.height/2 + text_size.actualBoundingBoxAscent/2)
-    }
-
-    // When mouse is over button, change cursor to pointer
-    mouseMove(x,y){
-        if (this.active && this.originX <= x && x <= this.originX + this.width && this.originY <= y && y <= this.originY + this.height){
-            return 'pointer'
-        }
-        return null
-    }
-
-    // When clicked, call the onclick method
-    mouseDown(x,y){
-        if (this.active && this.originX <= x && x <= this.originX + this.width && this.originY <= y && y <= this.originY + this.height){
-            this.onclick()
-            return 'pointer'
-        }
-        return null
-    }
-
-    // When released, keep cursor as pointer
-    mouseUp(x,y){
-        if (this.active && this.originX <= x && x <= this.originX + this.width && this.originY <= y && y <= this.originY + this.height){
-            return 'pointer'
-        }
-        return null
     }
 
 }

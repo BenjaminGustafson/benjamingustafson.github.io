@@ -54,7 +54,7 @@ class MathBlockManager {
         return false
     }
 
-    draw(ctx){
+    update(ctx, audioManager, mouse){
         if (this.field_block){             
             this.field_block.draw(ctx)
             const field_block_fun = this.field_block.toFunction()
@@ -191,7 +191,6 @@ class MathBlockManager {
                     this.tool_bar.push(g)
                 }
             }else if (this.field_block == null && this.checkInField(x, y)){
-                console.log('aaa')
                 // The block is over the field and the field is empty
                 this.field_block = this.grabbed
                 this.grabbed.attached = true

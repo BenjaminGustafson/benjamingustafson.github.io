@@ -129,7 +129,7 @@ class MathBlock {
         ctx.fillText(str, x, y);
     }
 
-    draw (ctx){
+    update(ctx, audioManager, mouse){
         const ty =  Number(this.translate_y.toFixed(1)) // TODO abstract out slider attachment
         const sy =  Number(this.scale_y.toFixed(1))
 

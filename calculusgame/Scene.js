@@ -169,53 +169,48 @@ function rngLevel(gameState) {
     const intDist = Math.floor(gameState.stored.totalDistance)
     const gridY = CANVAS_HEIGHT-padBottom-gridDim
 
-    const gridLeft = new Grid({canvasX:padLeft, canvasY:gridY, canvasWidth:400, canvasHeight:400, 
-        gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:true, arrows:true})
-    const gridRight = new Grid({canvasX:padLeft, canvasY:gridY, canvasWidth:400, canvasHeight:400, 
-        gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:true, arrows:true})
+    const gridLeft = new Grid({
+        canvasX:padLeft, canvasY:gridY,
+        canvasWidth:400, canvasHeight:400, 
+        gridXMin:0, gridXMax:4, gridYMin:0, gridYMax:4,
+        labels:true, arrows:true
+    })
+    const gridRight = new Grid({
+        canvasX:padLeft+gridDim+100, canvasY:gridY,
+        canvasWidth:400, canvasHeight:400, 
+        gridXMin:0, gridXMax:4, gridYMin:0,  gridYMax:4,
+        labels:true, arrows:true
+    })
     //const gridRight = new Grid(padLeft+gridDim+100, gridY, gridDim, gridDim, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
-    const leftSlider = new Slider(1100, 250, 400, 4, 0, 4, 0.1, true, true)
-    const sy_slider = new Slider(1200, 250, 400, 8, 1, 4, 0.1, true, true)
-    const funRight = new FunctionTracer(gridRight)
-    //const funLeft = new FunctionTracer(gridLeft, (x => x*x))
-    //funLeft.color = Color.red
+    const tySlider = new Slider({
+        canvasX: 1100, canvasY:250, canvasLength:400,
+        sliderLength: 4, maxValue: 4, showAxis: true
+    })
+    const sySlider = new Slider({
+        canvasX: 1200, canvasY: 250, canvasLength: 400,
+        sliderLength: 8, maxValue: 4, startValue: 1
+    })
+    const funRight = new FunctionTracer({grid:gridRight})
 
-
-    // const spacing = gridLeft.gridWidth/targetVals.length
-    // var sliders = []
-    // for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
-    //     sliders.push(new Slider({grid:gridRight, gridPos:i,increment:0.1,circleRadius:sliderSize}))
-    // }
-    // var targets = []
-    // for (let i = 0; i < targetVals.length; i++) {
-    //     targets.push(new Target({grid: gridLeft, gridX:gridLeft.gridXMin+(i+1)*spacing, gridY:targetVals[i], size:targetSize}))
-    // }
-    // const tracer = new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets, gridY:tracerStart})
-    
 
     const math_blocks = []
     for (let i = 0; i < blocks.length; i++) {
         math_blocks.push(new MathBlock(blocks[i][0], blocks[i][1], 1300, 150 + 100 * i))
     }
-    const mngr = new MathBlockManager(math_blocks, 600, 320, leftSlider, sy_slider, { type: "fun_tracer", fun_tracer: funRight })
+    const mngr = new MathBlockManager(math_blocks, 600, 320, tySlider, sySlider, { type: "fun_tracer", fun_tracer: funRight })
     
-    const target_coords = []
-    const num_targets = 200
-    for (let i = 0; i < num_targets; i++) {
-        const x = (i + 1) / num_targets * 4
+    const targets = []
+    const numTargets = 200
+    for (let i = 0; i < numTargets; i++) {
+        const x = gridLeft.gridXMin + (i + 1) / numTargets * gridLeft.gridWidth
         const y = fun(x)
-        if (y <= gridLeft.grid_y_max && y >= gridLeft.grid_y_min) {
-            target_coords.push([x, y])
+        if (y <= gridLeft.gridYMax && y >= gridLeft.gridYMin){
+            targets.push(new Target({grid: gridLeft, gridX: x, gridY: y, size:5}))
         }
     }
-    
-    targets = []
-    for (let i = 0; i < target_coords.length; i++) {
-        const canvas_coords = gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
-        targets.push(new Target(canvas_coords.x, canvas_coords.y, 5))
-    }
-    tracer_start = gridLeft.gridToCanvas(0, fun(0))
-    const tracer = new Tracer(tracer_start.x, tracer_start.y, gridLeft, { type: "mathBlock", mathBlockMngr: mngr }, 4, targets)
+
+
+    const tracer = new IntegralTracer({grid: gridLeft, mathBlockMngr: mngr, targets:targets})
     tracer.stopped = true
 
     const shipIcon = document.getElementById("shipicon_img");
@@ -337,16 +332,16 @@ function rngLevel(gameState) {
     }
 
     gameState.temp.state = "Input"
-    gameState.objects = [toolTip, gridLeft, gridRight, leftSlider, funRight, tracer, backButton, startButton, nextButton, mathBlockFun,
+    gameState.objects = [toolTip, gridLeft, gridRight, tySlider, sySlider, funRight, tracer, backButton, startButton, nextButton, mathBlockFun,
         progressBar, strikes, axisLabels
     ].concat(targets)
     gameState.objects.push(mngr)
     gameState.update = () => {
         if (mngr.field_block == null){
-            leftSlider.hidden = true
+            tySlider.hidden = true
             toolTip.visible = true
         }else{
-            leftSlider.hidden = false
+            tySlider.hidden = false
             toolTip.visible = false
         }
         switch (gameState.temp.state) {
@@ -367,7 +362,7 @@ function rngLevel(gameState) {
                 tracer.stopped = false
                 startButton.active = false
                 mngr.frozen = true
-                progressBar.updateDistance(Math.min(tracer.getValue(),nextPlanet.distance))
+                progressBar.updateDistance(Math.min(tracer.currentValue,nextPlanet.distance))
                 if (tracer.doneTracing) {
                     if (tracer.solved) {
                         gameState.temp.state = "Solved"
@@ -383,7 +378,7 @@ function rngLevel(gameState) {
                 }
                 break
             case "Solved":
-                const dist = Math.min(tracer.getValue(),nextPlanet.distance)
+                const dist = Math.min(tracer.currentValue,nextPlanet.distance)
                 gameState.stored.totalDistance = Math.floor(dist*10)/10
                 nextButton.color = Color.blue
                 nextButton.visible = true
@@ -524,8 +519,8 @@ function experimentTrial(gameState, exitTo, solution){
     gridLeft.arrows = true
     const gridRight = new Grid(padLeft+gridDim+100, gridY, gridDim, gridDim, gridSize, gridSize, 5, 5, 0, labels=true)
     gridRight.arrows = true
-    const leftSlider = new Slider(1100, gridY, 400, 4, 0, 4, 0.1, true, true)
-    const sy_slider = new Slider(1200, gridY, 400, 8, 1, 4, 0.1, true, true)
+    const tySlider = new Slider(1100, gridY, 400, 4, 0, 4, 0.1, true, true)
+    const sySlider = new Slider(1200, gridY, 400, 8, 1, 4, 0.1, true, true)
     const math_blocks = [
         new MathBlock(MathBlock.CONSTANT,"0",1300,100),
         new MathBlock(MathBlock.VARIABLE,"x",1300,170),
@@ -538,7 +533,7 @@ function experimentTrial(gameState, exitTo, solution){
     const adder = new TargetAdder(gridLeft)
     const funLeft = new FunctionTracer(gridLeft)
     const funRight = new FunctionTracer(gridRight)
-    const mngr = new MathBlockManager(math_blocks, 100, 300, leftSlider, sy_slider, { type: "fun_tracer", fun_tracer: funLeft })
+    const mngr = new MathBlockManager(math_blocks, 100, 300, tySlider, sySlider, { type: "fun_tracer", fun_tracer: funLeft })
 
    
 
@@ -613,7 +608,7 @@ function experimentTrial(gameState, exitTo, solution){
     }
 
     const mainObjs = [backButton, gridLeft, showExpButton, text, adder]
-    const gridObjs = [gridRight,mngr, funLeft, funRight, leftSlider, sy_slider]
+    const gridObjs = [gridRight,mngr, funLeft, funRight, tySlider, sySlider]
     const expObjs = [bgImage, tSlider, tSlider, timeLabel, turtle, playPauseButton, numberLine]
     gameState.update = () => {
         if (showExp){
@@ -754,17 +749,17 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
         const slider = new Slider(900 + slider_spacing * i, 350, 400, 4, 0, 2, 0.01, false, vertical = true, circleRadius = slider_size)
         sliders.push(slider)
     }
-    const target_coords = []
+    const targetCoords = []
     for (let i = 0; i < num_sliders; i++) {
         const x = -2 + (i + 1) / num_sliders * 4
-        target_coords.push([x, func(x)])
+        targetCoords.push([x, func(x)])
     }
     var targets = []
     var targetSize = 15
     if (num_sliders >= 16) targetSize = 15
     if (num_sliders >= 64) targetSize = 5
-    for (let i = 0; i < target_coords.length; i++) {
-        const coord = gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
+    for (let i = 0; i < targetCoords.length; i++) {
+        const coord = gridLeft.gridToCanvas(targetCoords[i][0], targetCoords[i][1])
         const target = new Target(coord.x, coord.y, targetSize)
         targets.push(target)
     }
@@ -777,9 +772,9 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
     const ty_slider = new Slider(1400, 350, 400, 4, 0, 2, 0.1, true, true)
     ty_slider.circleColorActive = Color.green
     ty_slider.active = false
-    const sy_slider = new Slider(1500, 350, 400, 4, 1, 2, 0.1, true, true)
-    sy_slider.circleColorActive = Color.green
-    sy_slider.active = false
+    const sySlider = new Slider(1500, 350, 400, 4, 1, 2, 0.1, true, true)
+    sySlider.circleColorActive = Color.green
+    sySlider.active = false
 
     gameState.objects = [gridLeft, gridRight,tracer].concat(sliders).concat(targets)
 
@@ -791,22 +786,22 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
                 linearButton.toggled = true
                 linearButton.color = Color.green
                 ty_slider.active = true
-                sy_slider.active = true
+                sySlider.active = true
             } else {
                 linearButton.toggled = false
                 linearButton.color = Color.white
                 ty_slider.active = false
-                sy_slider.active = false
+                sySlider.active = false
             }
         }
         linearButton.onclick = set_linear
 
-        gameState.objects = gameState.objects.concat([linearButton,ty_slider,sy_slider])
+        gameState.objects = gameState.objects.concat([linearButton,ty_slider,sySlider])
 
         gameState.update = () => {
             if (ty_slider.active) {
                 for (let i = 0; i < num_sliders; i++) {
-                    const val = ty_slider.value + sy_slider.value * fun(gridRight.canvasToGrid(sliders[i].originX, 0).x)
+                    const val = ty_slider.value + sySlider.value * fun(gridRight.canvasToGrid(sliders[i].originX, 0).x)
                     console.log(val)
                     sliders[i].setValue(val)
                 }
@@ -832,14 +827,14 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //     for (let i = 0; i < num_sliders; i++) {
 //         sliders.push(new Slider(900 + slider_spacing * i, 350, 400, 4, 0, 2, 0.01, false, vertical = true, circleRadius = slider_size))
 //     }
-//     const target_coords = []
+//     const targetCoords = []
 //     for (let i = 0; i < num_sliders; i++) {
 //         const x = -2 + (i + 1) / num_sliders * 4
-//         target_coords.push([x, func(x)])
+//         targetCoords.push([x, func(x)])
 //     }
 //     var targets = []
-//     for (let i = 0; i < target_coords.length; i++) {
-//         const coord = gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
+//     for (let i = 0; i < targetCoords.length; i++) {
+//         const coord = gridLeft.gridToCanvas(targetCoords[i][0], targetCoords[i][1])
 //         targets.push(new Target(coord.x, coord.y, slider_size))
 //     }
 //     const tracer = new Tracer(300, 350, gridLeft,
@@ -850,11 +845,11 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //     const ty_slider = new Slider(1400, 350, 400, 4, 0, 2, 0.1, true, true)
 //     ty_slider.circleColorActive = Color.green
 //     ty_slider.active = false
-//     const sy_slider = new Slider(1500, 350, 400, 8, 1, 4, 0.1, true, true)
-//     sy_slider.circleColorActive = Color.green
-//     sy_slider.active = false
+//     const sySlider = new Slider(1500, 350, 400, 8, 1, 4, 0.1, true, true)
+//     sySlider.circleColorActive = Color.green
+//     sySlider.active = false
 
-//     //const mngr = new MathBlockManager(math_blocks,900,150, ty_slider, sy_slider, {type:"sliders", sliders:sliders})
+//     //const mngr = new MathBlockManager(math_blocks,900,150, ty_slider, sySlider, {type:"sliders", sliders:sliders})
 //     const linearButton = new Button(900, 220, 50, 50, () => { }, "x")
 //     const fun = x => x
 //     function set_linear() {
@@ -862,12 +857,12 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //             linear_button.toggled = true
 //             linear_button.color = Color.green
 //             ty_slider.active = true
-//             sy_slider.active = true
+//             sySlider.active = true
 //         } else {
 //             linear_button.toggled = false
 //             linear_button.color = Color.white
 //             ty_slider.active = false
-//             sy_slider.active = false
+//             sySlider.active = false
 //         }
 //     }
 //     linear_button.onclick = set_linear
@@ -877,14 +872,14 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //         push(linear_button)
 //         objs.push(ty_slider)
 //         if (withSySlider) {
-//             objs.push(sy_slider)
+//             objs.push(sySlider)
 //         }
 //     }
 //     gameState.objects = objs
 //     gameState.update = () => {
 //         if (ty_slider.active) {
 //             for (let i = 0; i < num_sliders; i++) {
-//                 sliders[i].setValue(ty_slider.value + sy_slider.value * fun(gridRight.canvasToGrid(sliders[i].originX, 0).x))
+//                 sliders[i].setValue(ty_slider.value + sySlider.value * fun(gridRight.canvasToGrid(sliders[i].originX, 0).x))
 //             }
 //         }
 //     }
@@ -907,14 +902,14 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //         sliders.push(slider)
 //         objs["slider" + i] = slider
 //     }
-//     const target_coords = []
+//     const targetCoords = []
 //     for (let i = 0; i < num_sliders; i++) {
 //         const x = -2 + (i + 1) / num_sliders * 4
-//         target_coords.push([x, func(x)])
+//         targetCoords.push([x, func(x)])
 //     }
 //     var targets = []
-//     for (let i = 0; i < target_coords.length; i++) {
-//         const coord = objs.gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
+//     for (let i = 0; i < targetCoords.length; i++) {
+//         const coord = objs.gridLeft.gridToCanvas(targetCoords[i][0], targetCoords[i][1])
 //         const target = new Target(coord.x, coord.y, slider_size)
 //         targets.push(target)
 //     }
@@ -923,7 +918,7 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //         4, targets)
 //     objs.tracer = tracer
 //     // We have to do this to order the layers correctly, maybe in future game objects can get a layer property
-//     for (let i = 0; i < target_coords.length; i++) {
+//     for (let i = 0; i < targetCoords.length; i++) {
 //         objs["target" + i] = targets[i]
 //     }
 
@@ -931,9 +926,9 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //         objs.ty_slider = new Slider(1400, 350, 400, 4, 0, 2, 0.01, true, true)
 //         objs.ty_slider.circleColorActive = Color.green
 //         objs.ty_slider.active = false
-//         objs.sy_slider = new Slider(1500, 350, 400, 4, 1, 2, 0.01, true, true)
-//         objs.sy_slider.circleColorActive = Color.green
-//         objs.sy_slider.active = false
+//         objs.sySlider = new Slider(1500, 350, 400, 4, 1, 2, 0.01, true, true)
+//         objs.sySlider.circleColorActive = Color.green
+//         objs.sySlider.active = false
 
 //         var fun = x => x
 
@@ -945,12 +940,12 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //                     objs.linear_button.toggled = true
 //                     objs.linear_button.color = Color.green
 //                     objs.ty_slider.active = true
-//                     objs.sy_slider.active = true
+//                     objs.sySlider.active = true
 //                 } else {
 //                     objs.linear_button.toggled = false
 //                     objs.linear_button.color = Color.white
 //                     objs.ty_slider.active = false
-//                     objs.sy_slider.active = false
+//                     objs.sySlider.active = false
 //                 }
 //             }
 //             objs.linear_button.onclick = set_linear
@@ -964,12 +959,12 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //                     objs.quad_button.toggled = true
 //                     objs.quad_button.color = Color.green
 //                     objs.ty_slider.active = true
-//                     objs.sy_slider.active = true
+//                     objs.sySlider.active = true
 //                 } else {
 //                     objs.quad_button.toggled = false
 //                     objs.quad_button.color = Color.white
 //                     objs.ty_slider.active = false
-//                     objs.sy_slider.active = false
+//                     objs.sySlider.active = false
 //                 }
 //             }
 //             objs.quad_button.onclick = set_quad
@@ -978,7 +973,7 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //         gameState.update = () => {
 //             if (objs.ty_slider.active) {
 //                 for (let i = 0; i < num_sliders; i++) {
-//                     sliders[i].setValue(objs.ty_slider.value + objs.sy_slider.value * fun(objs.gridRight.canvasToGrid(sliders[i].originX, 0).x))
+//                     sliders[i].setValue(objs.ty_slider.value + objs.sySlider.value * fun(objs.gridRight.canvasToGrid(sliders[i].originX, 0).x))
 //                 }
 //             }
 //         }
@@ -1000,14 +995,14 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //     for (let i = 0; i < num_sliders; i++) {
 //         sliders.push(new Slider(900 + slider_spacing * i, 250, 400, 4, 0, 2, 0.01, false, vertical = true, circleRadius = 10))
 //     }
-//     const target_coords = []
+//     const targetCoords = []
 //     for (let i = 0; i < num_sliders; i++) {
 //         const x = -2 + (i + 1) / num_sliders * 4
-//         target_coords.push([x, fun(x)])
+//         targetCoords.push([x, fun(x)])
 //     }
 //     var targets = []
-//     for (let i = 0; i < target_coords.length; i++) {
-//         const coord = gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
+//     for (let i = 0; i < targetCoords.length; i++) {
+//         const coord = gridLeft.gridToCanvas(targetCoords[i][0], targetCoords[i][1])
 //         targets.push(new Target(coord.x, coord.y, 10))
 //     }
 //     const tracer_start = gridLeft.gridToCanvas(-2, fun(-2))
@@ -1042,14 +1037,14 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //     for (let i = 0; i < num_sliders; i++) {
 //         sliders.push(new Slider(900 + slider_spacing * i, 250, 400, 4, 0, 4, 0.01, false, vertical = true, circleRadius = 10))
 //     }
-//     const target_coords = []
+//     const targetCoords = []
 //     for (let i = 0; i < num_sliders - 1; i++) {
 //         const x = -2 + (i + 1) / num_sliders * 4
-//         target_coords.push([x, 0])
+//         targetCoords.push([x, 0])
 //     }
 //     var targets = []
-//     for (let i = 0; i < target_coords.length; i++) {
-//         const coord = gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
+//     for (let i = 0; i < targetCoords.length; i++) {
+//         const coord = gridLeft.gridToCanvas(targetCoords[i][0], targetCoords[i][1])
 //         targets.push(new Target(coord.x, coord.y, 10))
 //     }
 //     const tracer_start = gridLeft.gridToCanvas(-2, 0.15)
@@ -1088,15 +1083,15 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //     for (let i = 0; i < num_sliders; i++) {
 //         sliders.push(new Slider(grid3.originX + slider_spacing * i, 250, 400, grid_size, 0, grid_size / 2, 0.01, false, vertical = true, circleRadius = 10))
 //     }
-//     const target_coords = []
+//     const targetCoords = []
 //     for (let i = 0; i < num_sliders - 1; i++) {
 //         //const x = -2 + (i+1)/num_sliders*4
 //         const x = grid1.grid_x_min + (i + 1) / num_sliders * grid1.gridWidth
-//         target_coords.push([x, 0])
+//         targetCoords.push([x, 0])
 //     }
 //     var targets = []
-//     for (let i = 0; i < target_coords.length; i++) {
-//         const coord = grid1.gridToCanvas(target_coords[i][0], target_coords[i][1])
+//     for (let i = 0; i < targetCoords.length; i++) {
+//         const coord = grid1.gridToCanvas(targetCoords[i][0], targetCoords[i][1])
 //         targets.push(new Target(coord.x, coord.y, 10))
 //     }
 //     const tracer2_start = grid2.gridToCanvas(grid2.grid_x_min, 1)
@@ -1133,12 +1128,12 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 // function cubicContLevel(gameState, fun, next) {
 //     const blocks = [[MathBlock.VARIABLE, "x"], [MathBlock.POWER, "2"]]
 
-//     const target_coords = []
-//     const num_targets = 16
-//     for (let i = 0; i < num_targets; i++) {
-//         const x = -2 + (i + 1) / num_targets * 4
+//     const targetCoords = []
+//     const numTargets = 16
+//     for (let i = 0; i < numTargets; i++) {
+//         const x = -2 + (i + 1) / numTargets * 4
 //         const y = fun(x)
-//         target_coords.push([x, y])
+//         targetCoords.push([x, y])
 //     }
 
 //     const y_adjust = 100
@@ -1148,14 +1143,14 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //     const block1 = new MathBlock(MathBlock.VARIABLE, "x", 1300 + x_adjust, 250 + y_adjust)
 //     const block2 = new MathBlock(MathBlock.POWER, "2", 1300 + x_adjust, 350 + y_adjust)
 //     const ty_slider = new Slider(1100 + x_adjust, 250 + y_adjust, 400, 8, 0, 4, 0.1, true, true)
-//     const sy_slider = new Slider(1200 + x_adjust, 250 + y_adjust, 400, 8, 1, 4, 0.1, true, true)
+//     const sySlider = new Slider(1200 + x_adjust, 250 + y_adjust, 400, 8, 1, 4, 0.1, true, true)
 //     const funRight = new FunctionTracer(gridRight)
 //     //const funLeft = new FunctionTracer(gridLeft, (x => x*x))
 //     //funLeft.color = Color.red
-//     const mngr = new MathBlockManager([block1, block2], 600 + x_adjust, 150 + y_adjust, ty_slider, sy_slider, funRight)
+//     const mngr = new MathBlockManager([block1, block2], 600 + x_adjust, 150 + y_adjust, ty_slider, sySlider, funRight)
 //     targets = []
-//     for (let i = 0; i < target_coords.length; i++) {
-//         const canvas_coords = gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
+//     for (let i = 0; i < targetCoords.length; i++) {
+//         const canvas_coords = gridLeft.gridToCanvas(targetCoords[i][0], targetCoords[i][1])
 //         targets.push(new Target(canvas_coords.x, canvas_coords.y, 10))
 //     }
 //     tracer_start = gridLeft.gridToCanvas(-2, fun(-2))
@@ -1176,7 +1171,7 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //             forward_button.active = true
 //         }
 //     }
-//     gameState.objects = [gridLeft, gridRight, sy_slider, ty_slider, mngr, funRight, tracer, forward_button, back_button].concat(targets)
+//     gameState.objects = [gridLeft, gridRight, sySlider, ty_slider, mngr, funRight, tracer, forward_button, back_button].concat(targets)
 //     gameState.update = update
 // }
 
@@ -1184,12 +1179,12 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 // function genContLevel(gameState, fun, blocks,
 //     grid_setting = { grid_width: 4, grid_height: 4, x_axis: 2, y_axis: 2 },
 // ) {
-//     const target_coords = []
-//     const num_targets = 16
-//     for (let i = 0; i < num_targets; i++) {
-//         const x = -2 + (i + 1) / num_targets * 4
+//     const targetCoords = []
+//     const numTargets = 16
+//     for (let i = 0; i < numTargets; i++) {
+//         const x = -2 + (i + 1) / numTargets * 4
 //         const y = fun(x)
-//         target_coords.push([x, y])
+//         targetCoords.push([x, y])
 //     }
 
 //     const y_adjust = 100
@@ -1197,7 +1192,7 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //     const gridLeft = new Grid(100 + x_adjust, 250 + y_adjust, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, grid_setting.x_axis, grid_setting.y_axis)
 //     const gridRight = new Grid(600 + x_adjust, 250 + y_adjust, 400, 400, grid_setting.grid_width, grid_setting.grid_height, 5, grid_setting.x_axis, grid_setting.y_axis)
 //     const ty_slider = new Slider(1100 + x_adjust, 250 + y_adjust, 400, 8, 0, 4, 0.1, true, true)
-//     const sy_slider = new Slider(1200 + x_adjust, 250 + y_adjust, 400, 8, 1, 4, 0.1, true, true)
+//     const sySlider = new Slider(1200 + x_adjust, 250 + y_adjust, 400, 8, 1, 4, 0.1, true, true)
 //     const funRight = new FunctionTracer(gridRight)
 //     //const funLeft = new FunctionTracer(gridLeft, (x => x*x))
 //     //funLeft.color = Color.red
@@ -1205,16 +1200,16 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //     for (let i = 0; i < blocks.length; i++) {
 //         math_blocks.push(new MathBlock(blocks[i][0], blocks[i][1], 1300 + x_adjust, 150 + y_adjust + 100 * i))
 //     }
-//     const mngr = new MathBlockManager(math_blocks, 600 + x_adjust, 150 + y_adjust, ty_slider, sy_slider, { type: "fun_tracer", fun_tracer: funRight })
+//     const mngr = new MathBlockManager(math_blocks, 600 + x_adjust, 150 + y_adjust, ty_slider, sySlider, { type: "fun_tracer", fun_tracer: funRight })
 //     targets = []
-//     for (let i = 0; i < target_coords.length; i++) {
-//         const canvas_coords = gridLeft.gridToCanvas(target_coords[i][0], target_coords[i][1])
+//     for (let i = 0; i < targetCoords.length; i++) {
+//         const canvas_coords = gridLeft.gridToCanvas(targetCoords[i][0], targetCoords[i][1])
 //         targets.push(new Target(canvas_coords.x, canvas_coords.y, 10))
 //     }
 //     tracer_start = gridLeft.gridToCanvas(-2, fun(-2))
 //     const tracer = new Tracer(tracer_start.x, tracer_start.y, gridLeft, { type: "mathBlock", mathBlockMngr: mngr }, 4, targets)
 
-//     gameState.objects = [gridLeft, gridRight, sy_slider, ty_slider, mngr, funRight, tracer].concat(targets)
+//     gameState.objects = [gridLeft, gridRight, sySlider, ty_slider, mngr, funRight, tracer].concat(targets)
 //     gameState.update = () => { }
 //     levelNavigation(gameState, () => tracer.solved)
 // }

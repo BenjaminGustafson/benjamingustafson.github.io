@@ -118,7 +118,7 @@ class Grid{
      * Draws the grid on the canvas.
      * @param {CanvasRenderingContext2D} ctx 
      */
-    draw(ctx){
+    update(ctx, audioManager, mouse){
         ctx.translate(this.canvasX,this.canvasY)
         Color.setColor(ctx,Color.white)
 

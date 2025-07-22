@@ -16,7 +16,7 @@ class TextBox{
         this.color = color
     }
 
-    draw(ctx){
+    update(ctx, audioManager, mouse){
         Color.setColor(ctx,this.color)
         ctx.font = this.font
         ctx.textAlign = this.align
