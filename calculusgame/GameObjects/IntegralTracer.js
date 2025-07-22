@@ -105,7 +105,7 @@ class IntegralTracer {
      */
     calculateYs(){
         var newGridYs = []
-        var gy = this.gridX // Accumulator
+        var gy = this.gridY // Accumulator
         
         for (let i = 0; i < this.frame; i++){
             const cx = this.canvasX + i

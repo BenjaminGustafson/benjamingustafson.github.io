@@ -401,24 +401,20 @@ function rngLevel(gameState) {
  * @param {number} targetSize The size of the targets and sliders
  */
 function simpleDiscLevel(gameState, targetVals, tracerStart = 0, targetSize = 15) {
-    const numSliders = targetVals.length
-    const gridLeft = new Grid(300, 250, 400, 400, 4, 4, 5, 2, 2)
-    const gridRight = new Grid(900, 250, 400, 400, 4, 4, 5, 2, 2)
+    const gridLeft = new Grid({canvasX:300, canvasY:250, canvasWidth:400, canvasHeight:400, 
+        gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:false, arrows:true})
+    const gridRight = new Grid({canvasX:900, canvasY:250, canvasWidth:400, canvasHeight:400, 
+        gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:false, arrows:true})
+    const spacing = gridLeft.gridWidth/targetVals.length
     var sliders = []
-    const slider_spacing = 400 / numSliders
-    for (let i = 0; i < numSliders; i++) {
-        sliders.push(new Slider(900 + slider_spacing * i, 250, 400, 4, 0, 2, 0.01, false, vertical = true, circleRadius = targetSize))
+    for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
+        sliders.push(new Slider({grid:gridRight, gridPos:i}))
     }
     var targets = []
-    for (let i = 0; i < numSliders; i++) {
-        const x = -2 + (i + 1) / numSliders * 4
-        const coord = gridLeft.gridToCanvas(x, targetVals[i])
-        targets.push(new Target(coord.x, coord.y, targetSize))
+    for (let i = 0; i < targetVals.length; i++) {
+        targets.push(new Target({grid: gridLeft, gridX:gridLeft.gridXMin+(i+1)*spacing, gridY:targetVals[i], size:targetSize}))
     }
-    const tracer_coord = gridLeft.gridToCanvas(-2, tracerStart)
-    const tracer = new Tracer(tracer_coord.x, tracer_coord.y, gridLeft,
-        { type: "sliders", sliders: sliders, slider_spacing: slider_spacing },
-        4, targets)
+    const tracer = new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets, gridY:tracerStart})
     const objs = [gridLeft, gridRight, tracer].concat(targets).concat(sliders)
     gameState.objects = objs
     gameState.update = () => { }
@@ -1375,21 +1371,20 @@ function loadScene(gameState, sceneName, clearTemp = true) {
          * 2x2
          */
         case "intro2": {
-            const gridLeft = new Grid({canvasX:560, canvasY:430, canvasWidth:100, canvasHeight:100, 
-                gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false})
+            const gridLeft = new Grid({canvasX:560, canvasY:430, canvasWidth:200, canvasHeight:200, 
+                gridXMin:-1, gridYMin:-1, gridXMax:1, gridYMax:1, labels:false, arrows:false})
             //const gridLeft = new Grid(560, 430, 200, 200, 2, 2, 5)
-            const gridRight = new Grid(900, 430, 200, 200, 2, 2, 5)
+            const gridRight = new Grid({canvasX:900, canvasY:430, canvasWidth:200, canvasHeight:200, 
+                gridXMin:-1, gridYMin:-1, gridXMax:1, gridYMax:1, labels:false, arrows:false})
             const sliders = [
-                new Slider(gridRight.originX, gridRight.originY, 200, 2, 0, 1, 0.1, false),
-                new Slider(gridRight.originX + 100, gridRight.originY, 200, 2, 0, 1, 0.1, false)
+                new Slider({grid:gridRight, gridPos:-1}),
+                new Slider({grid:gridRight, gridPos:0}),
             ]
             const targets = [
-                new Target(gridLeft.originX + 100, gridRight.originY + 100, 15),
-                new Target(gridLeft.originX + 200, gridRight.originY, 15)
+                new Target({grid: gridLeft, gridX:0, gridY:0, size:15}),
+                new Target({grid: gridLeft, gridX:1, gridY:1, size:15})
             ]
-            const tracer = new Tracer(gridLeft.originX, gridLeft.originY + 200, gridLeft,
-                { type: "sliders", sliders: sliders, slider_spacing: 100 },
-                4, targets)
+            const tracer =  new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets})
             gameState.objects = [gridLeft, gridRight, tracer].concat(sliders).concat(targets)
             gameState.update = () => { }
             levelNavigation(gameState, (() => tracer.solved))
