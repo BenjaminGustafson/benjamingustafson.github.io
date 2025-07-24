@@ -17,7 +17,7 @@ class IntegralTracer {
      */
     constructor({
         grid, gridX, gridY,
-        sliders,
+        sliders = [],
         mathBlockMngr,
         tracer,
         inputTracer,
@@ -38,7 +38,7 @@ class IntegralTracer {
         this.canvasX = this.grid.gridToCanvasX(this.gridX)
         this.canvasY = this.grid.gridToCanvasY(this.gridY)
 
-        if (sliders != null){
+        if (this.sliders.length > 0){
             this.sliders = sliders
             this.type = 'sliders'
         }else if (mathBlockMngr != null){
@@ -90,11 +90,11 @@ class IntegralTracer {
                 if (sliderIndex < 0 || sliderIndex >= this.sliders.length) return 0
                 return this.sliders[sliderIndex].value
             case 'mathBlock':
-                if (!this.mathBlockMngr.field_block || !this.mathBlockMngr.field_block.toFunction()){
+                if (!this.mathBlockMngr.fieldBlock || !this.mathBlockMngr.fieldBlock.toFunction()){
                     throw new Error('MathBlockManager does not have valid function')
                     return 0
                 }
-                return this.mathBlockMngr.field_block.toFunction()(gx)
+                return this.mathBlockMngr.fieldBlock.toFunction()(gx)
             case 'tracer':
                 const index = Math.round(this.inputTracer.grid.gridToCanvasX(gx) - this.inputTracer.grid.canvasX)
                 if (index < 0 || index >= this.inputTracer.gridYs.length) return 0
@@ -128,10 +128,11 @@ class IntegralTracer {
     update(ctx, audioManager, mouse){
         // If the mathblock is not defined, don't trace
         if (this.type == "mathBlock" && 
-            (!this.mathBlockMngr.field_block || !this.mathBlockMngr.field_block.toFunction())){
+            (!this.mathBlockMngr.fieldBlock || !this.mathBlockMngr.fieldBlock.toFunction())){
             this.reset()
             return
         }
+
 
         for (let i = 0; i < this.sliders.length; i++){
             if (this.sliders[i].grabbed){

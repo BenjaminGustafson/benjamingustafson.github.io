@@ -17,19 +17,24 @@ class Button{
      * @param {Function} onclick function that is called when button is clicked
      * @param {string} label the text to go in the button
      */
-    constructor(originX, originY, width, height, onclick, label){
-        this.originX = originX
-        this.originY = originY
-        this.width = width
-        this.height = height
-        this.onclick = onclick
-        this.lineWidth = 10
-        if (onclick == null){
-            this.onclick = () => {}
-        }
-        this.label = label
-        // Additional fields:
-        this.color = Color.white // the color to draw the outline of the button and text
+    constructor({
+        originX, originY,
+        width = 50, height =50, 
+        onclick = (() =>{}),
+        label = "",
+        color = Color.white,
+        lineWidth = 10,
+        bgColor = Color.black2
+    }){
+        Object.assign(this, {
+            originX, originY,
+            width, height,
+            onclick,
+            label,
+            color,
+            lineWidth,
+            bgColor
+        })
         this.visible = true // when false the button is not drawn, but is still clickable
         this.active = true // when false the button is not clickable and is drawn in gray
     }
@@ -37,7 +42,7 @@ class Button{
     update(ctx, audioManager, mouse){
         
         if (this.visible){
-            Color.setColor(ctx, Color.black2)
+            Color.setColor(ctx, this.bgColor)
             ctx.fillRect(this.originX, this.originY, this.width, this.height)
         }
 

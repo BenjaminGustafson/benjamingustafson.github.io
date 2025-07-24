@@ -54,13 +54,6 @@ class MathBlockManager {
         return false
     }
 
-    mouseMoved(mouse){
-        
-        
-        if (this.grabbed){ 
-            
-        }
-    }
 
 
     update(ctx, audioManager, mouse){
@@ -189,7 +182,12 @@ class MathBlockManager {
                     }
                     this.highlighted = this.grabbed
                     this.highlighted.color = Color.green
-                    this.scaleYSlider.setValue(this.highlighted.scaleY)
+                    if (this.highlighted.type == MathBlock.CONSTANT){
+                        this.scaleYSlider.active = false
+                    }else{
+                        this.scaleYSlider.active = true
+                        this.scaleYSlider.setValue(this.highlighted.scaleY)
+                    }
                     this.translateYSlider.setValue(this.highlighted.translateY)
                     console.log('Set ', this.translateYSlider.value, this.highlighted.translateY)
                 }else{ // Hovering over block
@@ -239,8 +237,10 @@ class MathBlockManager {
             Color.setColor(ctx,this.field_color)
             Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,10,true)
         }
+
+
         this.toolBar.forEach(b => b.update(ctx,audioManager,mouse))
-        if (this.grabbed){
+        if (this.grabbed != null){
             this.grabbed.update(ctx,audioManager,mouse)
         }
     }

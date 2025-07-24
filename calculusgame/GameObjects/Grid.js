@@ -137,7 +137,7 @@ class Grid{
                         lineWidth, 
                         (i == this.xAxis && this.arrows ? "arrow" : "rounded"))
             if (this.labels){
-                ctx.fillText(this.gridYMax-i, this.canvasX - 20, cy)
+                ctx.fillText(this.gridYMax-i, - 20, cy)
             }
             
         }

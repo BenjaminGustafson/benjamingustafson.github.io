@@ -41,12 +41,15 @@ body, html {
     height: calc(100vw * 9 / 16);
     max-height: 100vh;
     max-width: calc(100vh * 16 / 9);
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
 } 
 </style>
 </head>
 <body style="background-color:rgb(40, 40, 40);">
 
-<canvas id="myCanvas" width="1600" height="900"></canvas>
+<canvas id="myCanvas" width="1600" height="900" draggable="false"></canvas>
   <audio id="myAudio">
     <source src="audio/confirmation_001.ogg" type="audio/ogg">
   </audio>

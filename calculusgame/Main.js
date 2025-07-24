@@ -123,21 +123,24 @@ function setup() {
     // Mouse events
     // ----------------------------------------------------------------------------------------------
 
-    canvas.addEventListener('mousedown', function (event) {
+    canvas.addEventListener('mousedown', e => {
+        e.preventDefault()
         mouse.held = true
         mouse.down = true
     });
 
-    canvas.addEventListener('mouseup', function (event) {
+    canvas.addEventListener('mouseup', e => {
         mouse.held = false
         mouse.up = true
     });
 
-    canvas.addEventListener('mousemove', function (event) {
+    canvas.addEventListener("dragstart", e => e.preventDefault());
+    
+    canvas.addEventListener('mousemove', e => {
         mouse.moved = true
         var rect = canvas.getBoundingClientRect();
-        mouse.x = (event.clientX - rect.left) * (canvas.width / rect.width);
-        mouse.y = (event.clientY - rect.top) * (canvas.height / rect.height);
+        mouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+        mouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
     });
 
     

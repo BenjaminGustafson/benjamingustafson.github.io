@@ -147,12 +147,8 @@ class Slider{
     }
 
 
-    update(ctx, audioManager, mouse){
-        if (this.hidden){
-            return
-        }
-
-
+    mouseInput(audioManager, mouse){
+        
         if (!mouse.held){
             this.grabbed = false
         }
@@ -180,6 +176,16 @@ class Slider{
             const dir = this.mouseValue > this.value ? 1 : -1
             this.#updateValue(this.value + dir*this.increment)
             audioManager.playWithPitch('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6)
+        }
+    }
+
+    update(ctx, audioManager, mouse){
+        if (this.hidden){
+            return
+        }
+
+        if (this.active){
+            this.mouseInput(audioManager, mouse)
         }
 
         // Draw line and tick marks

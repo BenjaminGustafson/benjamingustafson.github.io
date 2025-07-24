@@ -183,11 +183,11 @@ function rngLevel(gameState) {
     })
     //const gridRight = new Grid(padLeft+gridDim+100, gridY, gridDim, gridDim, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
     const tySlider = new Slider({
-        canvasX: 1100, canvasY:250, canvasLength:400,
+        canvasX: 1100, canvasY:gridY, canvasLength:400,
         sliderLength: 4, maxValue: 4, showAxis: true
     })
     const sySlider = new Slider({
-        canvasX: 1200, canvasY: 250, canvasLength: 400,
+        canvasX: 1200, canvasY: gridY, canvasLength: 400,
         sliderLength: 8, maxValue: 4, startValue: 1
     })
     const funRight = new FunctionTracer({grid:gridRight})
@@ -262,21 +262,28 @@ function rngLevel(gameState) {
         }
     }
 
-    const backButton = new Button(padLeft, padBottom, 100, 100, (() => loadScene(gameState,"ship")), "↑")
-    const startButton = new Button(925, 100, 100, 100, (() => { }), "Start")
-    startButton.onclick = (() => {
-        tracer.reset();
-        gameState.temp.state = "Tracing"
+    const backButton = new Button({originX: padLeft, originY: padBottom, width:50, height:50,
+         onclick:(() => loadScene(gameState,"ship")), label:"↑", lineWidth:5})
+    const startButton = new Button({originX: 925, originY: 100, width: 100, height:100,
+        onclick:(() => {
+            tracer.reset();
+            gameState.temp.state = "Tracing"
+        }),
+        label:"Start"
     })
-    const nextButton = new Button(925, 100, 100, 100, (() => { }), "Next")
-    nextButton.onclick = (() => {
-        if (gameState.stored.totalDistance >= nextPlanet.distance){
-            loadScene(gameState,"ship")
-        }else{
-            loadScene(gameState,"navigation")
-        }
+
+    const nextButton = new Button({originX: 925, originY:100, width:100, height:100, 
+        onclick:(() => {
+            if (gameState.stored.totalDistance >= nextPlanet.distance){
+                loadScene(gameState,"ship")
+            }else{
+                loadScene(gameState,"navigation")
+            } 
+        }),
+        label:"Next"
     })
     nextButton.visible = false
+
     //const targetText = new TextBox(padLeft, gridY-40, funString, font = '40px monospace', color = Color.white)
     const axisLabels = {
         update: function(ctx){
@@ -325,9 +332,9 @@ function rngLevel(gameState) {
             ctx.textAlign = 'left'
             ctx.textBaseline = 'top'
             Color.setColor(ctx, Color.white)
-            ctx.fillText("Drag a block", 1200, 320)
-            ctx.fillText("to set function", 1200, 360)
-            Shapes.Line(ctx, 1350,280,1200,280,5,endCapStyle="arrow",endCapSize=5,oneSideCap=true)
+            ctx.fillText("Drag a block", 1100, 360)
+            ctx.fillText("to set function", 1100, 400)
+            Shapes.Line(ctx, 1250,320,1100,320,5,endCapStyle="arrow",endCapSize=5,oneSideCap=true)
         }
     }
 
@@ -339,13 +346,16 @@ function rngLevel(gameState) {
     gameState.update = () => {
         if (mngr.fieldBlock == null){
             tySlider.hidden = true
+            sySlider.hidden = true
             toolTip.visible = true
         }else{
             tySlider.hidden = false
+            sySlider.hidden = false
             toolTip.visible = false
         }
         switch (gameState.temp.state) {
             case "Input":
+                console.log('input')
                 progressBar.updateDistance(gameState.stored.totalDistance)
                 mngr.frozen = false
                 startButton.visible = true
@@ -383,6 +393,7 @@ function rngLevel(gameState) {
                 nextButton.color = Color.blue
                 nextButton.visible = true
                 nextButton.active = true
+                console.log('solved',nextButton)
                 startButton.visible = false
                 startButton.active = false
                 break
@@ -447,13 +458,13 @@ function puzzleMenu(gameState, menu_num, levels, exitTo) {
     gameState.stored.levels = levels
     buttons = []
     for (let i = 0; i < levels.length; i++) {
-        const button = new Button(0, 0, 100, 100,
-            (() => {
+        const button = new Button({originX:0, originY:0, width:100, height:100,
+            onclick:(() => {
                 gameState.stored.levelIndex = i;
                 loadScene(gameState,levels[i])
             }),
-            menu_num + "." + (i + 1)
-        )
+            label: menu_num + "." + (i + 1)
+        })
         if (gameState.stored.planetCompletedLevels[gameState.stored.planetIndex][levels[i]]) {
             button.color = Color.blue
         }
@@ -481,7 +492,7 @@ function puzzleMenu(gameState, menu_num, levels, exitTo) {
     // Space betweeen back and grid 200px
     // 500px of buttons (3 rows max)
     // Leaves 100px above and below
-    const backButton = new Button(100, 100, 100, 100, (() => loadScene(gameState,exitTo)), "↑")
+    const backButton = new Button({originX:100, originY:100, width:100, height:100, onclick:(() => loadScene(gameState,exitTo)), label:"↑"})
     buttons.push(backButton)
 
     // const actionButton = new Button(300,100,200,100, (()=> loadScene(gameState,exitTo), "Open Door")
@@ -500,11 +511,11 @@ function puzzleMenu(gameState, menu_num, levels, exitTo) {
 
 function experimentTrial(gameState, exitTo, solution){
     const gss = gameState.stored
-    const backButton = new Button(50, 50, 50, 50, (() => loadScene(gameState,exitTo)), "↑")
+    const backButton = new Button({originX:50, originY:50, width:50, height:50, onclick:(() => loadScene(gameState,exitTo)), label:"↑"})
     backButton.lineWidth = 5
 
     var showExp = true
-    const showExpButton = new Button(800, 50, 50, 50, (() => showExp = !showExp), "↔")
+    const showExpButton = new Button({originX:800, originY:50, width:50, height:50, onclick:(() => showExp = !showExp), label:"↔"})
     showExpButton.lineWidth = 5
     
     var functionSolved = false
@@ -561,7 +572,7 @@ function experimentTrial(gameState, exitTo, solution){
     const tSlider = new Slider(750,850,600,10,0,0,0.1,true,false,10)
     tSlider.showAxis = false
     const timeLabel = new TextBox(650,850,"",'20px monospace')
-    const playPauseButton = new Button(1450,820,50,50,()=>{playing=!playing; startTime= Date.now()}, ">") 
+    const playPauseButton = new Button({originX:1450,originY:820,width:50,height:50,onclick:()=>{playing=!playing; startTime= Date.now()}, label:">"}) 
     playPauseButton.lineWidth = 5
 
     const numberLine = {
@@ -650,7 +661,7 @@ function experimentTrial(gameState, exitTo, solution){
 
 function experimentMenu(gameState, exitTo){
     const gss = gameState.stored
-    const backButton = new Button(50, 50, 50, 50, (() => loadScene(gameState,exitTo)), "↑")
+    const backButton = new Button({originX:50, originY:50, width:50, height:50, onclick:(() => loadScene(gameState,exitTo)), label:"↑"})
     backButton.lineWidth = 5
     const trialButtons = []
     const planetIndex = gss.planetIndex
@@ -659,14 +670,14 @@ function experimentMenu(gameState, exitTo){
 
     for (let i = 0; i < 10; i++){
         if (PLANET_DATA[planetIndex].trials.length <= i) break
-        const button = new Button(200,150+i*60,100,50, (() => loadScene(gameState,PLANET_DATA[planetIndex].trials[i])),i+1)
+        const button = new Button({originX:200,originY:150+i*60,width:100, height:50, onclick:(() => loadScene(gameState,PLANET_DATA[planetIndex].trials[i])), label:i+1})
         button.lineWidth = 5
         if (completedTrials < i){
             button.active = false
         }
         trialButtons.push(button)
     }
-    const ruleButton = new Button(200,780,100,50, (() => loadScene(gameState,exitTo)),"Rule")
+    const ruleButton = new Button({originX:200,originY:780,width:100,height:50, onclick:(() => loadScene(gameState,exitTo)),label:"Rule"})
     ruleButton.lineWidth = 5
     const table = {
         update: function(ctx){
@@ -701,15 +712,18 @@ function experimentMenu(gameState, exitTo){
  * @param {function} winCon the win condition for the level
  */
 function levelNavigation(gameState, winCon) {
-    const backButton = new Button(100, 100, 100, 100, () => loadScene(gameState,gameState.stored.menuScene), "↑")
-    const forwardButton = new Button(300, 100, 100, 100, (() => {
-        if (gameState.stored.levelIndex < gameState.stored.levels.length - 1) { 
-            gameState.stored.levelIndex += 1
-            loadScene(gameState,gameState.stored.levels[gameState.stored.levelIndex])
-        } else {
-            loadScene(gameState,gameState.stored.menuScene)
-        }
-    }),"→")
+    const backButton = new Button({originX:100, originY:100, width:100, height:100, onclick: () => loadScene(gameState,gameState.stored.menuScene), label:"↑"})
+    const forwardButton = new Button({originX:300, originY:100, width:100, height:100,
+        onclick:(() => {
+            if (gameState.stored.levelIndex < gameState.stored.levels.length - 1) { 
+                gameState.stored.levelIndex += 1
+                loadScene(gameState,gameState.stored.levels[gameState.stored.levelIndex])
+            } else {
+                loadScene(gameState,gameState.stored.menuScene)
+            }
+        }),
+        label:"→"
+    })
     forwardButton.active = false
     gameState.objects.push(backButton)
     gameState.objects.push(forwardButton)
@@ -779,7 +793,7 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
     gameState.objects = [gridLeft, gridRight,tracer].concat(sliders).concat(targets)
 
     if (withButton) {
-        const linearButton = new Button(900, 220, 50, 50, () => { }, "x")
+        const linearButton = new Button({originX:900, originY:220, width:50, height:50, onclick:() => {}, label: "x"})
         const fun = x => x
         function set_linear() {
             if (!linearButton.toggled) {
@@ -1243,16 +1257,14 @@ function loadScene(gameState, sceneName, clearTemp = true) {
          * The main menu of the game.
          */
         case "startMenu": {
-            const startButton = new Button(500, 100, 200, 100, (() => loadScene(gameState,"introDoor")), "Start")
-            startButton.color = Color.black
+            const startButton = new Button({originX:500, originY:100, width:200, height:100, onclick:(() => loadScene(gameState,"introDoor")), label:"Start"})
             const nextScene = gameState.temp.nextScene
             if (nextScene && nextScene != "startMenu"){
                 console.log('next scene',nextScene)
                 startButton.onclick = (() => loadScene(gameState,nextScene))
                 startButton.label = "Continue"
             }
-            const about_button = new Button(750, 100, 200, 100, (() => window.location.replace("about.html")), "About")
-            about_button.color = Color.black
+            const about_button = new Button({originX:750, originY:100, width:200, height:100, onclick:(() => window.location.replace("about.html")), label:"About"})
             gameState.objects = [
                 new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
                 new TextBox(100, 150, "Calculus I", font = "60px monospace", color = Color.black),
@@ -1267,11 +1279,12 @@ function loadScene(gameState, sceneName, clearTemp = true) {
         case "introDoor": {
             const completion = planetCompletion(gameState)
             const open = completion == 1
-            const door_button = new Button(1160, 460, 100, 150, (() => { loadScene(gameState,"ship") }), "")
+            const door_button = new Button({originX:1160, originY:460, width:100, height:150, onclick:(() => { loadScene(gameState,"ship") }), label:""})
             door_button.visible = false
             
-            const puzzleButton = new Button(400, 400, 150, 100, (() => { loadScene(gameState, "intro") }), "Puzzles")
-            const experimentButton = new Button(400, 600, 200, 100, (() => { loadScene(gameState, "linearExperiment") }), "Experiment")
+            const puzzleButton = new Button({originX:400, originY:400, width:150, height:100, onclick:(() => { loadScene(gameState, "intro") }), label:"Puzzles"})
+            const experimentButton = new Button({originX:400, originY:600, width:200, height:100, 
+                onclick:(() => { loadScene(gameState, "linearExperiment") }), label: "Experiment"})
 
             gameState.objects = [
                 new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
@@ -1310,9 +1323,9 @@ function loadScene(gameState, sceneName, clearTemp = true) {
                 landed ? PLANET_DATA[planetIndex].imgId : "")
 
             var exitTo = PLANET_DATA[planetIndex].scene
-            const door_button = new Button(40, 200, 180, 560, (() => { loadScene(gameState,exitTo) }), "")
+            const door_button = new Button({originX:40, originY:200, width:180, height:560, onclick:(() => { loadScene(gameState,exitTo) }), label:""})
             door_button.visible = false
-            const nav_button = new Button(350, 550, 890, 240, (() => { loadScene(gameState,"navigation") }), "")
+            const nav_button = new Button({originX:350, originY:550, width:890, height:240, onclick:(() => { loadScene(gameState,"navigation") }), label:""})
             nav_button.visible = false
             door_button.active = landed
 
@@ -1466,7 +1479,7 @@ function loadScene(gameState, sceneName, clearTemp = true) {
         //------------------------------------------------------------------------------------------------------
         case "quadDoor": {
             const completion = planetCompletion(gameState)
-            const door_button = new Button(1160, 460, 100, 150, (() => { loadScene(gameState, "ship") }), "")
+            const door_button = new Button({originX:1160, originY:460, widht:100, height:150, onclick:(() => { loadScene(gameState, "ship") }), label:""})
             door_button.visible = false
 
 
