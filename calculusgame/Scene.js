@@ -150,7 +150,7 @@ function rngLevel(gameState) {
     const prevPlanet = PLANET_DATA[gss.planetIndex]
     const nextPlanet = PLANET_DATA[gss.planetIndex+1]
 
-    const blocks = [[MathBlock.CONSTANT, ""]]
+    const blocks = [[MathBlock.CONSTANT, ""],[MathBlock.BIN_OP, "+"]]
     
     var mathBlockFun = new MathBlock()
     console.log(gss.currentNavFunction)
@@ -337,7 +337,7 @@ function rngLevel(gameState) {
     ].concat(targets)
     gameState.objects.push(mngr)
     gameState.update = () => {
-        if (mngr.field_block == null){
+        if (mngr.fieldBlock == null){
             tySlider.hidden = true
             toolTip.visible = true
         }else{
@@ -352,7 +352,7 @@ function rngLevel(gameState) {
                 nextButton.visible = false
                 nextButton.active = false
                 tracer.stopped = true
-                if (mngr.field_block != null && mngr.field_block.toFunction != null) {
+                if (mngr.fieldBlock != null && mngr.fieldBlock.toFunction != null) {
                     startButton.active = true
                 } else {
                     startButton.active = false
@@ -632,7 +632,7 @@ function experimentTrial(gameState, exitTo, solution){
             if (!functionSolved){
                 if (mngr.checkFunctionEquals(solution.function)){
                     functionSolved = true
-                    const fBlock = mngr.field_block
+                    const fBlock = mngr.fieldBlock
                     gridObjs.push(fBlock)
                     mngr.reset()
                     mngr.output =  { type: "fun_tracer", fun_tracer: funRight }

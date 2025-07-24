@@ -8,39 +8,39 @@
 class MathBlockManager {
 
     highlighted = null
-    field_block = null
+    fieldBlock = null
     grabbed = null
-    grab_moved = false
-    grab_x = 0
-    grab_y = 0
+    grabMoved = false
+    grabX = 0
+    grabY = 0
     frozen = false
 
-    constructor (blocks, originX, originY, translate_y_slider,scale_y_slider, output){
+    constructor (blocks, originX, originY, translateYSlider,scaleYSlider, output){
         this.blocks = blocks
         this.originX = originX
         this.originY = originY
         this.width = 400
         this.height = 50
-        this.translate_y_slider = translate_y_slider
-        this.scale_y_slider = scale_y_slider
+        this.translateYSlider = translateYSlider
+        this.scaleYSlider = scaleYSlider
         blocks.forEach(b => b.manager = this);
         this.field_color = Color.gray
-        this.tool_bar = []
+        this.toolBar = []
         this.blocks.forEach(b => {
-            this.tool_bar.push(b)
+            this.toolBar.push(b)
         })
         this.output = output
     }
 
     reset(){
-        this.blocks = this.tool_bar
-        this.field_block = null
+        this.blocks = this.toolBar
+        this.fieldBlock = null
         this.highlighted = null
     }
 
     checkFunctionEquals(f, min=-10, max=10, step=1, precision=0.000001){
-        if (this.field_block){
-            const g = this.field_block.toFunction()
+        if (this.fieldBlock){
+            const g = this.fieldBlock.toFunction()
             if (g){
                 for (let x = min; x < max; x+= step){
                     if (Math.abs(g(x) - f(x)) > precision){
@@ -54,16 +54,173 @@ class MathBlockManager {
         return false
     }
 
+    mouseMoved(mouse){
+        
+        
+        if (this.grabbed){ 
+            
+        }
+    }
+
+
     update(ctx, audioManager, mouse){
-        if (this.field_block){             
-            this.field_block.update(ctx, audioManager, mouse)
-            const field_block_fun = this.field_block.toFunction()
+        if (!this.frozen){
+           
+        if (this.grabbed != null){ // A mathblock is grabbed
+            if (mouse.held){ // The mathblock is being held 
+                mouse.cursor = 'grabbing'
+
+                if (!this.grabMoved && mouse.moved){ // The block is moved for the first time
+                    
+                    this.grabMoved = true
+                    if (this.grabbed.parent){ // The block has a parent
+                        this.grabbed.detachFromParent()
+                    }
+                    if (this.fieldBlock == this.grabbed){
+                        this.fieldBlock = null
+                    }
+                    this.toolBar = this.toolBar.filter(o => o != this.grabbed) // remove from toolbar
+                }
+
+                // Move the block
+                this.grabbed.x = mouse.x - this.grabX
+                this.grabbed.y = mouse.y - this.grabY
+
+                if (this.fieldBlock != null){
+                    // Call check attach on blocks so they can react appropriately
+                    this.fieldBlock.checkAttach(mouse.x,mouse.y)
+                } else{
+                    // The block hovers over an empty field
+                    if (this.checkInField(mouse.x,mouse.y)){
+                        if (this.hoverField == false){
+                            audioManager.play('click3')
+                            this.hoverField = true
+                            this.field_color = Color.light_gray
+                        }
+                    }else{
+                        this.hoverField = false
+                        this.field_color = Color.gray
+                    }
+                }
+
+            }else{ // The mathblock is let go
+                const g = this.grabbed
+                this.grabbed = null
+                if (!this.grabMoved){ // The grabbed object was not moved
+                    if (!g.attached){
+                        // The block was clicked in the tool bar
+                        this.toolBar.push(g)
+                    }
+
+                }else if (this.fieldBlock == null && this.checkInField(mouse.x, mouse.y)){
+                    // Attach to field
+                    audioManager.play('switch9')
+                    this.fieldBlock = g
+                    g.attached = true
+                    g.x = this.originX
+                    g.y = this.originY
+                    if (g.onToolBar){
+                        g.onToolBar = false
+                        const newG = new MathBlock(g.type,g.token,g.originX,g.originY)
+                        this.blocks.push(newG)
+                        this.toolBar.push(newG)
+                    }
+                    
+
+                }else if (g != this.fieldBlock){
+                    // Check if there is another block to attach to
+                    const attach = this.fieldBlock ? this.fieldBlock.checkAttach(mouse.x,mouse.y) : null
+                    if (attach){
+                        audioManager.play('switch6')
+                        // The block is attaching to another block 
+                        attach.block.children[attach.child] = g
+                        g.attached = true
+                        g.depth = attach.block.depth + 1
+                        g.child_num = attach.child
+                        g.parent = attach.block
+                        if (g.onToolBar){
+                            g.onToolBar = false
+                            const new_g = new MathBlock(g.type,g.token,g.originX,g.originY)
+                            this.blocks.push(new_g)
+                            this.toolBar.push(new_g)
+                        }
+                    }else{
+                        audioManager.play('click2')
+                        // The block is not attaching to anything
+                        if(g.onToolBar){
+                            // The block came from the tool bar
+                            this.toolBar.push(g)
+                            g.x = g.originX
+                            g.y = g.originY
+                            
+                        }else{
+                            // The block did not come from the tool bar
+                            g.delete()
+                            this.blocks = this.blocks.filter(o => !o.deleted)
+                        }
+                    }
+                }
+
+            }
+        }else { // No current block grabbed
+            var mouseOverBlock = null
+            var maxPriority = -1
+            // Find the block that the mouse is over with highest grab priority
+            this.blocks.forEach(b => {
+                if(b.checkGrab(mouse.x,mouse.y)){
+                    if (b.depth > maxPriority){
+                        maxPriority = b.depth
+                        mouseOverBlock = b
+                    }
+                }
+            })
+
+            if (mouseOverBlock != null){
+                if (mouse.down){ // Clicked on a block
+                    audioManager.play('switch13')
+                    this.grabbed = mouseOverBlock
+                    this.grabX = mouse.x - this.grabbed.x
+                    this.grabY = mouse.y - this.grabbed.y
+                    this.grabMoved = false //don't detach the block before it is moved
+                    
+                    mouse.cursor = 'grabbing'
+                    if (this.highlighted){ // Un-highlight old block
+                        this.highlighted.color = Color.white
+                    }
+                    this.highlighted = this.grabbed
+                    this.highlighted.color = Color.green
+                    this.scaleYSlider.setValue(this.highlighted.scaleY)
+                    this.translateYSlider.setValue(this.highlighted.translateY)
+                    console.log('Set ', this.translateYSlider.value, this.highlighted.translateY)
+                }else{ // Hovering over block
+                    mouse.cursor = 'grab'
+                }
+
+            }
+        }
+
+        // Update values for highlighted block
+        if (this.highlighted != null){
+            this.highlighted.translateY = this.translateYSlider.value
+            this.highlighted.scaleY = this.scaleYSlider.value
+        }
+        
+        
+        } // end mouse interaction logic
+        
+
+
+
+        // Draw
+        if (this.fieldBlock){             
+            this.fieldBlock.update(ctx, audioManager, mouse)
+            const fieldBlock_fun = this.fieldBlock.toFunction()
             // Check that the function is not incomplete
-            if (field_block_fun != null){
+            if (fieldBlock_fun != null){
                 if (this.output.type == "fun_tracer"){
                     this.output.fun_tracer.display = true
                     // Set the fun_tracer's function to the fieldblock, and use sliders for scale and translate
-                    this.output.fun_tracer.fun = (x => field_block_fun(x))
+                    this.output.fun_tracer.fun = (x => fieldBlock_fun(x))
                 }else if (this.output.type == "sliders"){
 
                 }
@@ -82,171 +239,17 @@ class MathBlockManager {
             Color.setColor(ctx,this.field_color)
             Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,10,true)
         }
-        this.tool_bar.forEach(b => b.update(ctx,audioManager,mouse))
+        this.toolBar.forEach(b => b.update(ctx,audioManager,mouse))
         if (this.grabbed){
-            this.grabbed.draw(ctx)
+            this.grabbed.update(ctx,audioManager,mouse)
         }
     }
 
 
-    mouseMove(x,y){
-        if (this.frozen){
-            return
-        }
-        if (this.highlighted){
-            this.highlighted.translate_y = this.translate_y_slider.value
-            this.highlighted.scale_y = this.scale_y_slider.value
-        }
-        
-        if (this.field_block){
-            
-        }else if (this.grabbed && this.checkInField(x,y)){
-            this.field_color = Color.light_gray
-        }else{
-            this.field_color = Color.gray
-        }
-        var cursor = null
-        if (this.grabbed){
-            cursor = 'grabbing'
-            if (!this.grab_moved){
-                // The grabbed object has now been moved
-                this.grab_moved = true
-                if (this.grabbed.parent){
-                    // The block has a parent
-                    this.grabbed.detachFromParent()
-                }
-                if (this.field_block == this.grabbed){
-                    this.field_block = null
-                }
-            }
-            this.grabbed.x = x - this.grab_x
-            this.grabbed.y = y - this.grab_y
-            if (this.field_block){
-                this.field_block.checkAttach(x,y)
-            }
-        }else {
-            this.blocks.forEach(b => {
-                if (b.checkGrab(x,y)){
-                    cursor = 'grab'
-                }
-            })
-            
-        }
-        return cursor
-    }
 
-    mouseDown(x,y){
-        if (this.frozen){
-            return
-        }
-        this.mouseIsDown = true
-        var cursor = null
-        var top_priority = -1
-        var flag = false
-        // check if a block is being grabbed
-        this.blocks.forEach(b => {
-            if(b.checkGrab(x,y)){
-                flag = true
-                if (top_priority < b.depth){
-                    top_priority = b.depth
-                    this.grabbed = b 
-                }
-            }
-        })
-        if (flag){
-            this.grab_x = x - this.grabbed.x
-            this.grab_y = y - this.grabbed.y
-            this.grab_moved = false//don't detach the block before it is moved
-            this.tool_bar = this.tool_bar.filter(o => o != this.grabbed)
-            cursor = 'grabbing'
-            if (this.highlighted){
-                this.highlighted.color = Color.white
-            }
-            this.highlighted = this.grabbed
-            this.highlighted.color = Color.green
-            this.scale_y_slider.setValue(this.highlighted.scale_y)
-            this.translate_y_slider.setValue(this.highlighted.translate_y)
-        }
-        return cursor
-    }
 
     checkInField(x,y){
         return x >= this.originX && x <= this.originX + this.width && y >= this.originY && y <= this.originY + this.height
-    }
-
-
-    mouseUp(x,y){
-        if (this.frozen){
-            return
-        }
-        this.mouseIsDown = false
-        
-        if (this.grabbed){ 
-            const g = this.grabbed
-            // There was something grabbed, now release it
-            if (!this.grab_moved){
-                // The grabbed object was not moved
-                if (!g.attached){
-                    // The block was clicked in the tool bar
-                    this.tool_bar.push(g)
-                }
-            }else if (this.field_block == null && this.checkInField(x, y)){
-                // The block is over the field and the field is empty
-                this.field_block = this.grabbed
-                this.grabbed.attached = true
-                this.grabbed.x = this.originX
-                this.grabbed.y = this.originY
-                if (g.on_tool_bar){
-                    g.on_tool_bar = false
-                    const new_g = new MathBlock(g.type,g.token,g.originX,g.originY)
-                    this.blocks.push(new_g)
-                    this.tool_bar.push(new_g)
-                }
-                
-
-            }else if (g == this.field_block){
-                // The block was the field and now the field is empty                
-
-            }else{
-
-                const attach = this.field_block ? this.field_block.checkAttach(x,y) : null
-                if (attach){
-                    // The block is attaching to another block 
-                    attach.block.children[attach.child] = g
-                    g.attached = true
-                    g.depth = attach.block.depth + 1
-                    g.child_num = attach.child
-                    g.parent = attach.block
-                    if (g.on_tool_bar){
-                        g.on_tool_bar = false
-                        const new_g = new MathBlock(g.type,g.token,g.originX,g.originY)
-                        this.blocks.push(new_g)
-                        this.tool_bar.push(new_g)
-                    }
-                }else{
-                    // The block is not attaching to anything
-                    if(g.on_tool_bar){
-                        // The block came from the tool bar
-                        this.tool_bar.push(this.grabbed)
-                        this.grabbed.x = this.grabbed.originX
-                        this.grabbed.y = this.grabbed.originY
-                        
-                    }else{
-                        // The block did not come from the tool bar
-                        this.blocks = this.blocks.filter(o => o != g)
-                    }
-                }
-            }
-        } 
-        this.grabbed = null
-
-        var cursor = null
-        this.blocks.forEach(b => {
-            if (b.checkGrab(x,y)){
-                cursor = 'grab'
-            }
-        })
-        return cursor
     }
 
 

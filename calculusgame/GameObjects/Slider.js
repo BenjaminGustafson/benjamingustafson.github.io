@@ -129,12 +129,21 @@ class Slider{
      * Guarded function to set the value of the slider.
      * @param {number} val 
      */
-    setValue(val){
+    #updateValue(val){
         if (val < this.minValue) val = this.minValue
         if (val > this.maxValue) val = this.maxValue
         val = Math.round(val/this.increment)*this.increment
         this.value = val
         this.updateCircle()
+    }
+
+    /**
+     * Public method for setting the value..
+     * @param {*} val 
+     */
+    setValue(val){
+        this.#updateValue(val)
+        this.mouseValue = val
     }
 
 
@@ -169,7 +178,7 @@ class Slider{
 
         if (this.mouseValue != this.value){
             const dir = this.mouseValue > this.value ? 1 : -1
-            this.setValue(this.value + dir*this.increment)
+            this.#updateValue(this.value + dir*this.increment)
             audioManager.playWithPitch('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6)
         }
 

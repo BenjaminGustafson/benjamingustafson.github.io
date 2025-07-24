@@ -5,12 +5,6 @@
  * MathBlocks can nest in each other to form more complex functions.
  * MathBlocks are an input option for defining a function in a puzzle.
  * 
- * Types of MathBlock:
- * constant - has a slider for the value
- * variable - has 2 sliders for mx+b
- * power - has a slider for the power
- * exponent - just e^x
- * bin op - no sliders
  * 
  */
 
@@ -26,8 +20,8 @@ class MathBlock {
 
     depth = 0
     
-    translate_y = 0
-    scale_y = 1
+    translateY = 0
+    scaleY = 1
     
     grabbed = false
     attached = false
@@ -40,7 +34,7 @@ class MathBlock {
     w = 50
     h = 50
 
-    on_tool_bar = true
+    onToolBar = true
 
     attach_hover = -1
     
@@ -50,6 +44,8 @@ class MathBlock {
 
     prefix = ""
     suffix = ""
+
+    deleted = false
 
     constructor (type, token, originX, originY){
         // originX, _y is where the block is spawned. x,y is where it currently is
@@ -73,7 +69,7 @@ class MathBlock {
                 break
         }
         this.children = new Array(this.num_children)
-        this.attach_squares = new Array(this.num_children)
+        this.attachSquares = new Array(this.num_children)
         this.token = token
         this.color = Color.white
         this.asString = ""
@@ -94,8 +90,8 @@ class MathBlock {
 
     checkAttach(x,y){
         this.attach_hover = -1
-        for(let i = 0; i < this.attach_squares.length; i++){
-            const a = this.attach_squares[i]
+        for(let i = 0; i < this.attachSquares.length; i++){
+            const a = this.attachSquares[i]
             if (a && x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h){
                 this.attach_hover = i
                 return {block: this, child:i}
@@ -119,19 +115,43 @@ class MathBlock {
         this.child_num = null
     }
 
-    /**
-     * Call this function when drawing to keep track of the string
-     * 
-     * Always adds () when we go down a level
-     */
-    drawTextHelper(ctx, str, x, y){
-        this.asString += str
-        ctx.fillText(str, x, y);
+
+    draw(){
+        var baseline = 0
+        var midline = 0
+        var capline = 0
+        var ascender = 0
+        var descender = 0
+
+        var blockTop = 0
+        var blockBottom = 0
+        var blockLeft = 0
+        var blockRight = 0
+        function addSymbol(){
+
+        }
+        function addAttach(){
+
+        }
+        function superscript(){
+
+        }
+        function frac(){
+
+        }
+
+    }
+
+    delete(){
+        this.children.forEach(c => c.delete())
+        this.deleted = true
     }
 
     update(ctx, audioManager, mouse){
-        const ty =  Number(this.translate_y.toFixed(1)) // TODO abstract out slider attachment
-        const sy =  Number(this.scale_y.toFixed(1))
+        const ty =  Number(this.translateY.toFixed(1)) // TODO abstract out slider attachment
+        const sy =  Number(this.scaleY.toFixed(1))
+
+
 
         this.prefix = ""
         this.suffix = ""
@@ -187,7 +207,7 @@ class MathBlock {
                 Color.setColor(ctx,Color.black)
                 Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
                 if (this.children[0]){
-                    this.children[0].draw(ctx)
+                    this.children[0].update(ctx,audioManager,mouse)
                     this.h = this.children[0].h + this.padding*2
                     this.children[0].x = this.x+w1+this.padding
                     this.children[0].y = this.y+this.padding
@@ -198,7 +218,7 @@ class MathBlock {
                         Color.setColor(ctx,Color.gray)
                     }
                     Shapes.Rectangle(ctx, this.x+w1+this.padding,this.y+this.padding,this.base_width,this.base_height,this.lineWidth,true)
-                    this.attach_squares[0] = {x:this.x+w1+this.padding,y:this.y+this.padding,w:this.base_width,h:this.base_height}
+                    this.attachSquares[0] = {x:this.x+w1+this.padding,y:this.y+this.padding,w:this.base_width,h:this.base_height}
                     this.h = this.base_height + this.padding*2
                 }
                 Color.setColor(ctx,Color.white)
@@ -220,7 +240,7 @@ class MathBlock {
                     Color.setColor(ctx,Color.black)
                     Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
                     if (this.children[0]){
-                        this.children[0].draw(ctx)
+                        this.children[0].update(ctx,audioManager,mouse)
                         this.h = this.children[0].h + this.padding*2 + 12
                         this.children[0].x = this.x+w1+this.padding
                         this.children[0].y = this.y+this.padding+12
@@ -231,7 +251,7 @@ class MathBlock {
                             Color.setColor(ctx,Color.gray)
                         }
                         Shapes.Rectangle(ctx, this.x+w1+this.padding,this.y+this.padding+12,this.base_width,this.base_height,this.lineWidth,true)
-                        this.attach_squares[0] = {x:this.x+w1+this.padding,y:this.y+this.padding + 12,w:this.base_width,h:this.base_height}
+                        this.attachSquares[0] = {x:this.x+w1+this.padding,y:this.y+this.padding + 12,w:this.base_width,h:this.base_height}
                         this.h = this.base_height + this.padding*2 + 12
                     }
                     Color.setColor(ctx,this.color)
@@ -270,7 +290,7 @@ class MathBlock {
                     Color.setColor(ctx,Color.black)
                     Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
                     if (this.children[0]){
-                        this.children[0].draw(ctx)
+                        this.children[0].update(ctx,audioManager,mouse)
                         this.h = this.children[0].h + this.padding*2 + 12
                         this.children[0].x = this.x+this.padding+w1+token_w+this.padding
                         this.children[0].y = this.y+this.padding
@@ -282,7 +302,7 @@ class MathBlock {
                             Color.setColor(ctx,Color.gray)
                         }
                         const sq = {x:this.x+this.padding+w1+token_w+this.padding,y:this.y+this.padding,w:this.base_width,h:this.base_height}
-                        this.attach_squares[0] = sq 
+                        this.attachSquares[0] = sq 
                         Shapes.Rectangle(ctx, sq.x,sq.y,sq.w,sq.h,this.lineWidth,true)
                         this.h = this.base_height + this.padding*2 + exp_shift
                     }
@@ -310,7 +330,7 @@ class MathBlock {
                     x += ctx.measureText(str1).width
 
                     if (this.children[0]){
-                        this.children[0].draw(ctx)
+                        this.children[0].update(ctx,audioManager,mouse)
                         this.h = this.children[0].h + this.padding*2
                         this.children[0].x = x
                         this.children[0].y = this.y+this.padding
@@ -322,7 +342,7 @@ class MathBlock {
                             Color.setColor(ctx,Color.gray)
                         }
                         Shapes.Rectangle(ctx, x, this.y+this.padding,this.base_width,this.base_height,this.lineWidth,true)
-                        this.attach_squares[0] = {x:x, y:this.y+this.padding, w:this.base_width, h:this.base_height}
+                        this.attachSquares[0] = {x:x, y:this.y+this.padding, w:this.base_width, h:this.base_height}
                         this.h = this.base_height + this.padding*2
                         x += this.base_width
                     }
@@ -332,7 +352,7 @@ class MathBlock {
                     x += ctx.measureText(this.token).width
 
                     if (this.children[1]){
-                        this.children[1].draw(ctx)
+                        this.children[1].update(ctx,audioManager,mouse)
                         this.h = Math.max(this.children[1].h + this.padding*2, this.h)
                         this.children[1].x = x
                         this.children[1].y = this.y+this.padding
@@ -344,7 +364,7 @@ class MathBlock {
                             Color.setColor(ctx,Color.gray)
                         }
                         Shapes.Rectangle(ctx, x ,this.y+this.padding,this.base_width,this.base_height,this.lineWidth,true)
-                        this.attach_squares[1] = {x:x,y:this.y+this.padding,w:this.base_width,h:this.base_height}
+                        this.attachSquares[1] = {x:x,y:this.y+this.padding,w:this.base_width,h:this.base_height}
                         this.h = Math.max(this.h, this.base_height + this.padding*2)
                         x += this.base_width
                     }
@@ -406,12 +426,12 @@ class MathBlock {
     toFunction(scale = 1, offset = 0){
         switch(this.type){
             case MathBlock.CONSTANT:
-                return x => this.translate_y
+                return x => this.translateY
             case MathBlock.VARIABLE:
-                return (x => this.translate_y + this.scale_y*x)
+                return (x => this.translateY + this.scaleY*x)
             case MathBlock.POWER:
                 if (this.children[0] != null && this.children[0].toFunction() != null){
-                    return (x => (this.translate_y + this.scale_y*(this.children[0].toFunction()(x))**this.token))
+                    return (x => (this.translateY + this.scaleY*(this.children[0].toFunction()(x))**this.token))
                 }else{
                     return null
                 }
@@ -421,7 +441,7 @@ class MathBlock {
                     if (this.token == "e"){
                         tokenval = Math.E
                     }
-                    return (x => (this.translate_y + this.scale_y*(tokenval**this.children[0].toFunction()(x))))
+                    return (x => (this.translateY + this.scaleY*(tokenval**this.children[0].toFunction()(x))))
                 }else{
                     return null
                 }
@@ -431,9 +451,9 @@ class MathBlock {
                 }
                 switch (this.token){
                     case "sin":
-                        return (x => this.translate_y + this.scale_y*Math.sin(this.children[0].toFunction()(x)))
+                        return (x => this.translateY + this.scaleY*Math.sin(this.children[0].toFunction()(x)))
                     case "cos":
-                        return (x => this.translate_y + this.scale_y*Math.cos(this.children[0].toFunction()(x)))
+                        return (x => this.translateY + this.scaleY*Math.cos(this.children[0].toFunction()(x)))
                     default:
                         return null
                 }
@@ -443,9 +463,9 @@ class MathBlock {
                 }
                 switch (this.token){
                     case "+":
-                        return (x => this.translate_y + this.scale_y*(this.children[0].toFunction()(x) + this.children[1].toFunction()(x)))
+                        return (x => this.translateY + this.scaleY*(this.children[0].toFunction()(x) + this.children[1].toFunction()(x)))
                     case "*":
-                        return (x => this.translate_y + this.scale_y*(this.children[0].toFunction()(x) * this.children[1].toFunction()(x)))
+                        return (x => this.translateY + this.scaleY*(this.children[0].toFunction()(x) * this.children[1].toFunction()(x)))
                     default:
                         return null
                 }

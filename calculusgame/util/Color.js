@@ -9,6 +9,7 @@ class Color {
     }
 
     // Palette designed to be colorblind friendly
+    static black2 = new Color(30,30,30)
     static black = new Color(43,43,43)
     static white = new Color(233,233,233)
     static light_gray = new Color(190,190,190)

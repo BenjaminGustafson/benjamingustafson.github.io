@@ -120,6 +120,8 @@ class Grid{
      */
     update(ctx, audioManager, mouse){
         ctx.translate(this.canvasX,this.canvasY)
+        Color.setColor(ctx, Color.black2)
+        ctx.fillRect(0,0,this.canvasWidth,this.canvasHeight)
         Color.setColor(ctx,Color.white)
 
         // Horizontal lines. Starting at top = 0

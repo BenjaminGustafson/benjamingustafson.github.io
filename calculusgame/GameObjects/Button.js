@@ -36,6 +36,11 @@ class Button{
 
     update(ctx, audioManager, mouse){
         
+        if (this.visible){
+            Color.setColor(ctx, Color.black2)
+            ctx.fillRect(this.originX, this.originY, this.width, this.height)
+        }
+
         if (this.active){
             Color.setColor(ctx,this.color)
         }else{
