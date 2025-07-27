@@ -11,12 +11,13 @@
 
 class MathBlock {
 
-    static VARIABLE = 0 // mx+b
-    static POWER = 1    // m[]^2+b
-    static EXPONENT = 2 // me^[]+b
-    static FUNCTION = 3 // mf([])+b
-    static BIN_OP = 4   // m([]+[])+b
+    static VARIABLE = 0 // m x +b
+    static POWER = 1    // m []^2 +b
+    static EXPONENT = 2 // m e^[] +b
+    static FUNCTION = 3 // m f([]) +b
+    static BIN_OP = 4   // []+[]
     static CONSTANT = 5 // c
+    static FRACTION = 6 // [] / []
 
     depth = 0
     
@@ -26,19 +27,24 @@ class MathBlock {
     grabbed = false
     attached = false
     parent = null
-    child_num = null
+    /**
+     * If this block is a child, selfChildIndex is the index of this block
+     * in its parent's children array.
+     */
+    selfChildIndex = null
 
-    base_width = 50
-    base_height = 50
-    padding = 10
+    base_width = 40
+    base_height = 40
+    fontSize = 30
+    padding = 7
     w = 50
     h = 50
 
     onToolBar = true
 
-    attach_hover = -1
+    attachHover = -1
     
-    lineWidth = 5
+    lineWidth = 2
 
     manager = null
 
@@ -47,13 +53,11 @@ class MathBlock {
 
     deleted = false
 
-    constructor (type, token, originX, originY){
+    constructor ({type, token, originX, originY}){
         // originX, _y is where the block is spawned. x,y is where it currently is
-        this.originX = originX
-        this.originY = originY
+        Object.assign(this, {type, token, originX, originY})
         this.x = originX
         this.y = originY
-        this.type = type
         switch (type){
             case MathBlock.POWER:
             case MathBlock.EXPONENT:
@@ -69,14 +73,31 @@ class MathBlock {
                 break
         }
         this.children = new Array(this.num_children)
+        /**
+         * Attach squares are objects of the form {x,y,w,h}.
+         */
         this.attachSquares = new Array(this.num_children)
         this.token = token
-        this.color = Color.white
+        this.lineColor = Color.white
+        this.bgColor = Color.black2
+        this.isHighlighted = false
         this.asString = ""
+
+        /**
+         * If an attach square is currently hovered over, this.attachHover
+         * is be the index of that square. This is used when we draw the attach squares.
+         * 
+         * If no attach square is hovered over, it is null.
+         */
+        this.attachHover = null
+
+        this.formatType = "inline"
+        this.content = []
+
     }
 
     static rehydrate(block){
-        var obj = new MathBlock()
+        var obj = new MathBlock({})
         Object.assign(obj, block)
         for (let i = 0; i < block.num_children; i++){
             obj.children[i] = MathBlock.rehydrate(block.children[i])
@@ -88,70 +109,110 @@ class MathBlock {
         return x >= this.x && x <= this.x + this.w && y >= this.y && y <= this.y + this.h
     }
 
-    checkAttach(x,y){
-        this.attach_hover = -1
-        for(let i = 0; i < this.attachSquares.length; i++){
-            const a = this.attachSquares[i]
-            if (a && x >= a.x && x <= a.x + a.w && y >= a.y && y <= a.y + a.h){
-                this.attach_hover = i
-                return {block: this, child:i}
-            }
-        }
+    /**
+     * 
+     * @param {*} x 
+     * @param {*} y 
+     * @returns 
+     */
+    checkAttach(x,y,w,h){
+        this.attachHover = -1
         for(let i = 0; i < this.children.length; i++){
-            if (this.children[i]){
-                const check = this.children[i].checkAttach(x,y)
-                if (check){
+            if (this.children[i] != null){
+                const check = this.children[i].checkAttach(x,y,w,h)
+                if (check != null){
                     return check
+                }
+            }else{
+                const a = this.attachSquares[i]
+                if (x + w >= a.x && x <= a.x + a.w && y + h >= a.y && y <= a.y + a.h){
+                    this.attachHover = i
+                    return {block: this, childIndex:i}
                 }
             }
         }
         return null
     }
 
+    setChild(i, child){
+        this.children[i] = child
+        child.attached = true
+        child.depth = this.depth + 1
+        child.selfChildIndex = i
+        child.parent = this
+    }
+
     detachFromParent(){
         this.attached = false
-        this.parent.children[this.child_num] = null
+        this.parent.children[this.selfChildIndex] = null
         this.parent = null
-        this.child_num = null
+        this.selfChildIndex = null
     }
 
+    calculateSize(ctx){
+        ctx.font = this.fontSize+"px monospace"
+        this.w = this.padding
+        this.h = this.padding * 2 + this.fontSize
+        this.content.forEach( obj => {
+            if (obj.type == 'string'  && obj.string.length > 0){
+                this.w += ctx.measureText(obj.string).width + this.padding 
+            }else if (obj.type == 'child'){
+                const child = this.children[obj.childIndex]
+                if (child != null){
+                    child.calculateSize(ctx)
+                    this.w += child.w + this.padding
+                    this.h = Math.max(this.h, child.h + this.padding*2)
+                }else{ // Attach square
+                    this.w += this.base_width + this.padding
+                    this.h = Math.max(this.h, this.base_height + this.padding * 2)
+                }
+            }
+        })
+    }
 
-    draw(){
-        var baseline = 0
-        var midline = 0
-        var capline = 0
-        var ascender = 0
-        var descender = 0
+    draw(ctx){
+        ctx.font = this.fontSize+"px monospace"
+        ctx.textBaseline = 'middle'
+        ctx.textAlign = 'left'
 
-        var blockTop = 0
-        var blockBottom = 0
-        var blockLeft = 0
-        var blockRight = 0
-        function addSymbol(){
-
-        }
-        function addAttach(){
-
-        }
-        function superscript(){
-
-        }
-        function frac(){
-
-        }
+        const color = this.isHighlighted ? Color.green : this.lineColor
+        Color.setColor(ctx, this.bgColor)
+        ctx.fillRect(this.x,this.y, this.w, this.h)
+        Color.setColor(ctx,color)
+        Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
+        var contentX = this.x + this.padding
+        const middleY = this.y + this.h/2
+        this.content.forEach( obj => {
+            if (obj.type == 'string' && obj.string.length > 0){
+                Color.setColor(ctx,color)
+                ctx.fillText(obj.string, contentX, middleY)
+                contentX += ctx.measureText(obj.string).width + this.padding
+            }else if (obj.type == 'child'){
+                const child = this.children[obj.childIndex]
+                if (child != null){
+                    child.x = contentX
+                    child.y = middleY - child.h/2
+                    child.draw(ctx)
+                    contentX += child.w + this.padding
+                }else{ // Attach square
+                    if (obj.childIndex == this.attachHover){
+                        Color.setColor(ctx, Color.light_gray)
+                    }else{
+                        Color.setColor(ctx, Color.gray)
+                    }
+                    const square = {x: contentX, y: middleY - this.base_height/2, w: this.base_width, h:this.base_height}
+                    this.attachSquares[obj.childIndex] = square
+                    Shapes.Rectangle(ctx, square.x, square.y, square.w, square.h, this.lineWidth, true)
+                    contentX += this.base_width + this.padding
+                }
+            }
+        })
 
     }
 
-    delete(){
-        this.children.forEach(c => c.delete())
-        this.deleted = true
-    }
-
-    update(ctx, audioManager, mouse){
-        const ty =  Number(this.translateY.toFixed(1)) // TODO abstract out slider attachment
-        const sy =  Number(this.scaleY.toFixed(1))
-
-
+    setContent(){
+        const ty =  this.translateY.toFixed(1)
+        const sy =  this.scaleY.toFixed(1)
 
         this.prefix = ""
         this.suffix = ""
@@ -159,7 +220,7 @@ class MathBlock {
             if (sy == -1){
                 this.prefix = "-"
             }else{
-                this.prefix = sy.toString()
+                this.prefix = sy
             }
             if (sy == 0){
                 this.prefix = "0"
@@ -167,223 +228,55 @@ class MathBlock {
         }
         if (ty != 0){
             if (ty < 0 ){
-                this.suffix = ty.toString()
+                this.suffix = ty
             }else{
-                this.suffix = "+" + ty.toString()
+                this.suffix = "+" + ty
             }
         }
-        //console.log(this.prefix,this.suffix)
 
-        ctx.font = "40px monospace"
-        ctx.textBaseline = 'alphabetic'
-        ctx.textAlign = 'start'
         switch (this.type){
             case MathBlock.CONSTANT:{
-                    const str = ty
-                    this.w = ctx.measureText(str).width + this.padding*2
-                    Color.setColor(ctx,Color.black)
-                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
-                    Color.setColor(ctx, this.color)
-                    ctx.fillText(str, this.x + this.padding, this.y + this.h/2+10);
-                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
+                    this.content = [{type:'string', string:ty}]
                 }
                 break
             case MathBlock.VARIABLE:
-                const str = this.prefix + this.token + this.suffix 
-                this.w = ctx.measureText(str).width + this.padding*2
-                Color.setColor(ctx,Color.black)
-                Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
-                Color.setColor(ctx, this.color)
-                ctx.fillText(str, this.x + this.padding, this.y + this.h/2+10);
-                Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
+                this.content = [{type:'string', string:this.prefix},{type:'string', string:this.token},{type:'string', string:this.suffix}]
                 break
             case MathBlock.FUNCTION:{
-                var str1 = this.prefix + this.token + "("
-                var str2 = ")" + this.suffix
-                const w1 = ctx.measureText(str1).width
-                const w2 = ctx.measureText(str2).width
-                var child_w = this.children[0] ? this.children[0].w : this.base_width
-                this.w = w1+w2 + child_w + this.padding*2
-                Color.setColor(ctx,Color.black)
-                Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
-                if (this.children[0]){
-                    this.children[0].update(ctx,audioManager,mouse)
-                    this.h = this.children[0].h + this.padding*2
-                    this.children[0].x = this.x+w1+this.padding
-                    this.children[0].y = this.y+this.padding
-                }else{
-                    if (this.attach_hover == 0){
-                        Color.setColor(ctx,Color.light_gray)
-                    }else{
-                        Color.setColor(ctx,Color.gray)
-                    }
-                    Shapes.Rectangle(ctx, this.x+w1+this.padding,this.y+this.padding,this.base_width,this.base_height,this.lineWidth,true)
-                    this.attachSquares[0] = {x:this.x+w1+this.padding,y:this.y+this.padding,w:this.base_width,h:this.base_height}
-                    this.h = this.base_height + this.padding*2
-                }
-                Color.setColor(ctx,Color.white)
-                ctx.fillText(str1, this.x + this.padding, this.y + this.h/2+10)
-                ctx.fillText(str2, this.x + this.padding + w1 + child_w, this.y + this.h/2+10)
-                Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
-                break
+               
             }
             case MathBlock.POWER:
                 {
-                    var str1 = this.prefix 
-                    var str2 = this.suffix
-                    const w1 = ctx.measureText(str1).width +  (sy != 1 ? this.padding  : 0)
-                    const w2 = ctx.measureText(str2).width
-                    ctx.font = "32px monospace"
-                    const w_exp = ctx.measureText(this.token).width
-                    var child_w = this.children[0] ? this.children[0].w : this.base_width
-                    this.w = w1+w2 + child_w + w_exp + this.padding*3
-                    Color.setColor(ctx,Color.black)
-                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
-                    if (this.children[0]){
-                        this.children[0].update(ctx,audioManager,mouse)
-                        this.h = this.children[0].h + this.padding*2 + 12
-                        this.children[0].x = this.x+w1+this.padding
-                        this.children[0].y = this.y+this.padding+12
-                    }else{
-                        if (this.attach_hover == 0){
-                            Color.setColor(ctx,Color.light_gray)
-                        }else{
-                            Color.setColor(ctx,Color.gray)
-                        }
-                        Shapes.Rectangle(ctx, this.x+w1+this.padding,this.y+this.padding+12,this.base_width,this.base_height,this.lineWidth,true)
-                        this.attachSquares[0] = {x:this.x+w1+this.padding,y:this.y+this.padding + 12,w:this.base_width,h:this.base_height}
-                        this.h = this.base_height + this.padding*2 + 12
-                    }
-                    Color.setColor(ctx,this.color)
-                    ctx.font = "32px monospace"
-                    ctx.fillText(this.token, this.x + this.padding*2 + w1 + child_w, this.y+32)
-                    ctx.font = "40px monospace"
-                    ctx.fillText(str1, this.x + this.padding, this.y + this.h/2+22)
-                    ctx.fillText(str2, this.x + this.padding + w1 + child_w + w_exp + 12, this.y + this.h/2+22)
-                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
+ 
                 }
                 break
                 case MathBlock.EXPONENT:{
-                    /**
-                     * ----------------------------------
-                     * |                 []             |
-                     * |   1*     e               + 2   |
-                     * ----------------------------------
-                     * |p|w1  |token_w|p?|child_w |p?| w2  |p|
-                     * ^ 
-                     * x 
-                     * 
-                     *  TODO: fix this messy code
-                     * 
-                     */
-                    var str1 = this.prefix 
-                    var str2 = this.suffix
-                    const w1 = ctx.measureText(str1).width +  (sy != 1 ? this.padding  : 0)
-                    const w2 = ctx.measureText(str2).width
-                    ctx.font = "40px monospace"
-                    const token_w = ctx.measureText(this.token).width
-                    const token_h = 32
-                    const exp_shift = 12
-                    var child_w = this.children[0] ? this.children[0].w : this.base_width
-                    this.w = w1+w2 + child_w + token_w + this.padding*3
-                    // Black background
-                    Color.setColor(ctx,Color.black)
-                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
-                    if (this.children[0]){
-                        this.children[0].update(ctx,audioManager,mouse)
-                        this.h = this.children[0].h + this.padding*2 + 12
-                        this.children[0].x = this.x+this.padding+w1+token_w+this.padding
-                        this.children[0].y = this.y+this.padding
-                    }else{
-                        // Draw the attachment rectangle
-                        if (this.attach_hover == 0){
-                            Color.setColor(ctx,Color.light_gray)
-                        }else{
-                            Color.setColor(ctx,Color.gray)
-                        }
-                        const sq = {x:this.x+this.padding+w1+token_w+this.padding,y:this.y+this.padding,w:this.base_width,h:this.base_height}
-                        this.attachSquares[0] = sq 
-                        Shapes.Rectangle(ctx, sq.x,sq.y,sq.w,sq.h,this.lineWidth,true)
-                        this.h = this.base_height + this.padding*2 + exp_shift
-                    }
-                    Color.setColor(ctx,this.color)
-                    ctx.fillText(this.token, this.x + this.padding + w1, this.y+this.h-token_h/2)
-                    ctx.fillText(str1, this.x + this.padding, this.y+this.h-token_h/2)
-                    ctx.fillText(str2, this.x + this.padding + w1 + child_w + token_w + this.padding, this.y+this.h-token_h/2)
-                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
+         
                     }
                     break
                 case MathBlock.BIN_OP:{
-                    /**
-                     * |      prefix (?   [child 0] token [child 1] )? suffix       |
-                     *   pad                                                  pad  
-                     */
-                    Color.setColor(ctx,Color.black)
-                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth,true)
-                    
-                    var x = this.x
-                    x += this.padding
-
-                    Color.setColor(ctx,this.color)
-                    const str1 = this.prefix == "" ? this.prefix : this.prefix + "("
-                    ctx.fillText(str1, x, this.y + this.h/2+10)
-                    x += ctx.measureText(str1).width
-
-                    if (this.children[0]){
-                        this.children[0].update(ctx,audioManager,mouse)
-                        this.h = this.children[0].h + this.padding*2
-                        this.children[0].x = x
-                        this.children[0].y = this.y+this.padding
-                        x += this.children[0].w
-                    }else{
-                        if (this.attach_hover == 0){
-                            Color.setColor(ctx,Color.light_gray)
-                        }else{
-                            Color.setColor(ctx,Color.gray)
-                        }
-                        Shapes.Rectangle(ctx, x, this.y+this.padding,this.base_width,this.base_height,this.lineWidth,true)
-                        this.attachSquares[0] = {x:x, y:this.y+this.padding, w:this.base_width, h:this.base_height}
-                        this.h = this.base_height + this.padding*2
-                        x += this.base_width
-                    }
-
-                    Color.setColor(ctx,this.color)
-                    ctx.fillText(this.token,x, this.y + this.h/2+10)
-                    x += ctx.measureText(this.token).width
-
-                    if (this.children[1]){
-                        this.children[1].update(ctx,audioManager,mouse)
-                        this.h = Math.max(this.children[1].h + this.padding*2, this.h)
-                        this.children[1].x = x
-                        this.children[1].y = this.y+this.padding
-                        x += this.children[1].w
-                    }else{
-                        if (this.attach_hover == 1){
-                            Color.setColor(ctx,Color.light_gray)
-                        }else{
-                            Color.setColor(ctx,Color.gray)
-                        }
-                        Shapes.Rectangle(ctx, x ,this.y+this.padding,this.base_width,this.base_height,this.lineWidth,true)
-                        this.attachSquares[1] = {x:x,y:this.y+this.padding,w:this.base_width,h:this.base_height}
-                        this.h = Math.max(this.h, this.base_height + this.padding*2)
-                        x += this.base_width
-                    }
-
-                    Color.setColor(ctx,this.color)
-                    const str2 = this.prefix == "" ? this.suffix : ")" + this.suffix
-                    ctx.fillText(str2,  x, this.y + this.h/2+10)
-                    x += ctx.measureText(str2).width
-
-                    x += this.padding
-
-                    this.w = x - this.x
-                    Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
+                    this.content = [{type:'child', childIndex:0},{type:'string', string:this.token},{type:'child', childIndex:1},]
                 }   
                     break
                 default:
                     break
         }
-        
+        this.children.forEach( c => {
+            if (c != null){
+                c.setContent()
+            }
+        })
+    }
+
+    delete(){
+        this.children.forEach(c => {if (c) c.delete()})
+        this.deleted = true
+    }
+
+    update(ctx, audioManager, mouse){
+       this.setContent()
+       this.calculateSize(ctx)
+       this.draw(ctx)
     }
 
     static fromSyntaxTree (tree){
@@ -423,7 +316,7 @@ class MathBlock {
      * @param {*} offset 
      * @returns 
      */
-    toFunction(scale = 1, offset = 0){
+    toFunction(){
         switch(this.type){
             case MathBlock.CONSTANT:
                 return x => this.translateY
@@ -463,9 +356,9 @@ class MathBlock {
                 }
                 switch (this.token){
                     case "+":
-                        return (x => this.translateY + this.scaleY*(this.children[0].toFunction()(x) + this.children[1].toFunction()(x)))
+                        return (x => this.children[0].toFunction()(x) + this.children[1].toFunction()(x))
                     case "*":
-                        return (x => this.translateY + this.scaleY*(this.children[0].toFunction()(x) * this.children[1].toFunction()(x)))
+                        return (x => this.children[0].toFunction()(x) * this.children[1].toFunction()(x))
                     default:
                         return null
                 }

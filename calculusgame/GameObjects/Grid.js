@@ -57,6 +57,9 @@ class Grid{
         this.xScale = this.canvasWidth / this.gridWidth
         //
         this.yScale = this.canvasHeight / this.gridHeight
+
+        this.lineColor = Color.white
+        this.bgColor = Color.black2
     }
 
     
@@ -120,9 +123,9 @@ class Grid{
      */
     update(ctx, audioManager, mouse){
         ctx.translate(this.canvasX,this.canvasY)
-        Color.setColor(ctx, Color.black2)
+        Color.setColor(ctx, this.bgColor)
         ctx.fillRect(0,0,this.canvasWidth,this.canvasHeight)
-        Color.setColor(ctx,Color.white)
+        Color.setColor(ctx,this.lineColor)
 
         // Horizontal lines. Starting at top = 0
         ctx.font = '20px monospace'

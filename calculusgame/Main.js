@@ -24,7 +24,8 @@ function setup() {
     var canvas = document.getElementById('myCanvas');
 
     const audioManager = new AudioManager();
-    const audioPaths = ["click_001.ogg","drop_002.ogg","confirmation_001.ogg",
+    const audioPaths = ["click_001.ogg", "click4.ogg", // slider
+        "drop_002.ogg","confirmation_001.ogg",
          "glass_002.ogg", "switch1.ogg","switch9.ogg","switch6.ogg", "switch13.ogg", 'click_003.ogg', 'click2.ogg',
         'click3.ogg'];
 

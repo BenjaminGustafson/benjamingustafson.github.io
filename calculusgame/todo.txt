@@ -1,5 +1,4 @@
-
-
+You can skip to the rule, and if you get it right, you can go to the next planet 
 
 1. Expirement scene
     8. Sliders on right graph adjust tracer on left between measurement points?

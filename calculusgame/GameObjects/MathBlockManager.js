@@ -15,21 +15,22 @@ class MathBlockManager {
     grabY = 0
     frozen = false
 
-    constructor (blocks, originX, originY, translateYSlider,scaleYSlider, output){
-        this.blocks = blocks
-        this.originX = originX
-        this.originY = originY
+    constructor ({blocks=[], originX, originY, translateYSlider,scaleYSlider,
+        outputType="funTracer", funTracer, attachFields =[], maxY
+    }){
+        Object.assign(this,{
+            blocks, originX, originY, translateYSlider, scaleYSlider, outputType, funTracer,
+            attachFields
+        })
         this.width = 400
         this.height = 50
-        this.translateYSlider = translateYSlider
-        this.scaleYSlider = scaleYSlider
         blocks.forEach(b => b.manager = this);
         this.field_color = Color.gray
         this.toolBar = []
         this.blocks.forEach(b => {
             this.toolBar.push(b)
         })
-        this.output = output
+        this.maxY = this.originY + this.height
     }
 
     reset(){
@@ -81,10 +82,10 @@ class MathBlockManager {
 
                 if (this.fieldBlock != null){
                     // Call check attach on blocks so they can react appropriately
-                    this.fieldBlock.checkAttach(mouse.x,mouse.y)
+                    this.fieldBlock.checkAttach(this.grabbed.x,this.grabbed.y,this.grabbed.w,this.grabbed.h)
                 } else{
                     // The block hovers over an empty field
-                    if (this.checkInField(mouse.x,mouse.y)){
+                    if (this.checkInField(this.grabbed.x,this.grabbed.y,this.grabbed.w,this.grabbed.h)){
                         if (this.hoverField == false){
                             audioManager.play('click3')
                             this.hoverField = true
@@ -105,7 +106,7 @@ class MathBlockManager {
                         this.toolBar.push(g)
                     }
 
-                }else if (this.fieldBlock == null && this.checkInField(mouse.x, mouse.y)){
+                }else if (this.fieldBlock == null && this.checkInField(g.x, g.y, g.w, g.h)){
                     // Attach to field
                     audioManager.play('switch9')
                     this.fieldBlock = g
@@ -114,7 +115,7 @@ class MathBlockManager {
                     g.y = this.originY
                     if (g.onToolBar){
                         g.onToolBar = false
-                        const newG = new MathBlock(g.type,g.token,g.originX,g.originY)
+                        const newG = new MathBlock({type:g.type,token:g.token,originX:g.originX,originY:g.originY})
                         this.blocks.push(newG)
                         this.toolBar.push(newG)
                     }
@@ -122,18 +123,17 @@ class MathBlockManager {
 
                 }else if (g != this.fieldBlock){
                     // Check if there is another block to attach to
-                    const attach = this.fieldBlock ? this.fieldBlock.checkAttach(mouse.x,mouse.y) : null
-                    if (attach){
-                        audioManager.play('switch6')
+                    const attachObj = this.fieldBlock ? this.fieldBlock.checkAttach(g.x,g.y,g.w,g.h) : null
+                    if (attachObj != null){
                         // The block is attaching to another block 
-                        attach.block.children[attach.child] = g
-                        g.attached = true
-                        g.depth = attach.block.depth + 1
-                        g.child_num = attach.child
-                        g.parent = attach.block
+                        audioManager.play('switch6')
+                        const attachBlock = attachObj.block
+                        const childIndex = attachObj.childIndex
+                        attachBlock.setChild(childIndex, g)
+                        
                         if (g.onToolBar){
                             g.onToolBar = false
-                            const new_g = new MathBlock(g.type,g.token,g.originX,g.originY)
+                            const new_g = new MathBlock({type:g.type,token:g.token,originX:g.originX,originY:g.originY})
                             this.blocks.push(new_g)
                             this.toolBar.push(new_g)
                         }
@@ -178,10 +178,10 @@ class MathBlockManager {
                     
                     mouse.cursor = 'grabbing'
                     if (this.highlighted){ // Un-highlight old block
-                        this.highlighted.color = Color.white
+                        this.highlighted.isHighlighted = false
                     }
                     this.highlighted = this.grabbed
-                    this.highlighted.color = Color.green
+                    this.highlighted.isHighlighted = true
                     if (this.highlighted.type == MathBlock.CONSTANT){
                         this.scaleYSlider.active = false
                     }else{
@@ -189,7 +189,6 @@ class MathBlockManager {
                         this.scaleYSlider.setValue(this.highlighted.scaleY)
                     }
                     this.translateYSlider.setValue(this.highlighted.translateY)
-                    console.log('Set ', this.translateYSlider.value, this.highlighted.translateY)
                 }else{ // Hovering over block
                     mouse.cursor = 'grab'
                 }
@@ -210,28 +209,30 @@ class MathBlockManager {
 
 
         // Draw
-        if (this.fieldBlock){             
+        if (this.fieldBlock){
+            this.fieldBlock.y = this.maxY - this.fieldBlock.h
             this.fieldBlock.update(ctx, audioManager, mouse)
             const fieldBlock_fun = this.fieldBlock.toFunction()
             // Check that the function is not incomplete
             if (fieldBlock_fun != null){
-                if (this.output.type == "fun_tracer"){
-                    this.output.fun_tracer.display = true
-                    // Set the fun_tracer's function to the fieldblock, and use sliders for scale and translate
-                    this.output.fun_tracer.fun = (x => fieldBlock_fun(x))
-                }else if (this.output.type == "sliders"){
+                console.log(fieldBlock_fun(1))
+                if (this.outputType == "funTracer"){
+                    this.funTracer.display = true
+                    // Set the funTracer's function to the fieldblock, and use sliders for scale and translate
+                    this.funTracer.fun = fieldBlock_fun
+                }else if (this.outputType == "sliders"){
 
                 }
             }else{
                 // Set display false so that we don't evaluate the incomplete function
-                if (this.output.type == "fun_tracer"){
-                    this.output.fun_tracer.display = false
+                if (this.outputType == "funTracer"){
+                    this.funTracer.display = false
                 }
             }
         }else{
             // If there is no fieldblock, we cannot trace the function
-            if (this.output.type == "fun_tracer"){
-                this.output.fun_tracer.display = false
+            if (this.outputType == "funTracer"){
+                this.funTracer.display = false
             }
             // Draw the placeholder for the block
             Color.setColor(ctx,this.field_color)
@@ -248,9 +249,25 @@ class MathBlockManager {
 
 
 
-    checkInField(x,y){
-        return x >= this.originX && x <= this.originX + this.width && y >= this.originY && y <= this.originY + this.height
+    checkInField(x,y,w,h){
+        return x <= this.originX + this.width && 
+               x + w >= this.originX &&
+               y <= this.originY + this.height &&
+               y + h >= this.originY
     }
 
 
+}
+
+class MathBlockField {
+
+
+    constructor({
+        minX, minY, maxX, maxY, rootBlock
+    }){
+    }
+
+    outputFunction(){
+
+    }
 }

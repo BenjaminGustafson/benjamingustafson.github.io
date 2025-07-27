@@ -175,7 +175,12 @@ class Slider{
         if (this.mouseValue != this.value){
             const dir = this.mouseValue > this.value ? 1 : -1
             this.#updateValue(this.value + dir*this.increment)
-            audioManager.playWithPitch('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6)
+            if (this.value == this.minValue || this.value == this.maxValue){
+                console.log('A')
+                audioManager.playWithPitch('click4', ((this.value-this.minValue) / this.sliderLength)*3-3)
+            }else{
+                audioManager.playWithPitch('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6)
+            }
         }
     }
 

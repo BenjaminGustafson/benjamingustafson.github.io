@@ -115,17 +115,17 @@ function newRNGPuzzle (gameState){
         case "Quadratic":{
             const m = Math.floor(Math.random()*4*10)/10 
             const b = gameState.stored.totalDistance
-            mathBlockFun = new MathBlock(MathBlock.POWER, '2',100,320)
+            mathBlockFun = new MathBlock({type: MathBlock.POWER, token:'2',originX:100,originY:320})
             mathBlockFun.translate_y = b
             mathBlockFun.scale_y = m
-            mathBlockFun.children[0] = new MathBlock(MathBlock.VARIABLE, 'x',0,0)
+            mathBlockFun.children[0] = new MathBlock({type:MathBlock.VARIABLE,token: 'x',originX:0,originY:0})
             break
         }
         default:
         case "Linear":
             const m = Math.floor(Math.random()*4*10)/10 
             const b = gameState.stored.totalDistance
-            mathBlockFun = new MathBlock(MathBlock.VARIABLE, 'x',100,320)
+            mathBlockFun = new MathBlock({type:MathBlock.VARIABLE, token:'x', originX:100, originY:320})
             mathBlockFun.translate_y = b
             mathBlockFun.scale_y = m
         break
@@ -152,7 +152,7 @@ function rngLevel(gameState) {
 
     const blocks = [[MathBlock.CONSTANT, ""],[MathBlock.BIN_OP, "+"]]
     
-    var mathBlockFun = new MathBlock()
+    var mathBlockFun = new MathBlock({})
     console.log(gss.currentNavFunction)
     if (gss.currentNavFunction != null){
         // Rehydrate object
@@ -195,9 +195,12 @@ function rngLevel(gameState) {
 
     const math_blocks = []
     for (let i = 0; i < blocks.length; i++) {
-        math_blocks.push(new MathBlock(blocks[i][0], blocks[i][1], 1300, 150 + 100 * i))
+        math_blocks.push(new MathBlock({type:blocks[i][0], token:blocks[i][1], originX:1300, originY:150 + 100 * i}))
     }
-    const mngr = new MathBlockManager(math_blocks, 600, 320, tySlider, sySlider, { type: "fun_tracer", fun_tracer: funRight })
+    const mngr = new MathBlockManager({blocks:math_blocks, originX:600, originY:320,
+        translateYSlider:tySlider, scaleYSlider:sySlider,
+        outputType: "funTracer", funTracer: funRight
+    })
     
     const targets = []
     const numTargets = 200
@@ -355,7 +358,6 @@ function rngLevel(gameState) {
         }
         switch (gameState.temp.state) {
             case "Input":
-                console.log('input')
                 progressBar.updateDistance(gameState.stored.totalDistance)
                 mngr.frozen = false
                 startButton.visible = true
@@ -533,18 +535,20 @@ function experimentTrial(gameState, exitTo, solution){
     const tySlider = new Slider(1100, gridY, 400, 4, 0, 4, 0.1, true, true)
     const sySlider = new Slider(1200, gridY, 400, 8, 1, 4, 0.1, true, true)
     const math_blocks = [
-        new MathBlock(MathBlock.CONSTANT,"0",1300,100),
-        new MathBlock(MathBlock.VARIABLE,"x",1300,170),
-        new MathBlock(MathBlock.POWER,"2",1300,240),
-        new MathBlock(MathBlock.EXPONENT,"e",1300,340),
-        new MathBlock(MathBlock.FUNCTION,"sin",1300,440),
-        new MathBlock(MathBlock.BIN_OP,"+",1300,540),
-        new MathBlock(MathBlock.BIN_OP,"*",1300,640),
+        new MathBlock({type:MathBlock.CONSTANT,token:"0"  ,originX:1300,originY:100}),
+        new MathBlock({type:MathBlock.VARIABLE,token:"x"  ,originX:1300,originY:170}),
+        new MathBlock({type:MathBlock.POWER   ,token:"2"  ,originX:1300,originY:240}),
+        new MathBlock({type:MathBlock.EXPONENT,token:"e"  ,originX:1300,originY:340}),
+        new MathBlock({type:MathBlock.FUNCTION,token:"sin",originX:1300,originY:440}),
+        new MathBlock({type:MathBlock.BIN_OP  ,token:"+"  ,originX:1300,originY:540}),
+        new MathBlock({type:MathBlock.BIN_OP  ,token:"*"  ,originX:1300,originY:640}),
     ]
     const adder = new TargetAdder(gridLeft)
     const funLeft = new FunctionTracer(gridLeft)
     const funRight = new FunctionTracer(gridRight)
-    const mngr = new MathBlockManager(math_blocks, 100, 300, tySlider, sySlider, { type: "fun_tracer", fun_tracer: funLeft })
+    const mngr = new MathBlockManager({blocks:math_blocks, originX:100, originY:300,
+        translateYSlider:tySlider, scaleYSlider:sySlider,
+        type: "fun_tracer", funTracer: funLeft })
 
    
 
@@ -1257,17 +1261,20 @@ function loadScene(gameState, sceneName, clearTemp = true) {
          * The main menu of the game.
          */
         case "startMenu": {
-            const startButton = new Button({originX:500, originY:100, width:200, height:100, onclick:(() => loadScene(gameState,"introDoor")), label:"Start"})
+            const startButton = new Button({originX:200, originY:300, width:200, height:50, lineWidth:5,
+                 onclick:(() => loadScene(gameState,"introDoor")), label:"Start"})
             const nextScene = gameState.temp.nextScene
             if (nextScene && nextScene != "startMenu"){
                 console.log('next scene',nextScene)
                 startButton.onclick = (() => loadScene(gameState,nextScene))
                 startButton.label = "Continue"
             }
-            const about_button = new Button({originX:750, originY:100, width:200, height:100, onclick:(() => window.location.replace("about.html")), label:"About"})
+            const about_button = new Button({originX:200, originY:380, width:200, height:50, lineWidth: 5,
+                onclick:(() => window.location.replace("about.html")), label:"About"})
             gameState.objects = [
                 new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
-                new TextBox(100, 150, "Calculus I", font = "60px monospace", color = Color.black),
+                new TextBox({originX:200, originY:150, content: "Calculus I", font : "60px monospace", color : Color.black}),
+                new TextBox({originX:200, originY:200, content: "A puzzle game", font : "30px monospace", color : Color.black}),
                 startButton, about_button
             ]
             break
@@ -1289,8 +1296,8 @@ function loadScene(gameState, sceneName, clearTemp = true) {
             gameState.objects = [
                 new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
                 new ImageObject(1000, 250, 400, 500, "ship_img"),
-                puzzleButton, experimentButton,
-                door_button
+                //new TextBox({originX:200, originY:150, content: "1. Linear", font : "60px monospace", color : Color.black}),
+                puzzleButton, experimentButton, door_button
             ]
             break
         }
