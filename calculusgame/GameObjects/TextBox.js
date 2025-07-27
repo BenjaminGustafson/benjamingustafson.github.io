@@ -6,14 +6,17 @@
  */
 class TextBox{
 
-    constructor(originX,originY,content,font='40px sans-serif',color=Color.white, align='start',baseline='alphabetic'){
-        this.originX = originX
-        this.originY = originY
-        this.content = content
-        this.font = font
-        this.align = align
-        this.baseline = baseline
-        this.color = color
+    constructor({
+        originX,originY,
+        content,
+        font='40px sans-serif',
+        color=Color.white,
+        align='start',
+        baseline='alphabetic'
+    }){
+        Object.assign(this, {
+            originX, originY, content, font, color, align, baseline
+        })
     }
 
     update(ctx, audioManager, mouse){
