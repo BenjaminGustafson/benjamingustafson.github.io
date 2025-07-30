@@ -24,7 +24,8 @@ class Button{
         label = "",
         color = Color.white,
         lineWidth = 10,
-        bgColor = Color.black2
+        bgColor = Color.black2,
+        fontSize = 30,
     }){
         Object.assign(this, {
             originX, originY,
@@ -33,7 +34,8 @@ class Button{
             label,
             color,
             lineWidth,
-            bgColor
+            bgColor, 
+            fontSize
         })
         this.visible = true // when false the button is not drawn, but is still clickable
         this.active = true // when false the button is not clickable and is drawn in gray
@@ -75,7 +77,7 @@ class Button{
         var text_size = ctx.measureText(this.label)
         // Adjust to fit inside label
         const font_size = Math.min(40 * this.width / text_size.width * 0.8 - 10, 40)
-        ctx.font = font_size + "px monospace"
+        ctx.font = this.fontSize + "px monospace"
         text_size = ctx.measureText(this.label)
         // text baseline = top + half of height + half of font...
         ctx.fillText(this.label, this.originX + this.width/2-text_size.width/2, this.originY + this.height/2 + text_size.actualBoundingBoxAscent/2)

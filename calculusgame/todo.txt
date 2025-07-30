@@ -1,41 +1,24 @@
-You can skip to the rule, and if you get it right, you can go to the next planet 
-
-1. Expirement scene
-    8. Sliders on right graph adjust tracer on left between measurement points?
-    9. Mathblock for guessing f'(x), only shows f'(x), not the corresponding f(x)
-    10. scene takes you to menu when correct
-    11. menu updates
-    12. scenes save progress (fn solved)
-
-Experiments are in four stages:
-    1. add measurements
-    2. and guess f(x)
-    3. adjust derivatives
-    4. and guess f'(x) 
-
-2. Rule guess scene
-    1. Text with mathblock vars now instead of numbers - does that work if the token isnt x?
-    2. Set vars with sliders? Maybe not. How are you going to do like f(x) or f'(x) in the future. It might work
-    3. If thats too much work, just have two mathblock fields <-
 
 
-3. Ship scene
-    1. gives planet progress when on planet
-    2. 
+Finishing exps
+- Issues: its too hard to tell what to do, and if you are on the right track
 
-4. Navigation
-    1. Doesn't let you go past incomplete planet
-    2. puzzles cycle
+Finishing nav
+- Generate random functions, check correctness
 
-5. Quadratic
-    1. set up levels menu like linear
-    2. Experimnet: like linear but with an apple
+- Grids can auto adjust y-scale (maybe as a function tracer option?)
 
-6 Exponential
-    1. Puzzles
-    2. Expirement
+Overall navigation:
+- Overworld like mario?
+- Left to right, some forking paths
+- Isometric projection, but just 2d
+- What does ship view become? 
+- What do navigation levels become?
+- You can do the same logic for planet map as subplanet maps
+- Travel across the planet to get to a lab, in the lab you do an experiment. The experiment unlocks a ship upgrade. Shortcut unlocks when you reach the end
+- Does the whole map fit on one screen? Would make it more manageable
+- Npcs along path with dialogue
 
-
-7. Audio
-
-8. Art
+Linear planet - forest
+Quad - desert
+Chain rule - pink snow

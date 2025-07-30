@@ -11,6 +11,15 @@
 const CANVAS_WIDTH = 1600
 const CANVAS_HEIGHT = 900
 
+const ALL_BLOCKS = [
+    new MathBlock({type:MathBlock.CONSTANT}),
+    new MathBlock({type:MathBlock.VARIABLE, token:'x'}),
+    new MathBlock({type:MathBlock.FUNCTION, token:'sin'}),
+    new MathBlock({type:MathBlock.EXPONENT}),
+    new MathBlock({type:MathBlock.POWER, token:'2'}),
+    new MathBlock({type:MathBlock.BIN_OP, token:'+'}),
+    new MathBlock({type:MathBlock.BIN_OP, token:'*'}),
+]
 
 
 /**
@@ -193,10 +202,10 @@ function rngLevel(gameState) {
     const funRight = new FunctionTracer({grid:gridRight})
 
 
-    const math_blocks = []
-    for (let i = 0; i < blocks.length; i++) {
-        math_blocks.push(new MathBlock({type:blocks[i][0], token:blocks[i][1], originX:1300, originY:150 + 100 * i}))
-    }
+    const math_blocks = ALL_BLOCKS
+    // for (let i = 0; i < blocks.length; i++) {
+    //     math_blocks.push(new MathBlock({type:blocks[i][0], token:blocks[i][1], originX:1300, originY:150 + 100 * i}))
+    // }
     const mngr = new MathBlockManager({blocks:math_blocks, originX:600, originY:320,
         translateYSlider:tySlider, scaleYSlider:sySlider,
         outputType: "funTracer", funTracer: funRight
@@ -517,7 +526,8 @@ function experimentTrial(gameState, exitTo, solution){
     backButton.lineWidth = 5
 
     var showExp = true
-    const showExpButton = new Button({originX:800, originY:50, width:50, height:50, onclick:(() => showExp = !showExp), label:"↔"})
+    const showExpButton = new Button({originX:800, originY:50, width:200, height:50, fontSize:16,
+        onclick:(() => showExp = !showExp), label:"Show/hide experiment"})
     showExpButton.lineWidth = 5
     
     var functionSolved = false
@@ -528,34 +538,32 @@ function experimentTrial(gameState, exitTo, solution){
     const padBottom = 100
     const gridSize = 10
     const gridY = CANVAS_HEIGHT-padBottom-gridDim
-    const gridLeft = new Grid(padLeft, gridY, gridDim, gridDim, gridSize, gridSize, 5, 10, 0, labels=true)
-    gridLeft.arrows = true
-    const gridRight = new Grid(padLeft+gridDim+100, gridY, gridDim, gridDim, gridSize, gridSize, 5, 5, 0, labels=true)
-    gridRight.arrows = true
-    const tySlider = new Slider(1100, gridY, 400, 4, 0, 4, 0.1, true, true)
-    const sySlider = new Slider(1200, gridY, 400, 8, 1, 4, 0.1, true, true)
-    const math_blocks = [
-        new MathBlock({type:MathBlock.CONSTANT,token:"0"  ,originX:1300,originY:100}),
-        new MathBlock({type:MathBlock.VARIABLE,token:"x"  ,originX:1300,originY:170}),
-        new MathBlock({type:MathBlock.POWER   ,token:"2"  ,originX:1300,originY:240}),
-        new MathBlock({type:MathBlock.EXPONENT,token:"e"  ,originX:1300,originY:340}),
-        new MathBlock({type:MathBlock.FUNCTION,token:"sin",originX:1300,originY:440}),
-        new MathBlock({type:MathBlock.BIN_OP  ,token:"+"  ,originX:1300,originY:540}),
-        new MathBlock({type:MathBlock.BIN_OP  ,token:"*"  ,originX:1300,originY:640}),
-    ]
-    const adder = new TargetAdder(gridLeft)
-    const funLeft = new FunctionTracer(gridLeft)
-    const funRight = new FunctionTracer(gridRight)
-    const mngr = new MathBlockManager({blocks:math_blocks, originX:100, originY:300,
+    const gridLeft = new Grid({canvasX:100, canvasY:400, canvasWidth:400, canvasHeight:400, 
+        gridXMin:0, gridXMax:10, gridYMin:0, gridYMax:10, labels:true})
+    const gridRight = new Grid({canvasX:600, canvasY:400, cavnasWidth:400, canvasHeight:400,
+        gridXMin:0, gridXMax:10, gridYMin:0, gridYMax:10, labels:true})
+    const sySlider = new Slider({canvasX: 1100, canvasY:400, canvasLength:400, sliderLength:4, maxValue:4})
+    const tySlider = new Slider({canvasX: 1200, canvasY:400, canvasLength:400, sliderLength:4, maxValue:4})
+    const math_blocks = ALL_BLOCKS
+    const adder = new TargetAdder({grid:gridLeft})
+    const funLeft = new FunctionTracer({grid:gridLeft})
+    const funRight = new FunctionTracer({grid:gridRight})
+    const mngr = new MathBlockManager({
+        blocks:math_blocks, originX:100, originY:300,
         translateYSlider:tySlider, scaleYSlider:sySlider,
-        type: "fun_tracer", funTracer: funLeft })
+        type: "fun_tracer", funTracer: funLeft, 
+        blockFields: [
+            new MathBlockField({minX:100, minY:200, maxX:500, maxY:300}),
+            new MathBlockField({minX:600, minY:200, maxX:1000, maxY:300})
+        ] 
+    })
 
    
 
     const bgImage = {
         update: function(ctx){
             const image = document.getElementById("quad_img")
-            ctx.drawImage(image, 0,0,1600*600/900,900, 600, 200, 950, 600)
+            ctx.drawImage(image, 0,0, 1600*600/900,900, 600, 300, 950, 600)
         }
     }
 
@@ -573,11 +581,19 @@ function experimentTrial(gameState, exitTo, solution){
             ctx.fillRect(this.originX - width + (solution.function(time) * maxDist/maxTime), this.originY, 100, 100)
         }
     }
-    const tSlider = new Slider(750,850,600,10,0,0,0.1,true,false,10)
-    tSlider.showAxis = false
-    const timeLabel = new TextBox(650,850,"",'20px monospace')
-    const playPauseButton = new Button({originX:1450,originY:820,width:50,height:50,onclick:()=>{playing=!playing; startTime= Date.now()}, label:">"}) 
-    playPauseButton.lineWidth = 5
+    const tSlider = new Slider({canvasX:750,canvasY:150,canvasLength:600,sliderLength:10, maxValue:10, vertical:false, showAxis:true})
+    const timeLabel = new TextBox({originX:650,originY:150, font:'20px monospace'})
+    const playPauseButton = new Button({originX:1450,originY:820,width:50,height:50,
+        onclick:()=>{
+            playing = !playing;
+            if (playing){
+                startTime = Date.now();
+                time = 0;
+                tSlider.setValue(0)
+            }
+        },
+        label:">", lineWidth:5
+    }) 
 
     const numberLine = {
         update: function(ctx){
@@ -591,7 +607,7 @@ function experimentTrial(gameState, exitTo, solution){
             Shapes.RoundedLine(ctx, originX, originY, originX + length, originY, lineWidth)
 
             ctx.font = '20px monospace'
-            ctx.textAlign = 'left'
+            ctx.textAlign = 'center'
             ctx.textBaseline = 'top'
             ctx.fillText('Position = ' + solution.function(time).toFixed(1), turtle.originX, turtle.originY -100)
             
@@ -624,7 +640,7 @@ function experimentTrial(gameState, exitTo, solution){
 
     const mainObjs = [backButton, gridLeft, showExpButton, text, adder]
     const gridObjs = [gridRight,mngr, funLeft, funRight, tySlider, sySlider]
-    const expObjs = [bgImage, tSlider, tSlider, timeLabel, turtle, playPauseButton, numberLine]
+    const expObjs = [bgImage, tSlider, timeLabel, turtle, playPauseButton, numberLine]
     gameState.update = () => {
         if (showExp){
             adder.active = true
@@ -632,32 +648,33 @@ function experimentTrial(gameState, exitTo, solution){
                 time = (Date.now() - startTime)/1000 // time in secs to 1 decimal
                 if (time >= maxTime){
                     time = maxTime
-                    playing = false 
+                    playing = false
                 }
-                tSlider.setValue(time)
+                tSlider.moveToValue(time)
             }else{
                 time = tSlider.value
             }
             gameState.objects = mainObjs.concat(expObjs) 
             timeLabel.content = "t = " + time.toFixed(1)
         }else{
+            playing = false
             funLeft.targets = adder.targets
             adder.active = false
             gameState.objects = mainObjs.concat(gridObjs)
-            if (!functionSolved){
-                if (mngr.checkFunctionEquals(solution.function)){
-                    functionSolved = true
-                    const fBlock = mngr.fieldBlock
-                    gridObjs.push(fBlock)
-                    mngr.reset()
-                    mngr.output =  { type: "fun_tracer", fun_tracer: funRight }
-                    mngr.originX = 600
-                }
-            }else{
-                if (mngr.checkFunctionEquals(solution.derivative)){
-                    derivativeSolved = true
-                }
-            }
+            // if (!functionSolved){
+            //     if (mngr.checkFunctionEquals(solution.function)){
+            //         functionSolved = true
+            //         const fBlock = mngr.fieldBlock
+            //         gridObjs.push(fBlock)
+            //         mngr.reset()
+            //         mngr.output =  { type: "fun_tracer", fun_tracer: funRight }
+            //         mngr.originX = 600
+            //     }
+            // }else{
+            //     if (mngr.checkFunctionEquals(solution.derivative)){
+            //         derivativeSolved = true
+            //     }
+            // }
         }
     }
 
@@ -674,14 +691,16 @@ function experimentMenu(gameState, exitTo){
 
     for (let i = 0; i < 10; i++){
         if (PLANET_DATA[planetIndex].trials.length <= i) break
-        const button = new Button({originX:200,originY:150+i*60,width:100, height:50, onclick:(() => loadScene(gameState,PLANET_DATA[planetIndex].trials[i])), label:i+1})
+        const button = new Button({originX:200,originY:150+i*60,width:100, height:50,
+            onclick:(() => loadScene(gameState,PLANET_DATA[planetIndex].trials[i])), label:i+1})
         button.lineWidth = 5
         if (completedTrials < i){
             button.active = false
         }
         trialButtons.push(button)
     }
-    const ruleButton = new Button({originX:200,originY:780,width:100,height:50, onclick:(() => loadScene(gameState,exitTo)),label:"Rule"})
+    const ruleButton = new Button({originX:200,originY:780,width:100,height:50,
+        onclick:(() => loadScene(gameState,exitTo)),label:"Rule"})
     ruleButton.lineWidth = 5
     const table = {
         update: function(ctx){
@@ -1289,15 +1308,19 @@ function loadScene(gameState, sceneName, clearTemp = true) {
             const door_button = new Button({originX:1160, originY:460, width:100, height:150, onclick:(() => { loadScene(gameState,"ship") }), label:""})
             door_button.visible = false
             
-            const puzzleButton = new Button({originX:400, originY:400, width:150, height:100, onclick:(() => { loadScene(gameState, "intro") }), label:"Puzzles"})
-            const experimentButton = new Button({originX:400, originY:600, width:200, height:100, 
+            const puzzleButton = new Button({originX:200, originY:400, width:150, height:100, onclick:(() => { loadScene(gameState, "intro") }), label:"Puzzles"})
+            const experimentButton = new Button({originX:400, originY:400, width:250, height:100, 
                 onclick:(() => { loadScene(gameState, "linearExperiment") }), label: "Experiment"})
 
             gameState.objects = [
                 new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
                 new ImageObject(1000, 250, 400, 500, "ship_img"),
-                //new TextBox({originX:200, originY:150, content: "1. Linear", font : "60px monospace", color : Color.black}),
-                puzzleButton, experimentButton, door_button
+                new TextBox({originX:200, originY:100, content: "Linear Planet", font : "60px monospace", color : Color.black}),
+                puzzleButton, experimentButton, door_button,
+                new Button({originX:200, originY:600, width:100, height:100, 
+                    onclick:(() => { loadScene(gameState, "linearRule") }),
+                    label: "Rule"
+                }),
             ]
             break
         }
@@ -1480,6 +1503,35 @@ function loadScene(gameState, sceneName, clearTemp = true) {
             experimentTrial(gameState, "linearExperiment", {function: x=>0.5*x,derivative:x=>0.5})
             break
         }
+
+        case "linearRule":{
+            const constants = [new MathBlock({type:MathBlock.VARIABLE, token:"a"}),new MathBlock({type:MathBlock.VARIABLE, token:"b"})]
+            const blocks = constants.concat(ALL_BLOCKS)
+            const sySlider = new Slider({canvasX: 1200, canvasY: 200, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
+            const tySlider = new Slider({canvasX: 1300, canvasY: 200, maxValue:5, sliderLength:10, showAxis:true})
+            const mbm = new MathBlockManager({blocks : blocks, originX: 700, originY:160, outputType:"none",
+                scaleYSlider: sySlider, translateYSlider:tySlider,
+            })
+            const targetBlock = new MathBlock({type: MathBlock.BIN_OP, token:"+", originX: 200, originY: 150})
+            const multBlock = new MathBlock({type: MathBlock.BIN_OP, token:"*"})
+            multBlock.setChild(0, new MathBlock({type: MathBlock.VARIABLE, token:"a"})) 
+            multBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"x"})) 
+            targetBlock.setChild(0, multBlock) 
+            targetBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"b"})) 
+            gameState.objects = [
+                new TextBox({originX: 50, originY:200, content:'f(x) =', font:'40px monospace'}),
+                new TextBox({originX: 500, originY:200, content:'f\'(x) =', font:'40px monospace'}),
+                new Button({originX:50, originY:50, width:50, height:50,
+                    onclick:(() => loadScene(gameState,"introDoor")),
+                    label:"↑", lineWidth:5}),
+                sySlider, tySlider, mbm, targetBlock
+                
+            ]
+            gameState.update = () => { }
+            break
+        }
+
+        
 
         //------------------------------------------------------------------------------------------------------
         // Quadratic Planet

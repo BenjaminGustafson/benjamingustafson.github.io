@@ -8,7 +8,7 @@ class TextBox{
 
     constructor({
         originX,originY,
-        content,
+        content="",
         font='40px sans-serif',
         color=Color.white,
         align='start',

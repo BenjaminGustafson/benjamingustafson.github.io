@@ -18,9 +18,8 @@ class Slider{
     constructor({
         canvasX, canvasY,
         grid, gridPos,
-        minValue, maxValue,
+        minValue, maxValue, sliderLength,
         canvasLength = 400,
-        sliderLength = 4,
         startValue = 0,
         increment = 0.1,
         circleRadius=15,
@@ -31,7 +30,7 @@ class Slider{
         lineWidth = 5
     }){
         Object.assign(this, {
-            canvasLength, sliderLength, startValue, increment, circleRadius,
+            canvasLength, sliderLength, minValue, maxValue, startValue, increment, circleRadius,
             vertical, showLines, showAxis, circleColor, lineWidth  
         })
 
@@ -39,15 +38,19 @@ class Slider{
             this.canvasX = canvasX
             this.canvasY = canvasY
 
-            if (maxValue != null){
-                this.maxValue = maxValue
+            if (sliderLength == null && maxValue != null && minValue != null){
+                this.sliderLength = maxValue - minValue
+            }else if (sliderLength != null && maxValue != null && minValue == null){
                 this.minValue = maxValue - sliderLength
-            }else if (minValue != null){
-                this.minValue = minValue
+            }else if (sliderLength != null && maxValue == null && minValue != null){
                 this.maxValue = minValue + sliderLength
-            }else { // default to center slider
+            }else if (sliderLength != null){
                 this.minValue = - Math.floor(sliderLength/2)
                 this.maxValue = Math.ceil(sliderLength/2)
+            } else {
+                this.minValue = 0
+                this.maxValue = 1
+                this.sliderLength = 1
             }
     
         }else if (grid != null && gridPos != null){
@@ -89,7 +92,7 @@ class Slider{
 
         this.baseCircleColor = this.circleColor
 
-        this.updateCircle()
+        this.circlePos = this.valueToCanvas(this.value) 
     }
 
     valueToCanvas(val){
@@ -104,46 +107,41 @@ class Slider{
         if (this.vertical){
             return - (cVal-this.canvasY) / this.unitLength + this.maxValue
         }else {
-            return (cVal - this.canvasY) / this.unitLength + this.minValue
+            return (cVal - this.canvasX) / this.unitLength + this.minValue
         }
     }
 
-    /**
-     * Given a canvas value returns a valid slider value.
-     * 
-     * @param {number} cVal - the canvas value (y for vertical, x for horizontal)
-     * @returns - the slider value
-     */
-    canvasToValueBounded(cVal){
-        var value = this.canvasToValue(cVal)
-        value = Math.min(this.maxValue, Math.max(this.minValue, value)) 
-        value = Math.round(value/this.increment)*this.increment
-        return value
+    gaurdValue(val){
+        val = Math.min(this.maxValue, Math.max(this.minValue, val)) 
+        val = Math.round(val/this.increment)*this.increment
+        return val
     }
 
-    updateCircle(){
+    /**
+     * Set the slider's actual value.
+     * If the value is not the mouseValue, the slider will move 
+     * to the mouse value.
+     */
+    setValueInternal(val){
+        this.value = this.gaurdValue(val)
         this.circlePos = this.valueToCanvas(this.value) 
     }
 
     /**
-     * Guarded function to set the value of the slider.
-     * @param {number} val 
+     * Set the value by moving the slider to the value.
+     * Takes time and plays sound.
      */
-    #updateValue(val){
-        if (val < this.minValue) val = this.minValue
-        if (val > this.maxValue) val = this.maxValue
-        val = Math.round(val/this.increment)*this.increment
-        this.value = val
-        this.updateCircle()
+    moveToValue(val){
+        this.mouseValue = this.gaurdValue(val)
     }
 
     /**
-     * Public method for setting the value..
-     * @param {*} val 
+     * Immediately jump the slider to the value without 
+     * playing sound.
      */
-    setValue(val){
-        this.#updateValue(val)
-        this.mouseValue = val
+    setValue (val){
+        this.setValueInternal(val)
+        this.mouseValue = this.value
     }
 
 
@@ -167,20 +165,21 @@ class Slider{
         }
 
         if (this.grabbed){
-            this.mouseValue = this.canvasToValueBounded(this.vertical ? mouse.y : mouse.x)
+            this.mouseValue = this.gaurdValue(this.canvasToValue(this.vertical ? mouse.y : mouse.x))
             this.circleColor = Color.adjustLightness(this.baseCircleColor, -50)
             mouse.cursor =  'grabbing'
         }
 
         if (this.mouseValue != this.value){
-            const dir = this.mouseValue > this.value ? 1 : -1
-            this.#updateValue(this.value + dir*this.increment)
-            if (this.value == this.minValue || this.value == this.maxValue){
-                console.log('A')
-                audioManager.playWithPitch('click4', ((this.value-this.minValue) / this.sliderLength)*3-3)
-            }else{
-                audioManager.playWithPitch('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6)
-            }
+            const dir = (this.mouseValue > this.value ? 1 : -1)
+            this.setValueInternal(this.value + dir*this.increment)
+            audioManager.play('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6, 0.8)
+            // if (this.value%1 == 0){// == this.minValue || this.value == this.maxValue){
+            //     console.log('A')
+            //     audioManager.play('click4', ((this.value-this.minValue) / this.sliderLength)*3-3)
+            // }else {
+            //    audioManager.play('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6, 0.2)
+            //}
         }
     }
 

@@ -27,7 +27,9 @@ function setup() {
     const audioPaths = ["click_001.ogg", "click4.ogg", // slider
         "drop_002.ogg","confirmation_001.ogg",
          "glass_002.ogg", "switch1.ogg","switch9.ogg","switch6.ogg", "switch13.ogg", 'click_003.ogg', 'click2.ogg',
-        'click3.ogg'];
+        'click3.ogg',
+        'drop_003.ogg', 'drop_001.ogg', //target adder
+    ];
 
     const mouse = {
         x:0,
@@ -137,13 +139,17 @@ function setup() {
 
     canvas.addEventListener("dragstart", e => e.preventDefault());
     
-    canvas.addEventListener('mousemove', e => {
+    document.addEventListener('mousemove', e => {
         mouse.moved = true
         var rect = canvas.getBoundingClientRect();
         mouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
         mouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
     });
 
+    document.addEventListener("mouseout", (event) => {
+        mouse.held = false
+        mouse.up = true
+     })
     
 
 

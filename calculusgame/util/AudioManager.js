@@ -13,39 +13,29 @@ class AudioManager {
         this.buffers.set(name, audioBuffer);
     }
 
-    play(name) {
-        if (this.lastTimePlayed[name] != null && Date.now() - this.lastTimePlayed[name] < 35){
-            return
+
+    play(name, pitch = 0 , volume = 1.0, force = false) {
+        if (! force && (this.lastTimePlayed[name] != null && Date.now() - this.lastTimePlayed[name] < 35)) {
+            return;
         }
-        this.lastTimePlayed[name] = Date.now()
-        
+        this.lastTimePlayed[name] = Date.now();
+    
         const buffer = this.buffers.get(name);
         if (!buffer) return;
+    
         const source = this.context.createBufferSource();
         source.buffer = buffer;
-        source.connect(this.context.destination);
+        source.playbackRate.value = Math.pow(2, pitch / 12);
+    
+        const gainNode = this.context.createGain();
+        gainNode.gain.value = volume;
+    
+        source.connect(gainNode);
+        gainNode.connect(this.context.destination);
+    
         source.start(0);
     }
-
-    playWithPitch(name, semitones) {
-        if (this.lastTimePlayed[name] != null && Date.now() - this.lastTimePlayed[name] < 35){
-            return
-        }
-        this.lastTimePlayed[name] = Date.now()
-
-        const buffer = this.buffers.get(name);
-        if (!buffer) return;
-        const source = this.context.createBufferSource();
-        source.buffer = buffer;
-
-        // pitch shift in semitones: 2^(semitones / 12)
-        source.playbackRate.value = Math.pow(2, semitones / 12);
-
-        source.connect(this.context.destination);
-        source.start(0);
-
-        
-    }
+    
 
     unlock() {
         if (this.context.state === 'suspended') {

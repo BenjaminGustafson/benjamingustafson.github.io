@@ -49,19 +49,30 @@ class Grid{
         });
         // The location of the x-axis (horizontal axis), starting from 0 at the top of the grid
         this.xAxis = gridYMax
-        // Likewise the location of the y-axis, starting from 0 at the leftmost tick
+        // The location of the y-axis, starting from 0 at the leftmost tick
         this.yAxis = -gridXMin
-        this.gridWidth = gridXMax - gridXMin
-        this.gridHeight = gridYMax - gridYMin
-        // The number of pixels per grid unit on the x-axis
-        this.xScale = this.canvasWidth / this.gridWidth
-        //
-        this.yScale = this.canvasHeight / this.gridHeight
+        this.originX = canvasX
+        this.originY = canvasY // can't decide what to name var ...
 
+        this.setXBounds(gridXMin, gridXMax)
+        this.setYBounds(gridYMin, gridYMax)
         this.lineColor = Color.white
         this.bgColor = Color.black2
     }
 
+    setXBounds(xMin, xMax){
+        this.gridXMin = xMin
+        this.gridXMax = xMax
+        this.gridWidth = xMax - xMin
+        this.xScale = this.canvasWidth / this.gridWidth
+    }
+
+    setYBounds(yMin, yMax){
+        this.gridYMin = yMin
+        this.gridYMax = yMax
+        this.gridHeight = yMax - yMin
+        this.yScale = this.canvasHeight / this.gridHeight
+    }
     
     gridToCanvasX(gx){
         return this.canvasX + this.xScale * (gx - this.gridXMin)
@@ -112,7 +123,7 @@ class Grid{
     }
 
     canvasToGrid(cx, cy){
-        return {x: canvasToGridX(cx), y:canvasToGridY(cy)}
+        return {x: this.canvasToGridX(cx), y:this.canvasToGridY(cy)}
     }
 
     

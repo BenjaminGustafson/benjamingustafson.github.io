@@ -162,7 +162,7 @@ class IntegralTracer {
             this.targets.forEach(t => {
                 if (t.lineIntersect(x,y,x+1,cy) || t.pointIntersect(x,y)){
                     if (!t.hit){
-                        audioManager.playWithPitch('drop_002',this.gridYs[i]/this.grid.gridHeight*12)
+                        audioManager.play('drop_002',this.gridYs[i]/this.grid.gridHeight*12)
                     }
                     t.hit = true
                 }

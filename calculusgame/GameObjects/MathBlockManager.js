@@ -7,181 +7,219 @@
  */
 class MathBlockManager {
 
+    /**
+     * The current highlighted block (or null).
+     * Drawn in green.
+     * The sliders set the value of this block.
+     */
     highlighted = null
-    fieldBlock = null
+
+    /**
+     * The current block grabbed by the user (or null).
+     */
     grabbed = null
+
+    /**
+     * True if the grabbed block been moved.
+     */
     grabMoved = false
+
+    /**
+     * The location on the grabbed block where the mouse 
+     * picked it up.
+     */
     grabX = 0
     grabY = 0
+    
+    /**
+     * If true, all mathblock interaction stops.
+     */
     frozen = false
 
-    constructor ({blocks=[], originX, originY, translateYSlider,scaleYSlider,
-        outputType="funTracer", funTracer, attachFields =[], maxY
+    constructor ({
+        blocks, // The blocks to be supplied to the toolbar
+        translateYSlider,
+        scaleYSlider,
+        blockFields=[],
     }){
         Object.assign(this,{
-            blocks, originX, originY, translateYSlider, scaleYSlider, outputType, funTracer,
-            attachFields
+            blocks, translateYSlider, scaleYSlider, blockFields
         })
-        this.width = 400
-        this.height = 50
-        blocks.forEach(b => b.manager = this);
-        this.field_color = Color.gray
+
+        this.createToolbar(blocks, 1400, 100)
+    }
+
+    createToolbar(blocks, originX, originY){
         this.toolBar = []
-        this.blocks.forEach(b => {
-            this.toolBar.push(b)
-        })
-        this.maxY = this.originY + this.height
-    }
-
-    reset(){
-        this.blocks = this.toolBar
-        this.fieldBlock = null
-        this.highlighted = null
-    }
-
-    checkFunctionEquals(f, min=-10, max=10, step=1, precision=0.000001){
-        if (this.fieldBlock){
-            const g = this.fieldBlock.toFunction()
-            if (g){
-                for (let x = min; x < max; x+= step){
-                    if (Math.abs(g(x) - f(x)) > precision){
-                        return false
-                    }
-                }
-                return true
-            }
-            
+        for(let i = 0; i < blocks.length; i++){
+            blocks[i].originX = originX
+            blocks[i].originY = originY + i * MathBlock.BASE_HEIGHT * 2
+            blocks[i].x = blocks[i].originX
+            blocks[i].y = blocks[i].originY
+            this.toolBar.push(blocks[i])
         }
-        return false
     }
 
 
+    mouseInput(mouse, audioManager){
+        if (this.frozen){
+            return
+        }
+        
+        // A mathblock is currently grabbed
+        if (this.grabbed != null){
 
-    update(ctx, audioManager, mouse){
-        if (!this.frozen){
-           
-        if (this.grabbed != null){ // A mathblock is grabbed
-            if (mouse.held){ // The mathblock is being held 
+            // The grabbed mathblock is still held 
+            if (mouse.held){
                 mouse.cursor = 'grabbing'
 
-                if (!this.grabMoved && mouse.moved){ // The block is moved for the first time
-                    
+                // The block is moved for the first time
+                if (!this.grabMoved && mouse.moved){
                     this.grabMoved = true
-                    if (this.grabbed.parent){ // The block has a parent
+                    
+                    // Detach from parent block
+                    if (this.grabbed.parent != null){
                         this.grabbed.detachFromParent()
                     }
-                    if (this.fieldBlock == this.grabbed){
-                        this.fieldBlock = null
+                    // Detach from toolbar
+                    else if (this.grabbed.onToolBar){
+                        this.toolBar = this.toolBar.filter(o => o != this.grabbed) 
+                    } 
+                    // Detach from field 
+                    else if (this.grabbed.rootOfField != null){
+                        this.grabbed.rootOfField.rootBlock = null
                     }
-                    this.toolBar = this.toolBar.filter(o => o != this.grabbed) // remove from toolbar
                 }
 
                 // Move the block
                 this.grabbed.x = mouse.x - this.grabX
                 this.grabbed.y = mouse.y - this.grabY
 
-                if (this.fieldBlock != null){
-                    // Call check attach on blocks so they can react appropriately
-                    this.fieldBlock.checkAttach(this.grabbed.x,this.grabbed.y,this.grabbed.w,this.grabbed.h)
-                } else{
-                    // The block hovers over an empty field
-                    if (this.checkInField(this.grabbed.x,this.grabbed.y,this.grabbed.w,this.grabbed.h)){
-                        if (this.hoverField == false){
-                            audioManager.play('click3')
-                            this.hoverField = true
-                            this.field_color = Color.light_gray
-                        }
-                    }else{
-                        this.hoverField = false
-                        this.field_color = Color.gray
+                // Check if the grabbed block is hovering over something 
+                this.blockFields.forEach(field => {
+                    // Check hover over other blocks
+                    if (field.rootBlock != null){
+                        field.rootBlock.checkAttach(this.grabbed.x,this.grabbed.y,this.grabbed.w,this.grabbed.h)
+                    } 
+                    // Check hover over an empty field
+                    else {
+                        field.checkAttach(this.grabbed)
                     }
-                }
-
-            }else{ // The mathblock is let go
+                })
+            }
+            // The mathblock is let go
+            else{ 
                 const g = this.grabbed
                 this.grabbed = null
-                if (!this.grabMoved){ // The grabbed object was not moved
-                    if (!g.attached){
-                        // The block was clicked in the tool bar
-                        this.toolBar.push(g)
+                // The grabbed block was moved
+                if (this.grabMoved){
+
+                    var isAttaching = false
+
+                    // For each blockField
+                    for (let i = 0; i < this.blockFields.length; i++){
+                        const field = this.blockFields[i]
+
+                        //There is no root
+                        if (field.rootBlock == null ){
+                            // Attach to field
+                            if (field.checkAttach(g)){
+                                audioManager.play('switch9')
+                                field.rootBlock = g
+                                g.attached = true
+                                g.rootOfField = field
+                                g.x = field.minX
+                                g.y = field.minY
+                                isAttaching = true
+                                break
+                            }
+                        } 
+                        // There is a root
+                        else {
+                            const attachObj = field.rootBlock.checkAttach(g.x,g.y,g.w,g.h)
+                            // There is a block to attach to
+                            if (attachObj != null){
+                                audioManager.play('switch6')
+                                attachObj.block.setChild(attachObj.childIndex, g)
+                                isAttaching = true
+                                break
+                            }
+                        }
                     }
 
-                }else if (this.fieldBlock == null && this.checkInField(g.x, g.y, g.w, g.h)){
-                    // Attach to field
-                    audioManager.play('switch9')
-                    this.fieldBlock = g
-                    g.attached = true
-                    g.x = this.originX
-                    g.y = this.originY
-                    if (g.onToolBar){
-                        g.onToolBar = false
-                        const newG = new MathBlock({type:g.type,token:g.token,originX:g.originX,originY:g.originY})
-                        this.blocks.push(newG)
-                        this.toolBar.push(newG)
-                    }
-                    
-
-                }else if (g != this.fieldBlock){
-                    // Check if there is another block to attach to
-                    const attachObj = this.fieldBlock ? this.fieldBlock.checkAttach(g.x,g.y,g.w,g.h) : null
-                    if (attachObj != null){
-                        // The block is attaching to another block 
-                        audioManager.play('switch6')
-                        const attachBlock = attachObj.block
-                        const childIndex = attachObj.childIndex
-                        attachBlock.setChild(childIndex, g)
-                        
+                    // Found something to attach block to
+                    if (isAttaching){
                         if (g.onToolBar){
                             g.onToolBar = false
-                            const new_g = new MathBlock({type:g.type,token:g.token,originX:g.originX,originY:g.originY})
-                            this.blocks.push(new_g)
-                            this.toolBar.push(new_g)
+                            const newG = new MathBlock({type:g.type,token:g.token,originX:g.originX,originY:g.originY})
+                            //this.blocks.push(newG)
+                            this.toolBar.push(newG)
                         }
-                    }else{
-                        audioManager.play('click2')
-                        // The block is not attaching to anything
+                    }
+                    // The block is not attaching to anything
+                    else{
+                        // The block came from the toolbar: put it back
                         if(g.onToolBar){
-                            // The block came from the tool bar
                             this.toolBar.push(g)
                             g.x = g.originX
                             g.y = g.originY
-                            
+
+                        // The block did not come from the tool bar: delete it
                         }else{
-                            // The block did not come from the tool bar
-                            g.delete()
-                            this.blocks = this.blocks.filter(o => !o.deleted)
+                            audioManager.play('click2')
+                            // g.delete()
+                            // this.blocks = this.blocks.filter(o => !o.deleted)
                         }
                     }
                 }
-
             }
-        }else { // No current block grabbed
+        }
+        // No current block grabbed
+        else {
             var mouseOverBlock = null
-            var maxPriority = -1
-            // Find the block that the mouse is over with highest grab priority
-            this.blocks.forEach(b => {
-                if(b.checkGrab(mouse.x,mouse.y)){
-                    if (b.depth > maxPriority){
-                        maxPriority = b.depth
-                        mouseOverBlock = b
-                    }
+
+            // Check mouse over field blocks
+            for (let i = 0; i < this.blockFields.length; i++){
+                const field = this.blockFields[i]
+                if (field == null || field.rootBlock == null) continue
+
+                const res = field.rootBlock.checkGrabRecursive(mouse.x, mouse.y)
+                if (res != null){
+                    mouseOverBlock = res
+                    break
+                }
+            }
+
+            // Check mouse over toolbar
+            this.toolBar.forEach(block => {
+                if (block.checkGrab(mouse.x, mouse.y)){
+                    mouseOverBlock = block
                 }
             })
 
+            // Mouse is over a block
             if (mouseOverBlock != null){
-                if (mouse.down){ // Clicked on a block
+                // Clicked on a block
+                if (mouse.down){ 
                     audioManager.play('switch13')
                     this.grabbed = mouseOverBlock
+                    mouse.cursor = 'grabbing'
+
+                    // The position on the block that the mouse grabbed it from
                     this.grabX = mouse.x - this.grabbed.x
                     this.grabY = mouse.y - this.grabbed.y
-                    this.grabMoved = false //don't detach the block before it is moved
+
+                    // Prevent the block from detaching before it is moved
+                    this.grabMoved = false
                     
-                    mouse.cursor = 'grabbing'
-                    if (this.highlighted){ // Un-highlight old block
-                        this.highlighted.isHighlighted = false
-                    }
+                    // Un-highlight old block
+                    if (this.highlighted != null) this.highlighted.isHighlighted = false
+
+                    // Set new highlighted block
                     this.highlighted = this.grabbed
                     this.highlighted.isHighlighted = true
+
+                    // Set sliders to highlighted block
                     if (this.highlighted.type == MathBlock.CONSTANT){
                         this.scaleYSlider.active = false
                     }else{
@@ -189,85 +227,80 @@ class MathBlockManager {
                         this.scaleYSlider.setValue(this.highlighted.scaleY)
                     }
                     this.translateYSlider.setValue(this.highlighted.translateY)
-                }else{ // Hovering over block
+                }
+                // Hovering over block
+                else{
                     mouse.cursor = 'grab'
                 }
-
             }
         }
+    }
 
-        // Update values for highlighted block
-        if (this.highlighted != null){
+
+
+    update(ctx, audioManager, mouse){
+        // Handle mouse logic
+        this.mouseInput(mouse, audioManager)
+
+        // Update slider values for highlighted block
+        if (!this.frozen && this.highlighted != null){
             this.highlighted.translateY = this.translateYSlider.value
             this.highlighted.scaleY = this.scaleYSlider.value
         }
-        
-        
-        } // end mouse interaction logic
-        
 
+        // Update fields
+        this.blockFields.forEach(field => field.update(ctx, audioManager, mouse))
 
-
-        // Draw
-        if (this.fieldBlock){
-            this.fieldBlock.y = this.maxY - this.fieldBlock.h
-            this.fieldBlock.update(ctx, audioManager, mouse)
-            const fieldBlock_fun = this.fieldBlock.toFunction()
-            // Check that the function is not incomplete
-            if (fieldBlock_fun != null){
-                console.log(fieldBlock_fun(1))
-                if (this.outputType == "funTracer"){
-                    this.funTracer.display = true
-                    // Set the funTracer's function to the fieldblock, and use sliders for scale and translate
-                    this.funTracer.fun = fieldBlock_fun
-                }else if (this.outputType == "sliders"){
-
-                }
-            }else{
-                // Set display false so that we don't evaluate the incomplete function
-                if (this.outputType == "funTracer"){
-                    this.funTracer.display = false
-                }
-            }
-        }else{
-            // If there is no fieldblock, we cannot trace the function
-            if (this.outputType == "funTracer"){
-                this.funTracer.display = false
-            }
-            // Draw the placeholder for the block
-            Color.setColor(ctx,this.field_color)
-            Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,10,true)
-        }
-
-
+        // Update blocks in toolbar
         this.toolBar.forEach(b => b.update(ctx,audioManager,mouse))
         if (this.grabbed != null){
             this.grabbed.update(ctx,audioManager,mouse)
         }
+
+       
     }
-
-
-
-
-    checkInField(x,y,w,h){
-        return x <= this.originX + this.width && 
-               x + w >= this.originX &&
-               y <= this.originY + this.height &&
-               y + h >= this.originY
-    }
-
 
 }
 
 class MathBlockField {
 
-
     constructor({
-        minX, minY, maxX, maxY, rootBlock
+        minX, minY, maxX, maxY
     }){
+        Object.assign(this, {
+            minX, minY, maxX, maxY
+        })
+        this.rootBlock = null
+        this.width = maxX - minX
+        this.height = maxY - minY
+        this.baseColor = Color.gray
+        this.hoverColor = Color.light_gray
+        this.isHovered = false
+    }
+
+    update(ctx, audioManager, mouse){
+        if (this.rootBlock == null){
+            Color.setColor(ctx,this.isHovered ? this.hoverColor : this.baseColor)
+            Shapes.Rectangle(ctx,this.minX,this.minY,this.width,this.height,10,true)
+            this.isHovered = false
+        }else{
+            this.rootBlock.update(ctx, audioManager, mouse)
+        }
+    }
+
+
+    checkAttach(block){
+        const inBounds =  block.x <= this.maxX && 
+            block.x + block.w >= this.minX &&
+            block.y <= this.maxY &&
+            block.y + block.h >= this.minY
+        if (inBounds){
+            this.isHovered = true
+        }
+        return inBounds
     }
 
     outputFunction(){
-
+        return this.rootBlock.toFunction()
     }
 }

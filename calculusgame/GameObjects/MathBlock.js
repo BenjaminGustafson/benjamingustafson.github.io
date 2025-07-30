@@ -25,6 +25,7 @@ class MathBlock {
     scaleY = 1
     
     grabbed = false
+
     attached = false
     parent = null
     /**
@@ -33,6 +34,9 @@ class MathBlock {
      */
     selfChildIndex = null
 
+    static BASE_WIDTH = 40
+    static BASE_HEIGHT = 40
+
     base_width = 40
     base_height = 40
     fontSize = 30
@@ -40,7 +44,17 @@ class MathBlock {
     w = 50
     h = 50
 
+    /**
+     * The block is currently on the toolbar, or was just grabbed
+     * from the toolbar.
+     */
     onToolBar = true
+
+    /**
+     * The MathBlockField that the block is the root of.
+     * Or null if the block is not the root.
+     */
+    rootOfField = null
 
     attachHover = -1
     
@@ -53,7 +67,10 @@ class MathBlock {
 
     deleted = false
 
-    constructor ({type, token, originX, originY}){
+    constructor ({
+        type, token = "",
+        originX = -100, originY = -100
+    }){
         // originX, _y is where the block is spawned. x,y is where it currently is
         Object.assign(this, {type, token, originX, originY})
         this.x = originX
@@ -107,6 +124,24 @@ class MathBlock {
 
     checkGrab(x,y){
         return x >= this.x && x <= this.x + this.w && y >= this.y && y <= this.y + this.h
+    }
+
+    checkGrabRecursive(x,y)
+    {   
+        if (this.checkGrab(x,y)){
+            for (let i = 0; i < this.num_children; i++){
+                const c = this.children[i]
+                if (c == null) continue
+
+                const res = c.checkGrabRecursive(x,y)
+                if (res != null){
+                    return res
+                }
+            }
+            return this
+        }else{
+            return null 
+        }
     }
 
     /**
@@ -240,26 +275,34 @@ class MathBlock {
                 }
                 break
             case MathBlock.VARIABLE:
-                this.content = [{type:'string', string:this.prefix},{type:'string', string:this.token},{type:'string', string:this.suffix}]
+                this.content = [{type:'string', string:this.prefix + this.token + this.suffix}]
                 break
             case MathBlock.FUNCTION:{
-               
+                this.content = [
+                    {type:'string', string:this.prefix + this.token },
+                    {type:'child', childIndex:0},
+                    {type:'string', string: this.suffix}]
             }
-            case MathBlock.POWER:
-                {
- 
-                }
+            break
+            case MathBlock.POWER:{
+                this.content = [{type:'string', string:this.prefix},{type:'child', childIndex:0},{type:'string', string:'^' + this.token + this.suffix}] // todo
+            }
                 break
-                case MathBlock.EXPONENT:{
-         
-                    }
-                    break
-                case MathBlock.BIN_OP:{
-                    this.content = [{type:'child', childIndex:0},{type:'string', string:this.token},{type:'child', childIndex:1},]
-                }   
-                    break
-                default:
-                    break
+            case MathBlock.EXPONENT:{
+                this.content = [{type:'string', string:this.prefix + 'e^'},{type:'child', childIndex:0},{type:'string', string:this.suffix}]
+            }
+                break
+            case MathBlock.BIN_OP:{
+                this.content = [
+                    {type:'string', string:this.prefix + (this.prefix == '' ? '' : '(')},
+                    {type:'child', childIndex:0},
+                    {type:'string', string:this.token},
+                    {type:'child', childIndex:1},
+                    {type:'string', string: (this.prefix == '' ? '' : ')')+this.suffix},]
+            }   
+                break
+            default:
+                break
         }
         this.children.forEach( c => {
             if (c != null){
@@ -273,6 +316,9 @@ class MathBlock {
         this.deleted = true
     }
 
+    /**
+     * Recursively calls on children; only call update on root block
+     */
     update(ctx, audioManager, mouse){
        this.setContent()
        this.calculateSize(ctx)
@@ -328,16 +374,13 @@ class MathBlock {
                 }else{
                     return null
                 }
-            case MathBlock.EXPONENT:
+            case MathBlock.EXPONENT:{
                 if (this.children[0] != null && this.children[0].toFunction() != null){
-                    var tokenval = this.token
-                    if (this.token == "e"){
-                        tokenval = Math.E
-                    }
-                    return (x => (this.translateY + this.scaleY*(tokenval**this.children[0].toFunction()(x))))
+                    return (x => (this.translateY + this.scaleY*Math.pow(Math.E,(this.children[0].toFunction()(x)))))
                 }else{
                     return null
                 }
+            }
             case MathBlock.FUNCTION:
                 if (this.children[0] == null || this.children[0].toFunction() == null){
                     return null
@@ -356,9 +399,9 @@ class MathBlock {
                 }
                 switch (this.token){
                     case "+":
-                        return (x => this.children[0].toFunction()(x) + this.children[1].toFunction()(x))
+                        return x =>  this.translateY + this.scaleY*(this.children[0].toFunction()(x) + this.children[1].toFunction()(x))
                     case "*":
-                        return (x => this.children[0].toFunction()(x) * this.children[1].toFunction()(x))
+                        return x =>  this.translateY + this.scaleY*(this.children[0].toFunction()(x) * this.children[1].toFunction()(x))
                     default:
                         return null
                 }
