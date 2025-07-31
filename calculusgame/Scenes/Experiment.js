@@ -65,6 +65,25 @@ export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, so
         }
     }
 
+    const fakeTurtle = {
+        update: function (ctx){
+            const width = 80
+            var x = 0
+            if (step == 2){
+                x = turtle.originX - width + (funTracer.fun(time) * maxDist/maxTime)
+            }else if (step >= 3){
+                x = turtle.originX - width + (solutionFun(time) * maxDist/maxTime)
+                Color.setColor(ctx, Color.red)
+                const dx = funTracer.fun(time)* maxDist/maxTime
+                if (dx != 0){
+                    Shapes.Line(ctx, x+width-5, 500+width/2, x+width-5+dx, 500+width/2, 5, "arrow", 5,true)
+                }
+            }
+            Color.setColor(ctx,Color.green)
+            Shapes.Rectangle(ctx, x, 500, width,width, 10, true)
+        }
+    }
+
     // TIME CONTROLS
     const tSlider = new Slider({canvasX:920,canvasY:150,canvasLength:500,sliderLength:10, maxValue:10, vertical:false, showAxis:true})
     const timeLabel = new TextBox({originX:900,originY:80, font:'26px monospace'})
@@ -236,7 +255,7 @@ export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, so
 
     var step = 1
     const minCorrectTargets = 5
-    const SKIP_CHECKS = false
+    const SKIP_CHECKS = false // debug option
     const continueButton = new Button({originX:740, originY:50, width:100, height:60, fontSize:16,
         onclick:(() => {
             if (step == 1){
@@ -280,9 +299,9 @@ export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, so
 
     const mainObjs = [backButton, gridLeft, bgImage, tSlider, timeLabel, turtle, playPauseButton, numberLine, continueButton, errorText]
     const step1Objs = [text1, adder]
-    const step2Objs = [sySlider, tySlider, text2, funTracer, mngr]
-    const step3Objs = [sySlider, tySlider, text3, funTracer, smallGrid, smallTracer, mngr]
-    const step4Objs = [text4, funTracer, smallGrid, smallTracer]
+    const step2Objs = [sySlider, tySlider, text2, funTracer, fakeTurtle, mngr]
+    const step3Objs = [sySlider, tySlider, text3, funTracer, smallGrid, smallTracer, fakeTurtle, mngr]
+    const step4Objs = [text4, funTracer, smallGrid, smallTracer, fakeTurtle]
     gameState.objects = mainObjs.concat(step1Objs)
     gameState.update = () => {
         tSlider.active = !playing

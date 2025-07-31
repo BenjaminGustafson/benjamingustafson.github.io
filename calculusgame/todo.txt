@@ -1,25 +1,25 @@
-Split scenes into separate files
-
-
-Finishing exps
-- Issues: its too hard to tell what to do, and if you are on the right track
 
 Finishing nav
-- Generate random functions
 
+What if most of the distance is clear of asteroids, and then you have to navigate through the obstacles.
+Starting position is 0, with +-10 on either side. Target function should not exceed those bounds. But velocity function might...
+
+- Fix mathblock
+- Generate random functions
+- Have a way to view mastery
 - Grids can auto adjust y-scale (maybe as a function tracer option?)
 
-Overall navigation:
-- Overworld like mario?
-- Left to right, some forking paths
-- Isometric projection, but just 2d
-- What does ship view become? 
-- What do navigation levels become?
-- You can do the same logic for planet map as subplanet maps
-- Travel across the planet to get to a lab, in the lab you do an experiment. The experiment unlocks a ship upgrade. Shortcut unlocks when you reach the end
-- Does the whole map fit on one screen? Would make it more manageable
-- Npcs along path with dialogue
+- 
 
-Linear planet - forest
-Quad - desert
-Chain rule - pink snow
+
+
+Overworld navigation:
+- Make bg images
+- Set puzzles along path
+- Character moves along path
+- NPC dialogue
+- Navigation btw planets
+
+
+
+- Experiment has limited mathblocks available
