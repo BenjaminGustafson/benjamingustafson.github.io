@@ -1,7 +1,7 @@
 /**
  * A class for handling colors. All UI elements should use the given color palette.
  */
-class Color {
+export class Color {
     constructor(r, g, b){
         this.r = r;
         this.g = g;

@@ -1,15 +1,15 @@
-
+import {Color} from '../util/index.js'
 /**
  * A GameObject to simplify drawing text.
  * 
  * See https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_text
  */
-class TextBox{
+export class TextBox{
 
     constructor({
         originX,originY,
         content="",
-        font='40px sans-serif',
+        font='20px monospace',
         color=Color.white,
         align='start',
         baseline='alphabetic'

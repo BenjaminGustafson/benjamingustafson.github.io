@@ -1,10 +1,11 @@
+import {Color, Shapes} from '../util/index.js'
 /**
  * A slider UI element.
  * 
  * Drawn as a line with tick marks and a circle that can be dragged along the line.
  * 
  */
-class Slider{
+export class Slider{
 
     /**
      * 
@@ -170,6 +171,18 @@ class Slider{
             mouse.cursor =  'grabbing'
         }
 
+        
+    }
+
+    update(ctx, audioManager, mouse){
+        if (this.hidden){
+            return
+        }
+
+        if (this.active){
+            this.mouseInput(audioManager, mouse)
+        }
+
         if (this.mouseValue != this.value){
             const dir = (this.mouseValue > this.value ? 1 : -1)
             this.setValueInternal(this.value + dir*this.increment)
@@ -180,16 +193,6 @@ class Slider{
             // }else {
             //    audioManager.play('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6, 0.2)
             //}
-        }
-    }
-
-    update(ctx, audioManager, mouse){
-        if (this.hidden){
-            return
-        }
-
-        if (this.active){
-            this.mouseInput(audioManager, mouse)
         }
 
         // Draw line and tick marks

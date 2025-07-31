@@ -1,7 +1,8 @@
+import {Color, Shapes} from '../util/index.js'
 /**
  * A square target that can be hit by tracers.
  */
-class Target{
+export class Target{
 
 
     constructor({

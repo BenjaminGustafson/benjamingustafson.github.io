@@ -1,10 +1,11 @@
+Split scenes into separate files
 
 
 Finishing exps
 - Issues: its too hard to tell what to do, and if you are on the right track
 
 Finishing nav
-- Generate random functions, check correctness
+- Generate random functions
 
 - Grids can auto adjust y-scale (maybe as a function tracer option?)
 

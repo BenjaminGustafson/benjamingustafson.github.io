@@ -1,10 +1,11 @@
+import {Color, Shapes} from '../util/index.js'
 /**
  * A button GameObject
  * 
  * Buttons are rectangular and have a text label.
  * 
  */
-class Button{
+export class Button{
 
     active = true
 
@@ -23,7 +24,7 @@ class Button{
         onclick = (() =>{}),
         label = "",
         color = Color.white,
-        lineWidth = 10,
+        lineWidth = 5,
         bgColor = Color.black2,
         fontSize = 30,
     }){

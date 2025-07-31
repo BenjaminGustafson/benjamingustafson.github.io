@@ -1,4 +1,4 @@
-class AudioManager {
+export class AudioManager {
     constructor() {
         this.context = new (window.AudioContext || window.webkitAudioContext)();
         this.buffers = new Map();

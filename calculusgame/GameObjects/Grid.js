@@ -1,3 +1,4 @@
+import {Color, Shapes} from '../util/index.js'
 /**
  * 
  * A Grid is a GameObject that draws a grid to the canvas.
@@ -9,7 +10,7 @@
  * 
  * Depends on Shapes.js, Color.js
  */
-class Grid{
+export class Grid{
 
     /**
      * Grid constructor

@@ -1,5 +1,8 @@
-/**
- * 
+import {Color, AudioManager} from './util/index.js'
+import {loadScene} from './Scene.js'
+
+/** 
+ * Main.js: the main script
  *  The game state is:
  *    - the current scene number
  *    - the game objects in that scene
@@ -17,7 +20,8 @@ const build = "dev"
 // = "dev" c key clears local storage, s key sets solved
 // = "play" no console logs, no dev tools
 // = ""
-keysPressed = {}
+var keysPressed = {}
+
 function setup() {
     "use strict";
 

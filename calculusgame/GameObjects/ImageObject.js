@@ -1,4 +1,4 @@
-class ImageObject{
+export class ImageObject{
 
     constructor(originX,originY,width,height, id){
         this.originX = originX

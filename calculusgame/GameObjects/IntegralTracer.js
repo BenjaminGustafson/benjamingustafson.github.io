@@ -1,3 +1,4 @@
+import {Color, Shapes} from '../util/index.js'
 /**
  * 
  * Traces the numeric integral of a given input
@@ -7,7 +8,7 @@
  * Depends on: Color.js, Shapes.js, Grid.js
  */
 
-class IntegralTracer {
+export class IntegralTracer {
     
 
     /**

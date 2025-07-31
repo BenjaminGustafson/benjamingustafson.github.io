@@ -1,3 +1,5 @@
+import {Color, Shapes} from '../util/index.js'
+import { MathBlock } from './MathBlock.js'
 /**
  * 
  * The manager handles how mathblocks attach to each other.
@@ -5,7 +7,7 @@
  * can attach to.
  * 
  */
-class MathBlockManager {
+export class MathBlockManager {
 
     /**
      * The current highlighted block (or null).
@@ -41,21 +43,27 @@ class MathBlockManager {
         translateYSlider,
         scaleYSlider,
         blockFields=[],
+        funTracers = [],
+        toolBarX = 1400,
+        toolBarY = 100,
+        blockSize = 40,
     }){
         Object.assign(this,{
-            blocks, translateYSlider, scaleYSlider, blockFields
+            blocks, translateYSlider, scaleYSlider, blockFields, toolBarX,
+            toolBarY, blockSize, funTracers
         })
 
-        this.createToolbar(blocks, 1400, 100)
+        this.createToolbar(blocks, toolBarX, toolBarY)
     }
 
     createToolbar(blocks, originX, originY){
         this.toolBar = []
         for(let i = 0; i < blocks.length; i++){
             blocks[i].originX = originX
-            blocks[i].originY = originY + i * MathBlock.BASE_HEIGHT * 2
+            blocks[i].originY = originY + i * (this.blockSize * 2 + 5)
             blocks[i].x = blocks[i].originX
             blocks[i].y = blocks[i].originY
+            blocks[i].baseSize = this.blockSize
             this.toolBar.push(blocks[i])
         }
     }
@@ -151,7 +159,7 @@ class MathBlockManager {
                     if (isAttaching){
                         if (g.onToolBar){
                             g.onToolBar = false
-                            const newG = new MathBlock({type:g.type,token:g.token,originX:g.originX,originY:g.originY})
+                            const newG = new MathBlock({type:g.type,token:g.token,originX:g.originX,originY:g.originY,baseSize:this.blockSize})
                             //this.blocks.push(newG)
                             this.toolBar.push(newG)
                         }
@@ -257,12 +265,23 @@ class MathBlockManager {
             this.grabbed.update(ctx,audioManager,mouse)
         }
 
+        // Update outputs
+        for (let i = 0; i < this.funTracers.length; i++){
+            console.log(i, this.blockFields[i].outputFunction()(0))
+            this.funTracers[i].fun = this.blockFields[i].outputFunction()   
+        }
        
+    }
+
+    reset(){
+        this.grabbed = null
+        this.highlighted = null
+        this.blockFields.forEach(f => f.rootBlock = null)
     }
 
 }
 
-class MathBlockField {
+export class MathBlockField {
 
     constructor({
         minX, minY, maxX, maxY
@@ -301,6 +320,9 @@ class MathBlockField {
     }
 
     outputFunction(){
-        return this.rootBlock.toFunction()
+        if (this.rootBlock == null) return x => 0
+        const fun = this.rootBlock.toFunction()
+        if (fun == null) return x => 0
+        return fun
     }
 }

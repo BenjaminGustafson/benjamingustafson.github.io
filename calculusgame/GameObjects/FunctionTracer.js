@@ -1,3 +1,4 @@
+import {Color} from '../util/index.js'
 /**
  * Traces a given function onto a grid
  * 
@@ -5,7 +6,7 @@
  *
  */
 
-class FunctionTracer {
+export class FunctionTracer {
     
 
     constructor({

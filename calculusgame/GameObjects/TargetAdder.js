@@ -1,5 +1,7 @@
+import {Color, Shapes} from '../util/index.js'
+import { Target } from './Target.js'
 
-class TargetAdder{
+export class TargetAdder{
 
 
     constructor({

@@ -1,3 +1,4 @@
+import {Color, Shapes} from '../util/index.js'
 
 /**
  * 
@@ -9,7 +10,7 @@
  */
 
 
-class MathBlock {
+export class MathBlock {
 
     static VARIABLE = 0 // m x +b
     static POWER = 1    // m []^2 +b
@@ -34,12 +35,6 @@ class MathBlock {
      */
     selfChildIndex = null
 
-    static BASE_WIDTH = 40
-    static BASE_HEIGHT = 40
-
-    base_width = 40
-    base_height = 40
-    fontSize = 30
     padding = 7
     w = 50
     h = 50
@@ -69,10 +64,11 @@ class MathBlock {
 
     constructor ({
         type, token = "",
-        originX = -100, originY = -100
+        originX = -100, originY = -100,
+        baseSize = 40,
     }){
         // originX, _y is where the block is spawned. x,y is where it currently is
-        Object.assign(this, {type, token, originX, originY})
+        Object.assign(this, {type, token, originX, originY, baseSize})
         this.x = originX
         this.y = originY
         switch (type){
@@ -185,9 +181,9 @@ class MathBlock {
     }
 
     calculateSize(ctx){
-        ctx.font = this.fontSize+"px monospace"
+        ctx.font = this.baseSize+"px monospace"
         this.w = this.padding
-        this.h = this.padding * 2 + this.fontSize
+        this.h = this.padding * 2 + this.baseSize
         this.content.forEach( obj => {
             if (obj.type == 'string'  && obj.string.length > 0){
                 this.w += ctx.measureText(obj.string).width + this.padding 
@@ -198,15 +194,15 @@ class MathBlock {
                     this.w += child.w + this.padding
                     this.h = Math.max(this.h, child.h + this.padding*2)
                 }else{ // Attach square
-                    this.w += this.base_width + this.padding
-                    this.h = Math.max(this.h, this.base_height + this.padding * 2)
+                    this.w += this.baseSize + this.padding
+                    this.h = Math.max(this.h, this.baseSize + this.padding * 2)
                 }
             }
         })
     }
 
     draw(ctx){
-        ctx.font = this.fontSize+"px monospace"
+        ctx.font = this.baseSize+"px monospace"
         ctx.textBaseline = 'middle'
         ctx.textAlign = 'left'
 
@@ -235,10 +231,10 @@ class MathBlock {
                     }else{
                         Color.setColor(ctx, Color.gray)
                     }
-                    const square = {x: contentX, y: middleY - this.base_height/2, w: this.base_width, h:this.base_height}
+                    const square = {x: contentX, y: middleY - this.baseSize/2, w: this.baseSize, h:this.baseSize}
                     this.attachSquares[obj.childIndex] = square
                     Shapes.Rectangle(ctx, square.x, square.y, square.w, square.h, this.lineWidth, true)
-                    contentX += this.base_width + this.padding
+                    contentX += this.baseSize + this.padding
                 }
             }
         })

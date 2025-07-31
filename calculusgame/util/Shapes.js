@@ -2,7 +2,7 @@
 /**
  * Extra drawing methods for commonly used shapes.
  */
-class Shapes {
+export class Shapes {
     
     /**
      * TODO: Could you not just use the built in endCap? There's no arrow option, so whats 
