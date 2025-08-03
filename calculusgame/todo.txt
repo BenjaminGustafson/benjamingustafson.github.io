@@ -1,16 +1,53 @@
 
+Overworld 
+- Fix puzzle progress
+- Ship locked
+- Puzzles locked
+- NPC dialogue
+- Lab progress
+- Planet map
+
+
+3 days - Overworld. Day 1: put buttons on map. Make planet map. Day 2. Track progress lock things Day 3. Same as 2
+1 day - Asteroids
+1 day - derivative arrows, time permetting better experiment graphic (with a train maybe)
+1 day - rule solver
+
+--------------------
+Essential:
+- Overworld - hard - includes planet map and navigation logic
+- Asteroids medium
+- Derivative arrows (experiment step) medium
+- Rule solver
+
+Overworld: not including map creation, just getting all of the logic 
+
+Optional
+- Drawing puzzles - easy
+- Sandbox mode: set f(x) and f'(x) - easy
+- NPC dialogue - medium
+- Alien language - hard
+- PC in overworld - easy
+- Dropshadows easy
+- Screen transitions - medium
+- UI element borders - easy
+- Mathblock destructive - medium
+
+----------------------------
+
+
+
+
+
+
 Finishing nav
 
-What if most of the distance is clear of asteroids, and then you have to navigate through the obstacles.
-Starting position is 0, with +-10 on either side. Target function should not exceed those bounds. But velocity function might...
+- Add asteroid viewer box with ship
+- Generate asteroid locations from function, plot on left grid (if nothing else just for debug)
+- Show asteroids on viewer as function traces
+- Show ship moving on viewer as function traces
 
-- Fix mathblock
-- Generate random functions
-- Have a way to view mastery
-- Grids can auto adjust y-scale (maybe as a function tracer option?)
-
-- 
-
+- Don't always have to animate on reload, like on strikeout
 
 
 Overworld navigation:
@@ -20,6 +57,56 @@ Overworld navigation:
 - NPC dialogue
 - Navigation btw planets
 
+- Have a way to view mastery
 
-
+Experiment:
 - Experiment has limited mathblocks available
+
+- Experiment ddx step would be better if there were targets
+    Have a 2 grid view where sliders on the right set arrows coming from the 
+    measurements on the left.
+    This becomes step 2
+    Then step 3 is guess the function of p(t)
+    And step 4 is to guess the function of v(t)
+
+
+
+
+BUGS / Issues:
+
+- sin( e^x ), sin( any large function ) becomes a hash,
+     solution: detect these functions and remove targets in affected range
+     solution 2: do not allow sine ( any value over 1000 ) 
+     solution 3: tall targets - for sine ( f(x) ) if |ddx f(x)| > 10, make the targets cover the affected range...
+     Make the targets tall enough to connect from previous to next...
+     If it is just sine that has this issue, it should be solveable since -1 < sine < 1
+     
+
+
+
+Other UI elements list:
+
+- Rule mode for mathblocks: rather than constructing mathblock functions, start with the f(x) and
+    apply rules until you get to f'(x). There would be a toggle next to the toolbar that switches to 
+    rules. You click on the rule and then the block you want to apply it to. There could be some sort of 
+    coloring that helps you keep track of which blocks you have ddxed so far.
+
+- Draw mode for puzzles: Allows you to set a lot of slider-like objects easily. Rather than using Slider
+    just make a new object that attaches to the grid and draws the circles or squares. The y would be set 
+    for each x whenever the mouse is down and over the grid. Like if (mouse is down and over grid) set grid x = y
+
+
+
+Quality of life improvements:
+
+- Integral tracer starts at first point on grid (improves qol since an incorrect function is more likely to be visible)
+- Mathblocks can attach as parents
+- Mathblocks auto fill with x's (when there is no child)
+- Click on a block to copy its scale and translate?
+- Or just give a copy paste ability...
+
+UI / UX
+Try different UI styles
+Pixel art could be done. Could also continue with vector art
+
+Keyboard controls for accessibility

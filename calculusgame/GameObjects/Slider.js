@@ -27,7 +27,7 @@ export class Slider{
         vertical = true,
         showLines = true, 
         showAxis = false,
-        circleColor = Color.red,
+        circleColor = new Color(255,20,0),//Color.red,
         lineWidth = 5
     }){
         Object.assign(this, {
@@ -239,11 +239,15 @@ export class Slider{
 
         // Draw slider handle (circle)
         Color.setColor(ctx, this.active ? this.circleColor : Color.gray)
-        if (this.vertical){
-            Shapes.Circle(ctx, this.canvasX, this.circlePos, this.circleRadius)
-        }else{
-            Shapes.Circle(ctx, this.circlePos, this.canvasY, this.circleRadius)
-        }
+        Shapes.Circle({
+            ctx:ctx,
+            centerX: this.vertical ? this.canvasX : this.circlePos,
+            centerY: this.vertical ? this.circlePos : this.canvasY,
+            radius:this.circleRadius,
+            inset:true,
+            shadow:this.grabbed, 
+        })
+
         
     }
 

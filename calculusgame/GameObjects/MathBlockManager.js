@@ -53,12 +53,16 @@ export class MathBlockManager {
             toolBarY, blockSize, funTracers
         })
 
+
+
         this.createToolbar(blocks, toolBarX, toolBarY)
+
     }
 
     createToolbar(blocks, originX, originY){
         this.toolBar = []
         for(let i = 0; i < blocks.length; i++){
+            blocks[i].onToolBar = true
             blocks[i].originX = originX
             blocks[i].originY = originY + i * (this.blockSize * 2 + 5)
             blocks[i].x = blocks[i].originX
@@ -118,6 +122,7 @@ export class MathBlockManager {
             // The mathblock is let go
             else{ 
                 const g = this.grabbed
+                this.grabbed.grabbed = false
                 this.grabbed = null
                 // The grabbed block was moved
                 if (this.grabMoved){
@@ -161,6 +166,7 @@ export class MathBlockManager {
                             g.onToolBar = false
                             const newG = new MathBlock({type:g.type,token:g.token,originX:g.originX,originY:g.originY,baseSize:this.blockSize})
                             //this.blocks.push(newG)
+                            newG.onToolBar = true
                             this.toolBar.push(newG)
                         }
                     }
@@ -175,6 +181,7 @@ export class MathBlockManager {
                         // The block did not come from the tool bar: delete it
                         }else{
                             audioManager.play('click2')
+                            this.highlighted = null
                             // g.delete()
                             // this.blocks = this.blocks.filter(o => !o.deleted)
                         }
@@ -211,6 +218,7 @@ export class MathBlockManager {
                 if (mouse.down){ 
                     audioManager.play('switch13')
                     this.grabbed = mouseOverBlock
+                    this.grabbed.grabbed = true
                     mouse.cursor = 'grabbing'
 
                     // The position on the block that the mouse grabbed it from
@@ -227,11 +235,9 @@ export class MathBlockManager {
                     this.highlighted = this.grabbed
                     this.highlighted.isHighlighted = true
 
+
                     // Set sliders to highlighted block
-                    if (this.highlighted.type == MathBlock.CONSTANT){
-                        this.scaleYSlider.active = false
-                    }else{
-                        this.scaleYSlider.active = true
+                    if (this.highlighted.type != MathBlock.CONSTANT){
                         this.scaleYSlider.setValue(this.highlighted.scaleY)
                     }
                     this.translateYSlider.setValue(this.highlighted.translateY)
@@ -252,8 +258,13 @@ export class MathBlockManager {
 
         // Update slider values for highlighted block
         if (!this.frozen && this.highlighted != null){
+            this.scaleYSlider.active = this.highlighted.type != MathBlock.CONSTANT
+            this.translateYSlider.active = true
             this.highlighted.translateY = this.translateYSlider.value
             this.highlighted.scaleY = this.scaleYSlider.value
+        }else{
+            this.scaleYSlider.active = false
+            this.translateYSlider.active = false
         }
 
         // Update fields
@@ -267,7 +278,6 @@ export class MathBlockManager {
 
         // Update outputs
         for (let i = 0; i < this.funTracers.length; i++){
-            console.log(i, this.blockFields[i].outputFunction()(0))
             this.funTracers[i].fun = this.blockFields[i].outputFunction()   
         }
        
@@ -293,14 +303,14 @@ export class MathBlockField {
         this.width = maxX - minX
         this.height = maxY - minY
         this.baseColor = Color.gray
-        this.hoverColor = Color.light_gray
+        this.hoverColor = Color.lightGray
         this.isHovered = false
     }
 
     update(ctx, audioManager, mouse){
         if (this.rootBlock == null){
             Color.setColor(ctx,this.isHovered ? this.hoverColor : this.baseColor)
-            Shapes.Rectangle(ctx,this.minX,this.minY,this.width,this.height,10,true)
+            Shapes.Rectangle({ctx:ctx,originX:this.minX,originY:this.minY,width:this.width,height:this.height,recessed:true})
             this.isHovered = false
         }else{
             this.rootBlock.update(ctx, audioManager, mouse)

@@ -29,17 +29,17 @@ export class TargetAdder{
         }
         if (this.overGrid){
             Color.setColor(ctx,Color.magenta)
-            Shapes.Rectangle(ctx,this.targetX-this.targetSize/2,this.targetY-this.targetSize/2,
-                this.targetSize,this.targetSize,this.targetSize*0.5,true)
+            Shapes.Rectangle({ctx:ctx,originX:this.targetX-this.targetSize/2,originY:this.targetY-this.targetSize/2,
+                width:this.targetSize,height:this.targetSize,fill:true, shadow:8, radius:2})
 
             ctx.font = 'bold 20px monospace'
             ctx.textAlign = 'left'
             ctx.textBaseline = 'top'
-            Color.setColor(ctx, Color.black2)
+            Color.setColor(ctx, Color.darkBlack)
             const str = '(' + this.targetGX +','+this.targetGY +')'
             const x = this.targetX+20
             const y = this.targetY-25
-            Shapes.Rectangle(ctx, x,y , ctx.measureText(str).width, 20, 5,true)
+            Shapes.Rectangle({ctx:ctx, originX:x,originY:y , width:ctx.measureText(str).width, height:20, fill:true, shadow:8})
             Color.setColor(ctx,Color.magenta)
             ctx.fillText(str, x,y)
         }

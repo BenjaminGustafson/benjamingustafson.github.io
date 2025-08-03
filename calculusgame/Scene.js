@@ -1,6 +1,6 @@
 import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox} from './GameObjects/index.js'
 import {Shapes, Color} from './util/index.js'
-import {experimentTrial, rngLevel} from './Scenes/index.js'
+import {experimentTrial, experimentMenu, rngLevel, linearPlanet, simpleDiscLevel} from './Scenes/index.js'
 
 /**
  * 
@@ -60,7 +60,7 @@ export const PLANET_DATA = [
  * @param {*} gameState the current game state
  * @returns the percent of levels complete
  */
-function planetCompletion(gameState){
+export function planetCompletion(gameState){
     const id = gameState.stored.planetIndex
     const puzzles = PLANET_DATA[id].puzzles
     const progress = gameState.stored.planetCompletedLevels[id]
@@ -93,95 +93,9 @@ function updateNavigationProgress(gameState, puzzleType, wasCorrect){
 }
 
 
-/**
- * 
- * Assuming that there is one type of puzzle for each planet,
- * gameState.stored.puzzleMastery is indexed the same as other planet arrays.
- * 
- * @param {*} gameState 
- * @returns 
- */
-function newRNGPuzzle (gameState){
-
-    const gss = gameState.stored
-
-    // Pick puzzle type so that probability of each type is proportional to (1-mastery)
-    var sum = 0
-    for (let i = 0; i <= gss.planetIndex; i++){
-        sum += 1- gss.puzzleMastery[i]
-    }
-    const randPuzzleType = Math.random()*sum
-    var puzzleType = 0
-    var sum2 = 0
-    for (let i = 0; i <= gss.planetIndex; i++){
-        sum2 += 1- gss.puzzleMastery[i]
-        if (randPuzzleType < sum2){
-            puzzleType = i
-            break
-        }
-    }
-    console.log(gss.planetIndex, sum, randPuzzleType,puzzleType)
- 
-    const puzzlePlanetName = PLANET_DATA[puzzleType].name
-    var mathBlockFun = null
-    switch (puzzlePlanetName){
-        case "Quadratic":{
-            const m = Math.floor(Math.random()*4*10)/10 
-            const b = gameState.stored.totalDistance
-            mathBlockFun = new MathBlock({type: MathBlock.POWER, token:'2',originX:100,originY:320})
-            mathBlockFun.translate_y = b
-            mathBlockFun.scale_y = m
-            mathBlockFun.children[0] = new MathBlock({type:MathBlock.VARIABLE,token: 'x',originX:0,originY:0})
-            break
-        }
-        default:
-        case "Linear":
-            const m = Math.floor(Math.random()*4*10)/10 
-            const b = gameState.stored.totalDistance
-            mathBlockFun = new MathBlock({type:MathBlock.VARIABLE, token:'x', originX:100, originY:320})
-            mathBlockFun.translate_y = b
-            mathBlockFun.scale_y = m
-        break
-    }
-    
-
-    gss.currentNavFunction = mathBlockFun
-    return mathBlockFun
-}
-
-function asteroids(gameState){
-
-}
 
 
-/**
- * A 4x4 discrete level with given targets.
- * 
- * @param {*} gameState 
- * @param {*} targetVals The y-values of the targets
- * @param {*} tracerStart y-intercept where the tracer starts from
- * @param {number} targetSize The size of the targets and sliders
- */
-function simpleDiscLevel(gameState, targetVals, tracerStart = 0, targetSize = 15, sliderSize = 15) {
-    const gridLeft = new Grid({canvasX:300, canvasY:250, canvasWidth:400, canvasHeight:400, 
-        gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:false, arrows:true})
-    const gridRight = new Grid({canvasX:900, canvasY:250, canvasWidth:400, canvasHeight:400, 
-        gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:false, arrows:true})
-    const spacing = gridLeft.gridWidth/targetVals.length
-    var sliders = []
-    for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
-        sliders.push(new Slider({grid:gridRight, gridPos:i,increment:0.1,circleRadius:sliderSize}))
-    }
-    var targets = []
-    for (let i = 0; i < targetVals.length; i++) {
-        targets.push(new Target({grid: gridLeft, gridX:gridLeft.gridXMin+(i+1)*spacing, gridY:targetVals[i], size:targetSize}))
-    }
-    const tracer = new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets, gridY:tracerStart})
-    const objs = [gridLeft, gridRight, tracer].concat(targets).concat(sliders)
-    gameState.objects = objs
-    gameState.update = () => { }
-    levelNavigation(gameState, () => tracer.solved)
-}
+
 
 /**
  * A menu that displays a set of puzzles
@@ -250,50 +164,6 @@ function puzzleMenu(gameState, menu_num, levels, exitTo) {
 
 
 
-
-function experimentMenu(gameState, exitTo){
-    const gss = gameState.stored
-    const backButton = new Button({originX:50, originY:50, width:50, height:50, onclick:(() => loadScene(gameState,exitTo)), label:"↑"})
-    backButton.lineWidth = 5
-    const trialButtons = []
-    const planetIndex = gss.planetIndex
-    const completedRule = gss.planetCompletedRule[planetIndex]
-    const completedTrials = gss.planetCompletedTrials[planetIndex]
-
-    for (let i = 0; i < 10; i++){
-        if (PLANET_DATA[planetIndex].trials.length <= i) break
-        const button = new Button({originX:200,originY:150+i*60,width:100, height:50,
-            onclick:(() => loadScene(gameState,PLANET_DATA[planetIndex].trials[i])), label:i+1})
-        button.lineWidth = 5
-        if (completedTrials < i){
-            button.active = false
-        }
-        trialButtons.push(button)
-    }
-    const ruleButton = new Button({originX:200,originY:780,width:100,height:50,
-        onclick:(() => loadScene(gameState,exitTo)),label:"Rule"})
-    ruleButton.lineWidth = 5
-    const table = {
-        update: function(ctx){
-            Color.setColor(ctx,Color.white)
-            ctx.font = '40px monospace'
-            ctx.textAlign = 'start'
-            ctx.textBaseline = 'alphabetic'
-            ctx.fillText('Trial', 200,100);
-            ctx.fillText('p(t)', 400,100);
-            ctx.fillText('v(t)', 800,100);
-            Color.setColor(ctx,Color.light_gray)
-            Shapes.Line(ctx,150,120,1500,120);
-            Shapes.Line(ctx,350,50,350,850);
-            Shapes.Line(ctx,750,50,750,850);
-            Shapes.Line(ctx,150,760,1500,760);
-        }
-    }
-    gameState.objects = [
-        backButton,table,ruleButton
-    ]
-    gameState.objects = gameState.objects.concat(trialButtons)
-}
 
 /**
  * Used in conjunction with puzzleMenu
@@ -874,25 +744,7 @@ export function loadScene(gameState, sceneName, clearTemp = true) {
          * Clicking on the door takes you to intro puzzles.
          */
         case "introDoor": {
-            const completion = planetCompletion(gameState)
-            const open = completion == 1
-            const door_button = new Button({originX:1160, originY:460, width:100, height:150, onclick:(() => { loadScene(gameState,"ship") }), label:""})
-            door_button.visible = false
-            
-            const puzzleButton = new Button({originX:200, originY:400, width:150, height:100, onclick:(() => { loadScene(gameState, "intro") }), label:"Puzzles"})
-            const experimentButton = new Button({originX:400, originY:400, width:250, height:100, 
-                onclick:(() => { loadScene(gameState, "linearExperiment") }), label: "Experiment"})
-
-            gameState.objects = [
-                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
-                new ImageObject(1000, 250, 400, 500, "ship_img"),
-                new TextBox({originX:200, originY:100, content: "Linear Planet", font : "60px monospace", color : Color.black}),
-                puzzleButton, experimentButton, door_button,
-                new Button({originX:200, originY:600, width:100, height:100, 
-                    onclick:(() => { loadScene(gameState, "linearRule") }),
-                    label: "Rule"
-                }),
-            ]
+            linearPlanet(gameState)
             break
         }
         case "escapeMenu": {
@@ -947,7 +799,7 @@ export function loadScene(gameState, sceneName, clearTemp = true) {
          * Navigation puzzles in the ship
          */
         case "navigation": {
-            rngLevel(gameState)
+            rngLevel(gameState, 'ship')
             break
         }
         /** Intro Levels
@@ -982,11 +834,11 @@ export function loadScene(gameState, sceneName, clearTemp = true) {
             
             const slider = new Slider({grid:gridRight, gridPos:0})
 
-            const target = new Target({grid: gridLeft, gridX:1, gridY:1, size:15})
+            const target = new Target({grid: gridLeft, gridX:1, gridY:1, size:20})
             const tracer = new IntegralTracer({grid: gridLeft, sliders: [slider], targets:[target]})
-            gameState.objects = [gridLeft, gridRight, slider, target, tracer]
+            const backButton = new Button({originX:50, originY: 50, width:100, height: 100, onclick: ()=>loadScene(gameState,"introDoor"), label:"↑"})
+            gameState.objects = [gridLeft, gridRight, slider, target, tracer, backButton]
             gameState.update = () => { }
-            levelNavigation(gameState, (() => tracer.solved))
             break
         }
 
@@ -1004,13 +856,13 @@ export function loadScene(gameState, sceneName, clearTemp = true) {
                 new Slider({grid:gridRight, gridPos:0}),
             ]
             const targets = [
-                new Target({grid: gridLeft, gridX:0, gridY:1, size:15}),
-                new Target({grid: gridLeft, gridX:1, gridY:2, size:15})
+                new Target({grid: gridLeft, gridX:0, gridY:1, size:20}),
+                new Target({grid: gridLeft, gridX:1, gridY:2, size:20})
             ]
             const tracer =  new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets})
-            gameState.objects = [gridLeft, gridRight, tracer].concat(sliders).concat(targets)
+            const backButton = new Button({originX:50, originY: 50, width:100, height: 100, onclick: ()=>loadScene(gameState,"introDoor"), label:"↑"})
+            gameState.objects = [gridLeft, gridRight, tracer, backButton].concat(sliders).concat(targets)
             gameState.update = () => { }
-            levelNavigation(gameState, (() => tracer.solved))
             break
         }
 
@@ -1060,7 +912,7 @@ export function loadScene(gameState, sceneName, clearTemp = true) {
          */
         case "intro16": {
             simpleDiscLevel(gameState, [0.25, 0.5, 0.75, 1, 1.25, 1, 0.75, 0.5,
-                0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1], 0,  12,  12)
+                0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1], 0,  15,  12)
             break
         }
 

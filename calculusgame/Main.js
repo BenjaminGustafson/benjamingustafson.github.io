@@ -1,5 +1,6 @@
-import {Color, AudioManager} from './util/index.js'
-import {loadScene} from './Scene.js'
+import {Color, Shapes, AudioManager} from './util/index.js'
+import {loadScene, PLANET_DATA} from './Scene.js'
+import { MathBlock } from './GameObjects/MathBlock.js'
 
 /** 
  * Main.js: the main script
@@ -48,11 +49,11 @@ function setup() {
     Promise.all(
         audioPaths.map(path => {
             const name = path.split(".")[0]; // e.g., "click_001"
-            return audioManager.load(name, "audio/" + path);
+            return audioManager.load(name, "audio/" + path)
         })
     ).then(() => {
-        console.log("All audio loaded.");
-    });
+        console.log("All audio loaded.")
+    })
 
     var gameState = {
         objects: [], // The GameObjects in the current scene
@@ -87,11 +88,13 @@ function setup() {
             planetCompletedLevels: initCompletedLevels, // objects storing completed levels, like {"level1":true}, indexed by planet
             planetCompletedTrials: initCompletedTrials,
             planetCompletedRule: initCompletedRule,
-            planetTrialSolutions: initTrialSolutions,
-            totalDistance: 0, // the total distance the ship has traveled
+            planetTrialSolutions: initTrialSolutions, // Does this need to be stored here?
+            // Navigation
+            navDistance: 0, // the distance the trip has travelled during navigation
             currentNavFunction: null, // the puzzle that the navigation is currently on
             strikes: 0, // the number of strikes (incorrect answers) at the navigation puzzle
             puzzleMastery: initPuzzleMastery, // list of mastery scores, indexed by puzzle type
+            navPuzzlesUnlocked: {},
             numPuzzles: initNumPuzzles, // number of attempted puzzles, indexed by puzzle type
             mathblocksUnlocked: [MathBlock.CONSTANT],// the MathBlocks currently available
         }
@@ -179,7 +182,7 @@ function setup() {
                     localStorage.setItem("startScene", gameState.sceneName)
                     break
                 case '0':
-                    gameState.stored.totalDistance = 0
+                    gameState.stored.navDistance = 0
                     break
                 case 'ArrowRight':
                     gameState.stored.totalDistance++
@@ -192,6 +195,9 @@ function setup() {
                     break
                 case 'f':
                     gameState.stored.currentNavFunction = null 
+                    break
+                case 'm':
+                    console.log(Math.round(mouse.x) + ',' + Math.round(mouse.y))
                     break
             }
         }
@@ -217,9 +223,6 @@ function setup() {
         // Draw background
         Color.setColor(ctx, Color.black)
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        Color.setColor(ctx, new Color(10, 10, 10))
-        ctx.lineWidth = 5
-        ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
 
         mouse.cursor = 'default'

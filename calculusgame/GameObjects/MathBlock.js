@@ -43,7 +43,7 @@ export class MathBlock {
      * The block is currently on the toolbar, or was just grabbed
      * from the toolbar.
      */
-    onToolBar = true
+    onToolBar = false
 
     /**
      * The MathBlockField that the block is the root of.
@@ -53,7 +53,7 @@ export class MathBlock {
 
     attachHover = -1
     
-    lineWidth = 2
+    lineWidth = 1.5
 
     manager = null
 
@@ -65,7 +65,7 @@ export class MathBlock {
     constructor ({
         type, token = "",
         originX = -100, originY = -100,
-        baseSize = 40,
+        baseSize = 26,
     }){
         // originX, _y is where the block is spawned. x,y is where it currently is
         Object.assign(this, {type, token, originX, originY, baseSize})
@@ -92,7 +92,7 @@ export class MathBlock {
         this.attachSquares = new Array(this.num_children)
         this.token = token
         this.lineColor = Color.white
-        this.bgColor = Color.black2
+        this.bgColor = Color.darkBlack
         this.isHighlighted = false
         this.asString = ""
 
@@ -109,14 +109,44 @@ export class MathBlock {
 
     }
 
-    static rehydrate(block){
-        var obj = new MathBlock({})
-        Object.assign(obj, block)
-        for (let i = 0; i < block.num_children; i++){
-            obj.children[i] = MathBlock.rehydrate(block.children[i])
+    static rehydrate(block) {
+        const obj = new MathBlock({})
+    
+        // Only copy primitive / safe fields
+        obj.type = block.type
+        obj.token = block.token
+        obj.scaleY = block.scaleY
+        obj.translateY = block.translateY
+        obj.x = block.x
+        obj.y = block.y
+    
+        obj.children = []
+        for (let i = 0; i < block.children.length; i++) {
+            if (block.children[i] != null) {
+                const child = MathBlock.rehydrate(block.children[i])
+                obj.setChild(i, child)
+            }
         }
+    
         return obj
     }
+    
+
+    static dehydrate(mathBlock){
+        const children = []
+        console.log('!!!!!!!!!!!!!')
+        console.log('DEHYDRATING', mathBlock.depth)
+        mathBlock.children.forEach(c => children.push(MathBlock.dehydrate(c)))
+        return {
+            'type':mathBlock.type,
+            'token':mathBlock.token,
+            'scaleY':mathBlock.scaleY,
+            'translateY':mathBlock.translateY,
+            'x':mathBlock.x,
+            'y':mathBlock.y,
+            'children': children,
+        }
+     }
 
     checkGrab(x,y){
         return x >= this.x && x <= this.x + this.w && y >= this.y && y <= this.y + this.h
@@ -206,16 +236,24 @@ export class MathBlock {
         ctx.textBaseline = 'middle'
         ctx.textAlign = 'left'
 
-        const color = this.isHighlighted ? Color.green : this.lineColor
-        Color.setColor(ctx, this.bgColor)
-        ctx.fillRect(this.x,this.y, this.w, this.h)
-        Color.setColor(ctx,color)
-        Shapes.Rectangle(ctx, this.x, this.y, this.w, this.h, this.lineWidth)
+        const bgColor = this.bgColor
+        const lineColor = this.isHighlighted ? Color.green : this.lineColor
+        const textColor = this.isHighlighted ? Color.green : this.lineColor
+        Color.setFill(ctx, bgColor)
+        Color.setStroke(ctx,lineColor)
+        //ctx.fillRect(this.x,this.y, this.w, this.h)
+        Shapes.Rectangle({ctx:ctx, originX:this.x, originY:this.y, width:this.w, height:this.h,
+            lineWidth:this.lineWidth, 
+            stroke: !this.onToolBar, 
+            shadow: this.grabbed ? 8 : !this.parent ? 2 : 0,
+            inset: !this.parent,
+            radius : 4
+        })
         var contentX = this.x + this.padding
         const middleY = this.y + this.h/2
         this.content.forEach( obj => {
             if (obj.type == 'string' && obj.string.length > 0){
-                Color.setColor(ctx,color)
+                Color.setColor(ctx,textColor)
                 ctx.fillText(obj.string, contentX, middleY)
                 contentX += ctx.measureText(obj.string).width + this.padding
             }else if (obj.type == 'child'){
@@ -227,13 +265,13 @@ export class MathBlock {
                     contentX += child.w + this.padding
                 }else{ // Attach square
                     if (obj.childIndex == this.attachHover){
-                        Color.setColor(ctx, Color.light_gray)
+                        Color.setFill(ctx, Color.adjustLightness(bgColor, 150))
                     }else{
-                        Color.setColor(ctx, Color.gray)
+                        Color.setFill(ctx, Color.adjustLightness(bgColor, 40))
                     }
                     const square = {x: contentX, y: middleY - this.baseSize/2, w: this.baseSize, h:this.baseSize}
                     this.attachSquares[obj.childIndex] = square
-                    Shapes.Rectangle(ctx, square.x, square.y, square.w, square.h, this.lineWidth, true)
+                    Shapes.Rectangle({ctx:ctx, originX:square.x, originY:square.y, width:square.w, height:square.h, recessed:true})
                     contentX += this.baseSize + this.padding
                 }
             }
@@ -398,6 +436,8 @@ export class MathBlock {
                         return x =>  this.translateY + this.scaleY*(this.children[0].toFunction()(x) + this.children[1].toFunction()(x))
                     case "*":
                         return x =>  this.translateY + this.scaleY*(this.children[0].toFunction()(x) * this.children[1].toFunction()(x))
+                    case "/":
+                        return x =>  this.translateY + this.scaleY*(this.children[0].toFunction()(x) / this.children[1].toFunction()(x))
                     default:
                         return null
                 }

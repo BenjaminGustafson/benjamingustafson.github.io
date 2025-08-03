@@ -8,7 +8,7 @@ export class Target{
     constructor({
         canvasX,canvasY,
         grid,gridX,gridY,
-        size=10,
+        size=15,
     }){
         this.size = size
         if (canvasX != null && canvasY != null){
@@ -39,7 +39,7 @@ export class Target{
 
     update(ctx, audioManager, mouse){
         Color.setColor(ctx,this.hit ? this.hitColor : this.unhitColor)
-        Shapes.Rectangle(ctx,this.left,this.top,this.size,this.size,this.size*0.5,true)
+        Shapes.Rectangle({ctx:ctx,originX:this.left,originY:this.top,width:this.size,height:this.size, radius: 2})
     }
 
     /**

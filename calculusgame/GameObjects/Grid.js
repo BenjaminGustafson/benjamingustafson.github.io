@@ -38,7 +38,7 @@ export class Grid{
         gridXMin = -2, gridYMin = -2,
         gridXMax = 2, gridYMax = 2,
         labels = false, arrows = true,
-        lineWidthMax = 5
+        lineWidthMax = 5, majorLines = 1, lineWidthMin = 1
     }){
         Object.assign(this, {
             canvasX, canvasY,
@@ -46,7 +46,8 @@ export class Grid{
             gridXMin, gridYMin,
             gridXMax, gridYMax,
             labels, arrows,
-            lineWidthMax
+            lineWidthMax, lineWidthMin,
+            majorLines
         });
         // The location of the x-axis (horizontal axis), starting from 0 at the top of the grid
         this.xAxis = gridYMax
@@ -58,7 +59,7 @@ export class Grid{
         this.setXBounds(gridXMin, gridXMax)
         this.setYBounds(gridYMin, gridYMax)
         this.lineColor = Color.white
-        this.bgColor = Color.black2
+        this.bgColor = Color.darkBlack
     }
 
     setXBounds(xMin, xMax){
@@ -104,15 +105,19 @@ export class Grid{
     gridToCanvasBoundedY(gy){
         var y = this.gridToCanvasY(gy)
         var out = false
-        if (y < this.canvasY){
+        if (y < this.canvasY - 0.0001){
             y = this.canvasY
             out = true
         }
-        if (y > this.canvasY + this.canvasHeight){
+        if (y > this.canvasY + this.canvasHeight + 0.0001){
             y = this.canvasY + this.canvasHeight
             out = true
         }
         return {y: y, out:out}
+    }
+
+    isInBoundsCanvasY(cy){
+        return cy >= this.canvasY && cy <= this.canvasY + this.canvasHeight
     }
 
     canvasToGridX(cx){
@@ -136,7 +141,17 @@ export class Grid{
     update(ctx, audioManager, mouse){
         ctx.translate(this.canvasX,this.canvasY)
         Color.setColor(ctx, this.bgColor)
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.05)';
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetX = -5;
+        ctx.shadowOffsetY = -5;
         ctx.fillRect(0,0,this.canvasWidth,this.canvasHeight)
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 5;
+        ctx.shadowOffsetY = 5;
+        ctx.fillRect(0,0,this.canvasWidth,this.canvasHeight)
+        ctx.shadowColor = 'transparent';
         Color.setColor(ctx,this.lineColor)
 
         // Horizontal lines. Starting at top = 0
@@ -144,17 +159,30 @@ export class Grid{
         ctx.textAlign = 'right'
         ctx.textBaseline = 'middle'
         for (let i = 0; i <= this.gridHeight; i++){
-            const lineWidth = this.lineWidthMax // Here is where you could implement varied grid line canvasWidth
+            const gy = this.gridYMax-i
             const cy = this.yScale*i
-            Shapes.Line(ctx,
-                        0, cy,
-                        this.canvasWidth, cy, 
-                        lineWidth, 
-                        (i == this.xAxis && this.arrows ? "arrow" : "rounded"))
-            if (this.labels){
-                ctx.fillText(this.gridYMax-i, - 20, cy)
+            var lineWidth = this.lineWidthMax  
+            var endCap = 'none'
+            if (gy == 0){
+                if (this.arrows) endCap = 'arrow'
+                if (this.labels) ctx.fillText(gy, -20, cy)
+            } else if (gy%this.majorLines == 0){
+                lineWidth = 0.5*(this.lineWidthMin + this.lineWidthMax)  
+                if (this.labels) ctx.fillText(gy, -20, cy)
+            }else {
+                lineWidth = this.lineWidthMin
             }
-            
+
+            if (gy == this.gridXMin || gy == this.gridXMax){
+                endCap = 'rounded'
+            }
+            Shapes.Line(
+                ctx,
+                0, cy, 
+                this.canvasWidth, cy, 
+                lineWidth, 
+                endCap
+            )
         }
 
         // Vertical lines. Starting at left = 0
@@ -162,16 +190,26 @@ export class Grid{
         ctx.textAlign = 'center'
         ctx.textBaseline = 'top'
         for (let i = 0; i <= this.gridWidth; i++){
-            const lineWidth = this.lineWidthMax
+            const gx = this.gridXMin + i
             const cx = this.xScale*i
-            Shapes.Line(ctx,
-                        cx, 0, 
-                        cx, this.canvasHeight, 
-                        lineWidth, 
-                        (i == this.yAxis && this.arrows ? "arrow" : "rounded"))
-            if (this.labels){
-                ctx.fillText(this.gridXMin + i, cx, this.canvasHeight+20)
+            var lineWidth = this.lineWidthMax  
+            var endCap = 'none'
+            if (gx == 0){
+                if (this.arrows) endCap = 'arrow'
+                if (this.labels) ctx.fillText(gx, cx, this.canvasHeight + 20)
+            } else if (gx%this.majorLines == 0){
+                lineWidth = 0.5*(this.lineWidthMin + this.lineWidthMax)  
+                if (this.labels) ctx.fillText(gx, cx, this.canvasHeight + 20)
+            }else {
+                lineWidth = this.lineWidthMin
             }
+            Shapes.Line(
+                ctx,
+                cx, 0, 
+                cx, this.canvasHeight, 
+                lineWidth, 
+                endCap
+            )
         }
 
         ctx.resetTransform()

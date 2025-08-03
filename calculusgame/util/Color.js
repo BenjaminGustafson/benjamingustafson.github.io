@@ -19,16 +19,28 @@ export class Color {
     static yellow = new Color(240,228,66)
     
     // Additional colors (use for aesthetics only)
-    static light_gray = new Color(190,190,190)
-    static black2 = new Color(32,32,32)
+    static lightGray = new Color(190,190,190)
+    static darkBlack = new Color(32,32,32)
     
     static adjustLightness(color, adjust){
         return new Color(color.r + adjust, color.g + adjust, color.b+adjust)
     }
 
-    // This is fine for now, we never draw any objects with different fill and stroke
-    static setColor(ctx, color){
-        ctx.strokeStyle = `rgb(${color.r},${color.g},${color.b})`
+    static setFillAndStroke(ctx, fill, stroke){
+        ctx.fillStyle = `rgb(${fill.r},${fill.g},${fill.b})`
+        ctx.strokeStyle = `rgb(${stroke.r},${stroke.g},${stroke.b})`
+    }
+
+    static setFill(ctx, color){
         ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`
+    }
+
+    static setStroke(ctx, color){
+        ctx.strokeStyle = `rgb(${color.r},${color.g},${color.b})`
+    }
+
+    static setColor(ctx, color){
+        ctx.fillStyle = `rgb(${color.r},${color.g},${color.b})`
+        ctx.strokeStyle = `rgb(${color.r},${color.g},${color.b})`
     }
 }

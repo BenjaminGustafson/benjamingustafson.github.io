@@ -25,7 +25,7 @@ export class Button{
         label = "",
         color = Color.white,
         lineWidth = 5,
-        bgColor = Color.black2,
+        bgColor = Color.darkBlack,
         fontSize = 30,
     }){
         Object.assign(this, {
@@ -44,16 +44,10 @@ export class Button{
 
     update(ctx, audioManager, mouse){
         
-        if (this.visible){
-            Color.setColor(ctx, this.bgColor)
-            ctx.fillRect(this.originX, this.originY, this.width, this.height)
-        }
+        Color.setFill(ctx, this.bgColor)
+        const buttonColor = this.active ? this.color : Color.gray 
+        Color.setStroke(ctx,buttonColor)
 
-        if (this.active){
-            Color.setColor(ctx,this.color)
-        }else{
-            Color.setColor(ctx,Color.gray)
-        }
 
         if (this.active && this.originX <= mouse.x && mouse.x <= this.originX + this.width && this.originY <= mouse.y && mouse.y <= this.originY + this.height){
             if (mouse.down){
@@ -61,20 +55,22 @@ export class Button{
                 audioManager.play('click_003')
                 this.onclick()
             }
-            Color.setColor(ctx,Color.adjustLightness(this.color,50))
+            //Color.setColor(ctx,Color.adjustLightness(this.color,50))
             mouse.cursor = 'pointer'
         }
-
 
         // Drawing:
         if (!this.visible){
             return
         }
 
-        Shapes.Rectangle(ctx,this.originX,this.originY,this.width,this.height,this.lineWidth)
+        Shapes.Rectangle({ctx:ctx,originX:this.originX,originY:this.originY,width:this.width,height:this.height,
+            lineWidth:this.lineWidth,stroke:false,fill:true,shadow:0,
+            inset:this.active})
         ctx.font = "40px monospace"
         ctx.textBaseline = 'alphabetic'
         ctx.textAlign = 'start'
+        Color.setFill(ctx, buttonColor)
         var text_size = ctx.measureText(this.label)
         // Adjust to fit inside label
         const font_size = Math.min(40 * this.width / text_size.width * 0.8 - 10, 40)

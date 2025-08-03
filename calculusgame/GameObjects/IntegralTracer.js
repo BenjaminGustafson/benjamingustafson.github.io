@@ -19,16 +19,18 @@ export class IntegralTracer {
     constructor({
         grid, gridX, gridY,
         sliders = [],
-        mathBlockMngr,
+        blockField,
         tracer,
         inputTracer,
-        framesPerUnit = 4, 
+        framesPerUnit = 4, // actually pixels per frame
+        precision = 0.001,
         targets = [],
-        lineWidth = 5
+        lineWidth = 5,
+        autoCalculate = true,
     }){
         Object.assign(this, {
-            grid, gridX, gridY, sliders, mathBlockMngr, tracer, 
-            framesPerUnit, targets, lineWidth
+            grid, gridX, gridY, sliders, blockField, tracer, 
+            framesPerUnit, targets, lineWidth, precision, autoCalculate
         })
         if (gridX == null){
             this.gridX = this.grid.gridXMin
@@ -42,14 +44,14 @@ export class IntegralTracer {
         if (this.sliders.length > 0){
             this.sliders = sliders
             this.type = 'sliders'
-        }else if (mathBlockMngr != null){
+        }else if (blockField != null){
             this.type = 'mathBlock'
-            this.mathBlockMngr = mathBlockMngr
+            this.blockField = blockField
         }else if (inputTracer != null){
             this.type = 'tracer'
             this.inputTracer = inputTracer
         }else{
-            throw new Error('Must provide sliders or mathBlockMngr or tracer')
+            throw new Error('Must provide sliders or blockField or tracer')
         }
 
         // Dynamic vars
@@ -63,6 +65,9 @@ export class IntegralTracer {
 
         this.solvedColor = Color.blue
         this.unsolvedColor = Color.red
+
+        this.recalculate = false
+        this.reset()
     }
     
     /**
@@ -76,6 +81,7 @@ export class IntegralTracer {
             t.hit = false
         })
         this.doneTracing = false
+        this.recalculate = true
     }
 
     /**
@@ -91,11 +97,11 @@ export class IntegralTracer {
                 if (sliderIndex < 0 || sliderIndex >= this.sliders.length) return 0
                 return this.sliders[sliderIndex].value
             case 'mathBlock':
-                if (!this.mathBlockMngr.fieldBlock || !this.mathBlockMngr.fieldBlock.toFunction()){
-                    throw new Error('MathBlockManager does not have valid function')
+                if (!this.blockField.rootBlock || !this.blockField.rootBlock.toFunction()){
+                    console.warn('Invalid root block')
                     return 0
                 }
-                return this.mathBlockMngr.fieldBlock.toFunction()(gx)
+                return this.blockField.rootBlock.toFunction()(gx)
             case 'tracer':
                 const index = Math.round(this.inputTracer.grid.gridToCanvasX(gx) - this.inputTracer.grid.canvasX)
                 if (index < 0 || index >= this.inputTracer.gridYs.length) return 0
@@ -105,78 +111,116 @@ export class IntegralTracer {
 
     /**
      * Calculates the y-values for the tracer
+     * 
+     * TODO: optimally, we would only recaculate the integral when there has been a change in input...
      */
     calculateYs(){
-        var newGridYs = []
-        var gy = this.gridY // Accumulator
-        
-        for (let i = 0; i < this.frame; i++){
-            const cx = this.canvasX + i
-            const gx = this.grid.canvasToGridX(cx)
-            gy += this.inputGridY(gx)/this.grid.xScale
-            newGridYs.push(gy)
-            if (Math.abs(newGridYs[i]-this.gridYs[i]) > 0.001){
-                this.reset()
+        var newGridYs = [this.gridY] // Grid y-values for each pixel
+        var gy = this.gridY // Accumulated grid y-value
+        var gyPrev = this.gridY
+        var cxPixel = this.canvasX + 1 // Canvas x of the next pixel to be added to the array
+
+        for (let gx = this.grid.gridXMin; gx <= this.grid.gridXMax; gx += this.precision){
+            //if (cxPixel - this.canvasX > this.canvasX + this.frame) break
+            gy += this.inputGridY(gx) * this.precision
+            const cxPrecise = this.grid.gridToCanvasX(gx)
+            if (cxPrecise >= cxPixel){
+                const prevCxPrecise = this.grid.gridToCanvasX(gx-this.precision)
+                const t = (cxPixel - prevCxPrecise) / (cxPrecise - prevCxPrecise) 
+                newGridYs.push( t * gyPrev + (1-t) * gy)
+                cxPixel++
+                console.log(gx,gy)
             }
+            gyPrev = gy
         }
+        
+
+        // Old version
+        // for (let i = 0; i < this.frame; i++){
+        //     const cx = this.canvasX + i
+        //     const gx = this.grid.canvasToGridX(cx)
+        //     gy += this.inputGridY(gx)/this.grid.xScale
+        //     newGridYs.push(gy)
+        //     if (Math.abs(newGridYs[i]-this.gridYs[i]) > 0.001){
+        //         this.reset()
+        //     }
+        // }
 
         this.gridYs = newGridYs
         this.currentValue = this.gridYs[this.gridYs.length-1]
+        this.recalculate = false
     }
 
+    start(){
+        this.calculateYs()
+        this.stopped = false
+    }
 
+    stop(){
+        this.stopped = true
+    }
 
     update(ctx, audioManager, mouse){
         // If the mathblock is not defined, don't trace
         if (this.type == "mathBlock" && 
-            (!this.mathBlockMngr.fieldBlock || !this.mathBlockMngr.fieldBlock.toFunction())){
+            (!this.blockField.rootBlock || !this.blockField.rootBlock.toFunction())){
             this.reset()
             return
-        }
-
-
-        for (let i = 0; i < this.sliders.length; i++){
-            if (this.sliders[i].grabbed){
-                this.reset()
-                return
+        } else if (this.type == "sliders"){
+            for (let i = 0; i < this.sliders.length; i++){
+                if (this.sliders[i].grabbed){
+                    this.reset()
+                    return
+                }
+            }
+            if (this.frame == 0){
+                this.start()
             }
         }
-
-
-        this.calculateYs()
 
         Color.setColor(ctx, this.solved ? this.solvedColor : this.unsolvedColor)
 
         var x = this.canvasX
-        var y = this.canvasY
-        var i = 0
+        var cyObj = this.grid.gridToCanvasBoundedY(this.gridYs[0])
+        var prevCy = cyObj.y
+        var prevOob = cyObj.out
+        var i = 1
         while (x < this.canvasX + this.frame){
-            const cyObj = this.grid.gridToCanvasBoundedY(this.gridYs[i])
+            cyObj = this.grid.gridToCanvasBoundedY(this.gridYs[i])
+            const cy = cyObj.y
             if (cyObj.out){
                 x++
                 i++
-                continue
+                prevCy = cy
+                if (x == this.canvasX + this.frame-1 && !this.doneTracing){
+                    // Draw an indicator that we are out of bounds
+                    Shapes.Line(ctx, x, cy, x, cy, this.lineWidth*2)
+                }
+                // If we have 2 out of bounds in a row, do not draw the line
+                if (prevOob){ 
+                    continue
+                }
             }
-            const cy = cyObj.y
             //console.log(cyObj,x,y, this.gridYs[i], i)
-            Shapes.Line(ctx,x,y, x+1, cy, this.lineWidth)
+            Shapes.Line(ctx,x, prevCy, x+1, cy, this.lineWidth)
             this.targets.forEach(t => {
-                if (t.lineIntersect(x,y,x+1,cy) || t.pointIntersect(x,y)){
+                if (t.lineIntersect(x,prevCy,x+1,cy) || t.pointIntersect(x,prevCy)){
                     if (!t.hit){
-                        audioManager.play('drop_002',this.gridYs[i]/this.grid.gridHeight*12)
+                        audioManager.play('drop_002',this.gridYs[i-1]/this.grid.gridHeight*12)
                     }
                     t.hit = true
                 }
             })
-            y = cy
+            prevCy = cy
             x++
             i++
+            prevOob = cyObj.out
         }        
 
         // Before we have drawn past the end of the grid, increment frames
         if (this.frame < this.grid.canvasWidth){
             if (!this.stopped){
-                this.frame += this.framesPerUnit
+                this.frame += this.framesPerUnit // TODO: make this relative to Date.now()
             }
             this.doneTracing = false
         }else{ // After we reach the end, check if solved

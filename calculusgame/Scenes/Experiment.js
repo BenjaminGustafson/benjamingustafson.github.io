@@ -38,7 +38,9 @@ export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, so
     const bgImage = {
         update: function(ctx){
             const image = document.getElementById("quad_img")
-            ctx.drawImage(image, 0,0, 1600*600/900,900, 900, 200, 950, 700)
+            Color.setColor(ctx,Color.darkBlack)
+            Shapes.Rectangle({ctx:ctx, originX:900, originY:200, width:700, height:700, inset:true})
+            ctx.drawImage(image, 0,0, 1600*600/900,900, 910, 210, 680, 680)
         }
     }
 
@@ -80,7 +82,7 @@ export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, so
                 }
             }
             Color.setColor(ctx,Color.green)
-            Shapes.Rectangle(ctx, x, 500, width,width, 10, true)
+            Shapes.Rectangle({ctx:ctx, originX:x, originY:500, width:width,height:width, inset:true})
         }
     }
 
@@ -139,7 +141,7 @@ export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, so
             ctx.font = '20px monospace'
             ctx.textAlign = 'start'
             ctx.textBaseline = 'top'
-            ctx.fillText('Step 1: Measure the turtle\s position over time.', 150,50)
+            ctx.fillText('Step 1: Measure the turtle\'s position over time.', 150,50)
             ctx.fillText("Click on the graph to add measurements.", 150,80)
             ctx.translate(25,700)
             ctx.rotate(-Math.PI/2)
@@ -321,4 +323,51 @@ export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, so
         timeLabel.content = "t = " + time.toFixed(1)
     }
 
+}
+
+
+const trials = ["linearTrial1","linearTrial2","linearTrial3","linearTrial4","linearTrial5"]
+
+export function experimentMenu(gameState, exitTo){
+    const gss = gameState.stored
+    const backButton = new Button({originX:50, originY:50, width:50, height:50, onclick:(() => loadScene(gameState,exitTo)), label:"↑"})
+    backButton.lineWidth = 5
+    const trialButtons = []
+    const planetIndex = gss.planetIndex
+    const completedRule = gss.planetCompletedRule[planetIndex]
+    const completedTrials = gss.planetCompletedTrials[planetIndex]
+
+    for (let i = 0; i < 10; i++){
+        if (trials.length <= i) break
+        const button = new Button({originX:200,originY:150+i*60,width:100, height:50,
+            onclick:(() => loadScene(gameState,trials[i])), label:i+1})
+        button.lineWidth = 5
+        if (completedTrials < i){
+            button.active = false
+        }
+        trialButtons.push(button)
+    }
+    const ruleButton = new Button({originX:200,originY:780,width:100,height:50,
+        onclick:(() => loadScene(gameState,exitTo)),label:"Rule"})
+    ruleButton.lineWidth = 5
+    const table = {
+        update: function(ctx){
+            Color.setColor(ctx,Color.white)
+            ctx.font = '40px monospace'
+            ctx.textAlign = 'start'
+            ctx.textBaseline = 'alphabetic'
+            ctx.fillText('Trial', 200,100);
+            ctx.fillText('p(t)', 400,100);
+            ctx.fillText('v(t)', 800,100);
+            Color.setColor(ctx,Color.lightGray)
+            Shapes.Line(ctx,150,120,1500,120);
+            Shapes.Line(ctx,350,50,350,850);
+            Shapes.Line(ctx,750,50,750,850);
+            Shapes.Line(ctx,150,760,1500,760);
+        }
+    }
+    gameState.objects = [
+        backButton,table,ruleButton
+    ]
+    gameState.objects = gameState.objects.concat(trialButtons)
 }
