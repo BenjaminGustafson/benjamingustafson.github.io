@@ -1,11 +1,12 @@
 import {Color, Shapes} from '../util/index.js'
+import { GameObject } from './GameObject.js'
 /**
  * A button GameObject
  * 
  * Buttons are rectangular and have a text label.
  * 
  */
-export class Button{
+export class Button extends GameObject{
 
     active = true
 
@@ -28,6 +29,7 @@ export class Button{
         bgColor = Color.darkBlack,
         fontSize = 30,
     }){
+        super()
         Object.assign(this, {
             originX, originY,
             width, height,

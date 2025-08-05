@@ -178,7 +178,6 @@ export function rngLevel(gameState, exitTo) {
     }
     
 
-    gameState.stored.strikes = 0
     const strikes = {
         update: (ctx) => {
             for (let i = 0; i < 3; i++) {
@@ -392,7 +391,8 @@ function randSimpleBlock (composable = false) {
 function newRNGPuzzle (gameState){
 
     const gss = gameState.stored
-    var puzzleMastery = gss.puzzleMastery
+    gss.strikes = 0
+    var puzzleMastery = gss.navPuzzleMastery
 
     const DEBUG = true
     if (DEBUG){

@@ -105,11 +105,11 @@ export class Grid{
     gridToCanvasBoundedY(gy){
         var y = this.gridToCanvasY(gy)
         var out = false
-        if (y < this.canvasY - 0.0001){
+        if (y < this.canvasY - 1){
             y = this.canvasY
             out = true
         }
-        if (y > this.canvasY + this.canvasHeight + 0.0001){
+        if (y > this.canvasY + this.canvasHeight + 1){
             y = this.canvasY + this.canvasHeight
             out = true
         }

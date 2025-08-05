@@ -3,31 +3,37 @@ import {loadScene, PLANET_DATA} from './Scene.js'
 import { MathBlock } from './GameObjects/MathBlock.js'
 
 /** 
- * Main.js: the main script
- *  The game state is:
- *    - the current scene number
- *    - the game objects in that scene
- *    - an update function
- *    - an object storing which levels have been solved
- *    - a flag that tells us to save data to local storage
+ * -------------------------------------------------------
+ * Main.js
+ * -------------------------------------------------------
+ * Loads assets and stored data. Launches the game
+ * and runs the update loop.
  * 
+ * The gameState object keeps track of the current scene
+ * and the player's progress. Any data that should be saved
+ * between sessions goes in gameState.stored. The gameState.stored
+ * object is saved to local storage. 
  * 
- *  A scene is an object with:
- *    - objs: a list of game objects
+ *  A scene is an object with 
+ *  - a list of game objects
+ *  - an update function
+ * 
  * 
  */
 
+// Build "dev" c key clears local storage, s key sets solved
+// "play" release version
 const build = "dev"
-// = "dev" c key clears local storage, s key sets solved
-// = "play" no console logs, no dev tools
-// = ""
+
 var keysPressed = {}
 
+// Setup - called on page load 
 function setup() {
-    "use strict";
-
+    
+    // Game is drawn on this canvas
     var canvas = document.getElementById('myCanvas');
 
+    // Load audio
     const audioManager = new AudioManager();
     const audioPaths = ["click_001.ogg", "click4.ogg", // slider
         "drop_002.ogg","confirmation_001.ogg",
@@ -35,16 +41,6 @@ function setup() {
         'click3.ogg',
         'drop_003.ogg', 'drop_001.ogg', //target adder
     ];
-
-    const mouse = {
-        x:0,
-        y:0,
-        down:false, // the mouse has just been pressed
-        held:false, // the mouse is being pressed
-        up: false,
-        moved: false,
-        cursor: 'default'
-    }
 
     Promise.all(
         audioPaths.map(path => {
@@ -55,54 +51,53 @@ function setup() {
         console.log("All audio loaded.")
     })
 
+    // Mouse object
+    const mouse = {
+        x:0,
+        y:0,
+        down:false, // the mouse has just been pressed
+        held:false, // the mouse is being pressed
+        up: false,
+        moved: false,
+        cursor: 'default'
+    }
+
+    // Game state
     var gameState = {
         objects: [], // The GameObjects in the current scene
-        update: (() => { }), //
-        //layout: { ind: 0, prec: 10 },
+        update: (() => { }), // The update function for the scene
         stored: {}, // The part of the state that is saved. See initStoredState for object contents
-        temp: {}, // Cleared on scene change.
     }
 
     function initStoredState(){
-        var initCompletedLevels = []
-        var initPuzzleMastery = []
-        var initNumPuzzles = []
-        var initCompletedTrials = []
-        var initCompletedRule = []
-        var initTrialSolutions = []
-        for (let i = 0; i < PLANET_DATA.length; i++){
-            initCompletedLevels.push({})
-            initCompletedRule.push(false)
-            initCompletedTrials.push(0)
-            initPuzzleMastery.push(0)
-            initNumPuzzles.push(0)
-            for (let j = 0; j < PLANET_DATA[i].trials.length; j++){
-                initTrialSolutions.push([])
-            }
-        }
-
         gameState.stored = {
-            sceneName: "startMenu",
+            sceneName: "startMenu", // the unique name of the current scene
+            planet: 'Linear', // the current planet landed on, or the planet we just left
             landed:true, // true if the ship is on a planet, false if it is in space
-            planetIndex:0,// The current planet in progress (if landed), or the planet just completed
-            planetCompletedLevels: initCompletedLevels, // objects storing completed levels, like {"level1":true}, indexed by planet
-            planetCompletedTrials: initCompletedTrials,
-            planetCompletedRule: initCompletedRule,
-            planetTrialSolutions: initTrialSolutions, // Does this need to be stored here?
+            
+            // Planet puzzles and experiments
+            planetProgress: {}, // progress on each planet. {'PlanetName' : 'complete'} or 'in progress' or 'locked'
+            completedScenes: {}, // completed puzzles, trials, and rules by scene name. {"level1":true}
+            
             // Navigation
+            nextPlanet: null,
             navDistance: 0, // the distance the trip has travelled during navigation
             currentNavFunction: null, // the puzzle that the navigation is currently on
             strikes: 0, // the number of strikes (incorrect answers) at the navigation puzzle
-            puzzleMastery: initPuzzleMastery, // list of mastery scores, indexed by puzzle type
-            navPuzzlesUnlocked: {},
-            numPuzzles: initNumPuzzles, // number of attempted puzzles, indexed by puzzle type
-            mathblocksUnlocked: [MathBlock.CONSTANT],// the MathBlocks currently available
+            navPuzzleMastery: {}, // list of mastery scores, indexed by puzzle type. {'linear1': 0.9}. null if puzzle not unlocked yet
+            navPuzzleAttempts: {}, // number of attempted puzzles, indexed by puzzle type
+            mathblocksUnlocked: [MathBlock.CONSTANT],// the MathBlocks currently available, excluding variables
         }
-        
+
+        for (const planet in PLANET_DATA){
+            gameState.stored.planetProgress[planet] = 'locked'
+        }
+        gameState.stored.planetProgress['Linear'] = 'in progress'        
     }
 
     // Try to load stored data
     const storedState = localStorage.getItem('storedState')
+    var savedScene = null
     if (storedState == null){ // Local storage does not have stored data
         console.log('No stored data. Creating new save')
         initStoredState()
@@ -116,7 +111,7 @@ function setup() {
                 gameState.stored = parsed
                 console.log("Loaded save")
                 if (build != 'dev') {
-                    gameState.temp.nextScene = gameState.stored.sceneName
+                    savedScene = gameState.stored.sceneName
                     gameState.stored.sceneName = 'startMenu' // always start at menu
                 }
             }
@@ -127,12 +122,9 @@ function setup() {
         
     }
     
-    loadScene(gameState, gameState.stored.sceneName, false)
+    loadScene(gameState, gameState.stored.sceneName, {'nextScene':savedScene})
 
-    // ----------------------------------------------------------------------------------------------
-    // Mouse events
-    // ----------------------------------------------------------------------------------------------
-
+    // ----------------------------- Mouse events -------------------------------------------------------
     canvas.addEventListener('mousedown', e => {
         e.preventDefault()
         mouse.held = true
@@ -204,13 +196,11 @@ function setup() {
     });
 
 
-    // ----------------------------------------------------------------------------------------------
-    // Main update loop
-    // ----------------------------------------------------------------------------------------------
+    // ------------------------------------- Main update loop --------------------------------------------------------
     let timer = 0
     function update() {
 
-        // Save progress periodically
+        // Save progress every 200 frames
         timer++
         if (timer >= 200) {
             localStorage.setItem('storedState', JSON.stringify(gameState.stored));
@@ -218,6 +208,7 @@ function setup() {
         }
 
         gameState.update()
+
         var ctx = canvas.getContext('2d');
 
         // Draw background
@@ -225,6 +216,7 @@ function setup() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 
+        // Reset cursor before objects update
         mouse.cursor = 'default'
 
         // Draw all GameObjects
@@ -232,17 +224,11 @@ function setup() {
             gameState.objects[i].update(ctx, audioManager, mouse);
         }
 
+        // Reset mouse state
         mouse.down = false
         mouse.up = false
         mouse.moved = false
         canvas.style.cursor = mouse.cursor
-
-        if (build == 'layout') {
-            const layout_obj = gameState.objects[gameState.layout.ind]
-            ctx.strokeStyle = 'rgb(255,0,0)'
-            Shapes.Line(ctx, 0, layout_obj.originY, canvas.width, layout_obj.originY, 1)
-            Shapes.Line(ctx, layout_obj.originX, 0, layout_obj.originX, canvas.height, 1)
-        }
 
         window.requestAnimationFrame(update);
     }

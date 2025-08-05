@@ -1,6 +1,8 @@
-import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox} from './GameObjects/index.js'
+import * as GameObjects from './GameObjects/index.js'
 import {Shapes, Color} from './util/index.js'
-import {experimentTrial, experimentMenu, rngLevel, linearPlanet, simpleDiscLevel} from './Scenes/index.js'
+import * as Menus from './Scenes/Menus.js'
+import * as Linear from './Scenes/Linear.js'
+
 
 /**
  * 
@@ -16,43 +18,78 @@ import {experimentTrial, experimentMenu, rngLevel, linearPlanet, simpleDiscLevel
 export const CANVAS_WIDTH = 1600
 export const CANVAS_HEIGHT = 900
 
-export const ALL_BLOCKS = [
-    new MathBlock({type:MathBlock.CONSTANT}),
-    new MathBlock({type:MathBlock.VARIABLE, token:'x'}),
-    new MathBlock({type:MathBlock.POWER, token:'2'}),
-    new MathBlock({type:MathBlock.EXPONENT}),
-    new MathBlock({type:MathBlock.FUNCTION, token:'sin'}),
-    new MathBlock({type:MathBlock.BIN_OP, token:'+'}),
-    new MathBlock({type:MathBlock.BIN_OP, token:'*'}),
-]
+// export const ALL_BLOCKS = [
+//     new MathBlock({type:MathBlock.CONSTANT}),
+//     new MathBlock({type:MathBlock.VARIABLE, token:'x'}),
+//     new MathBlock({type:MathBlock.POWER, token:'2'}),
+//     new MathBlock({type:MathBlock.EXPONENT}),
+//     new MathBlock({type:MathBlock.FUNCTION, token:'sin'}),
+//     new MathBlock({type:MathBlock.BIN_OP, token:'+'}),
+//     new MathBlock({type:MathBlock.BIN_OP, token:'*'}),
+// ]
 
 
 /**
- * name: the name of the planet
- * distance: the distance from the start to the planet
  * scene: the scene that the ship door exits to when we land on the planet
- * puzzles: the scenes that need to be completed in order to 
- * 
- * PLANET_DATA should be accessed using gameState.stored.planetIndex
- * 
+ * puzzles: the planet's puzzle scenes
+ * trials: the planet's experiment trial scenes 
+ * nextPlanets: the planets unlocked after finishing this planet
  */
-export const PLANET_DATA = [
-    {name: "Linear", distance: 0, scene:"introDoor", imgId :"linear_img",
+export const PLANET_DATA = {
+    'Linear': { 
+        distance: 0,
+        scene:"linearPlanet",
         puzzles: ["intro1", "intro2", "intro4Pos", "introNeg", "introFrac", "introCombined", "intro8", "intro16"],
         trials: ["linearTrial1","linearTrial2","linearTrial3","linearTrial4","linearTrial5"],
+        nextPlanets: ['Quadratic'],
     },
-    {name: "Quadratic", distance: 10, scene:"quadDoor",
-         puzzles:["quad4", "quad8", "quad16", "quad32", "quadSmooth", "quadShort4", "quadShort8", "quadShort16", "quadShort32", "quadShortSmooth",
+    'Quadratic':{
+        distance: 10,
+        scene:"quadDoor",
+        puzzles:["quad4", "quad8", "quad16", "quad32", "quadSmooth", "quadShort4",
+            "quadShort8", "quadShort16", "quadShort32", "quadShortSmooth",
             "quadNeg4", "quadNeg8", "quadNeg16", "quadNeg32", "quadNegSmooth",
-         ],
-          imgId :"quad_img",
-          trials:[],
+        ],
+        imgId :"quad_img",
+        trials:[],
+        nextPlanets: ['Cubic']
     },
-    {name: "Exponential", distance: 30, scene:"expDoor", 
+    'Exponential':{
+        distance: 30, 
+        scene:"expDoor", 
         puzzles: ["exp1", "exp2"],
         trials:[],
     },
-]
+}
+
+/**
+ * Linear
+ * Quadratic 
+ * Cubic
+ * Power x^n
+ * 1/x
+ * x^(1/2)
+ * 
+ * e^x
+ * a^x - button that sets slider to e
+ * ln(x) 
+ * log(x)
+ * 
+ * sin(x) - new tool unlock: button that sets slider to pi
+ * cos(x)
+ * tan(x)
+ * sec(x)
+ * csc(x)
+ * cot(x)
+ * 
+ * f(x) + g(x)
+ * f(x) * g(x)
+ * f(g(x))
+ * f(x) / g(x)
+ * 
+ */
+
+
 
 /**
  * Checks how many of the levels on the current planet have been completed.
@@ -92,121 +129,6 @@ function updateNavigationProgress(gameState, puzzleType, wasCorrect){
     gameState.stored.puzzleMastery[puzzleType] = alpha * wasCorrect + (1-alpha) * gameState.stored.puzzleMastery[puzzleType]
 }
 
-
-
-
-
-
-/**
- * A menu that displays a set of puzzles
- * 
- * Sets gameState.stored.menuScene to be this menu
- * Sets gameState.stored.levels to be the levels in this menu
- * Navigating to a level sets gameState.stored.levelIndex
- * 
- * @param {*} gameState 
- * @param {*} menu_num the number to precede the puzzle number, i.e. 2 in 2.1
- * @param {*} levels the puzzles in the menu
- * @param {string} exitTo scene that the back button leads to
- */
-function puzzleMenu(gameState, menu_num, levels, exitTo) {
-    gameState.stored.menuScene = gameState.stored.sceneName
-    gameState.stored.levels = levels
-    var buttons = []
-    for (let i = 0; i < levels.length; i++) {
-        const button = new Button({originX:0, originY:0, width:100, height:100,
-            onclick:(() => {
-                gameState.stored.levelIndex = i;
-                loadScene(gameState,levels[i])
-            }),
-            label: menu_num + "." + (i + 1)
-        })
-        if (gameState.stored.planetCompletedLevels[gameState.stored.planetIndex][levels[i]]) {
-            button.color = Color.blue
-        }
-        buttons.push(button)
-    }
-
-    // Button layout: 6 buttons per row
-    // 100 px between buttons, 100px size buttons = 1100px
-    // Leaves 500px, so 250 on either side
-    const start_x = 250
-    var x = start_x
-    var y = 300
-    for (let i = 0; i < buttons.length; i++) {
-        buttons[i].originX = x
-        buttons[i].originY = y
-        x += 200
-        if (i % 6 == 5) {
-            x = start_x
-            y += 200
-        }
-    }
-
-    // y layout: 
-    // Space betweeen back and grid 200px
-    // 500px of buttons (3 rows max)
-    // Leaves 100px above and below
-    const backButton = new Button({originX:100, originY:100, width:100, height:100, onclick:(() => loadScene(gameState,exitTo)), label:"↑"})
-    buttons.push(backButton)
-
-    // const actionButton = new Button(300,100,200,100, (()=> loadScene(gameState,exitTo), "Open Door")
-    // actionButton.active = false
-    // buttons.push(actionButton)
-
-    // gameState.stored.currentPlanetCompletion = numComplete / levels.length
-    gameState.update = (() => {
-        
-    })
-    gameState.objects = buttons
-
-}
-
-
-
-
-/**
- * Used in conjunction with puzzleMenu
- * Relies on gameState.stored.menuScene
- * and gameState.stored.levels 
- * 
- * Adds a back button that returns to the menu 
- * and next button that goes to the next level.
- * 
- * @param {function} winCon the win condition for the level
- */
-function levelNavigation(gameState, winCon) {
-    const backButton = new Button({originX:100, originY:100, width:100, height:100, onclick: () => loadScene(gameState,gameState.stored.menuScene), label:"↑"})
-    const forwardButton = new Button({originX:300, originY:100, width:100, height:100,
-        onclick:(() => {
-            if (gameState.stored.levelIndex < gameState.stored.levels.length - 1) { 
-                gameState.stored.levelIndex += 1
-                loadScene(gameState,gameState.stored.levels[gameState.stored.levelIndex])
-            } else {
-                loadScene(gameState,gameState.stored.menuScene)
-            }
-        }),
-        label:"→"
-    })
-    forwardButton.active = false
-    gameState.objects.push(backButton)
-    gameState.objects.push(forwardButton)
-
-    // Non-destructively add to the update function
-    // winCon sets level completion to true
-    const prev_update = gameState.update
-    const completion = gameState.stored.planetCompletedLevels[gameState.stored.planetIndex]
-    function update() {
-        prev_update()
-        if (winCon() && !completion[gameState.stored.sceneName]) {
-            completion[gameState.stored.sceneName] = true
-        }
-        if (completion[gameState.stored.sceneName]) {
-            forwardButton.active = true
-        }
-    }
-    gameState.update = update
-}
 
 /**
  * 
@@ -289,6 +211,488 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
         gameState.update = () => { }
     }
     levelNavigation(gameState, () => tracer.solved)
+}
+
+
+/**
+ * 
+ * The main function for serving up scenes.
+ * 
+ * The comments above each level describe the intended 
+ * things that the level should teach.
+ * 
+ */
+export function loadScene(gameState, sceneName, message = {}) {
+    gameState.stored.sceneName = sceneName
+    gameState.update = () => { }
+
+    switch (sceneName) {
+        default:
+        //------------------------------------------------------------
+        // Menus (see Menus.js)
+        //------------------------------------------------------------
+        case "startMenu": Menus.startMenu(gameState, message['nextScene'])
+        break
+
+        case "planetMap": Menus.planetMap(gameState)
+        break
+
+        case "navigation": Menus.rngLevel(gameState, 'ship')
+        break
+
+        //------------------------------------------------------------
+        // Linear Planet (see Linear.js)
+        //------------------------------------------------------------
+
+        case 'linearPlanet': Linear.linearPlanet(gameState)
+            break
+
+        // Puzzles ------------------------------------------------- 
+
+        /**
+         * 1x1 grid to introduce interface
+         */
+        case "intro1": Linear.linearPuzzle1(gameState)
+        break
+
+        /**
+         * 2x2 grid to introduce interface
+         */
+        case "intro2": {
+            
+            break
+        }
+
+        /**
+         * 4x4 grid but still only nonnegative slopes.
+         */
+        case "intro4Pos": 
+            Linear.simpleDiscLevel(gameState, [0, 1, 1, 2])
+            break
+
+        /**
+         * Introduce negative slopes.
+         */
+        case "introNeg": 
+            Linear.simpleDiscLevel(gameState, [1, 0, -1, 0])
+            break
+
+        /**
+         * Introduce fractional slopes, slope = 1/2
+         */
+        case "introFrac": 
+            Linear.simpleDiscLevel(gameState, [0.5, 1, 0.5, 1.5])
+            break
+
+        /**
+         * Reinforce previous levels, some fractional, some negative
+         */
+        case "introCombined": 
+            Linear.simpleDiscLevel(gameState, [2, 1.5, -0.5, -2])
+            break
+
+        /**
+         * 4x4 grid with 8 sliders. Teaches that if sliders are on half units,
+         *  the resulting slope is halved.
+         */
+        case "intro8": 
+            Linear.simpleDiscLevel(gameState, [1, 0.5, -0.1, -0.8, -0.4, 0.6, 0.2, 0.4])
+            break
+
+        /**
+         * 4x4 grid with 8 sliders.
+         * A final challenge for the introduction.
+         * The only time we will ask for 16 sliders
+         * to be manually moved.
+         */
+        case "intro16": 
+            Linear.simpleDiscLevel(gameState, [0.25, 0.5, 0.75, 1, 1.25, 1, 0.75, 0.5,
+                0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1], 0,  15,  12)
+            break
+
+        // Experiment ------------------------------------------------- 
+        case "linearExperiment":
+            experimentMenu(gameState, "linearPlanet")
+            break
+        
+
+        case "linearTrial1":{
+            experimentTrial({gameState:gameState, exitTo:"linearExperiment", solutionFun: x=>0.5*x,
+                solutionDdx:x=>0.5, solutionFunString:"0.5t", solutionDdxString:"0.5"})
+            break
+        }
+
+        case "linearRule":{
+            const constants = [new MathBlock({type:MathBlock.VARIABLE, token:"a"}),new MathBlock({type:MathBlock.VARIABLE, token:"b"})]
+            const blocks = constants.concat(ALL_BLOCKS)
+            const sySlider = new Slider({canvasX: 1200, canvasY: 200, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
+            const tySlider = new Slider({canvasX: 1300, canvasY: 200, maxValue:5, sliderLength:10, showAxis:true})
+            const mbm = new MathBlockManager({blocks : blocks, originX: 700, originY:160, outputType:"none",
+                scaleYSlider: sySlider, translateYSlider:tySlider,
+            })
+            const targetBlock = new MathBlock({type: MathBlock.BIN_OP, token:"+", originX: 200, originY: 150})
+            const multBlock = new MathBlock({type: MathBlock.BIN_OP, token:"*"})
+            multBlock.setChild(0, new MathBlock({type: MathBlock.VARIABLE, token:"a"})) 
+            multBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"x"})) 
+            targetBlock.setChild(0, multBlock) 
+            targetBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"b"})) 
+            gameState.objects = [
+                new TextBox({originX: 50, originY:200, content:'f(x) =', font:'40px monospace'}),
+                new TextBox({originX: 500, originY:200, content:'f\'(x) =', font:'40px monospace'}),
+                new Button({originX:50, originY:50, width:50, height:50,
+                    onclick:(() => loadScene(gameState,"linearPlanet")),
+                    label:"↑", lineWidth:5}),
+                sySlider, tySlider, mbm, targetBlock
+                
+            ]
+            gameState.update = () => { }
+            break
+        }
+
+        
+
+        //------------------------------------------------------------
+        // Quadratic Planet
+        //------------------------------------------------------------
+        case "quadDoor": {
+            const completion = planetCompletion(gameState)
+            const door_button = new Button({originX:1160, originY:460, widht:100, height:150, onclick:(() => { loadScene(gameState, "ship") }), label:""})
+            door_button.visible = false
+
+
+            
+            gameState.objects = [
+                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "quad_img"),
+                new ImageObject(1000, 250, 400, 500, "ship_img"),
+                door_button
+            ]
+            gameState.objects.push({
+                update: function(ctx){
+                    Color.setColor(ctx,Color.black)
+                    ctx.fillRect(1186,480,48,114)
+                }
+            })   
+            break
+        }
+
+        /**
+         * Quadratic Levels
+         * We introduce the mathblock interface while teaching that the 
+         * derivative of $x^2$ is $x$. We don't actually identify the 
+         * quadratic as $x^2$ until the next section.
+         */
+        case "quadMenu": {
+            puzzleMenu(gameState, 2, PLANET_DATA[1].puzzles,"quadDoor") 
+            break
+        }
+
+        /**
+         * - A quadratic shape on the left can be achieved by a linear
+         *   shape on the right.
+         */
+        case "quad4": {
+            quadDiscLevel(gameState, 4)
+            break
+        }
+
+        /**
+         * - As we add more sliders the curve becomes smoother
+         */
+        case "quad8": {
+            quadDiscLevel(gameState, 8)
+            break
+        }
+
+        case "quad16": {
+            quadDiscLevel(gameState, 16, true)
+            break
+        }
+
+        case "quad32": {
+            quadDiscLevel(gameState, 32, true)
+            break
+        }
+
+        case "quadSmooth": {
+            quadDiscLevel(gameState, 200, true)
+            break
+        }
+
+
+        case "quadShort4": {
+            quadDiscLevel(gameState, 4, false, x => x*x/4)
+            break
+        }
+        case "quadShort8": {
+            quadDiscLevel(gameState, 8, false, x => x*x/4)
+            break
+        }
+        case "quadShort16": {
+            quadDiscLevel(gameState, 16, true, x => x*x/4)
+            break
+        }
+        case "quadShort32": {
+            quadDiscLevel(gameState, 16, true, x => x*x/4)
+            break
+        }
+        case "quadShortSmooth": {
+            quadDiscLevel(gameState, 200, true, x => x*x/4)
+            break
+        }
+
+        case "quadNeg4": {
+            quadDiscLevel(gameState, 4, false, x => -x*x/2+2)
+            break
+        }
+        case "quadNeg8": {
+            quadDiscLevel(gameState, 8, false, x => -x*x/2+2)
+            break
+        }
+        case "quadNeg16": {
+            quadDiscLevel(gameState, 16, true, x => -x*x/2+2)
+            break
+        }
+        case "quadNeg32": {
+            quadDiscLevel(gameState, 32, true, x => -x*x/2+2)
+            break
+        }
+        case "quadNegSmooth": {
+            quadDiscLevel(gameState, 200, true, x => -x*x/2+2)
+            break
+        }
+
+        /**
+         * Cubic levels
+         * 
+         * - Another thing that could be good for cubic is triple discrete graphs.
+         */
+        case "cubic": {
+            puzzleMenu(gameState, "3")
+            break
+        }
+
+        case "cubic4": {
+            twoGridLevel(gameState, 4, null, x => x * x * x / 6)
+            break
+        }
+
+        case "cubic8": {
+            twoGridLevel(gameState, 8, null, x => x * x * x / 6)
+            break
+        }
+
+        case "cubic16": {
+            twoGridLevel(gameState, 16, 2, x => x * x * x / 6)
+            break
+        }
+
+        case "cubic32": {
+            twoGridLevel(gameState, 32, 2, x => x * x * x / 6)
+            break
+        }
+
+        case "cubic400": {
+            twoGridLevel(gameState, 400, 2, x => x * x * x / 6)
+            break
+        }
+
+
+
+        /**
+         * Small scale
+         */
+        case "cubic5": {
+            const fun = x => x * x * x / 10
+            cubicContLevel(gameState, fun)
+            break
+        }
+
+        /**
+         * 
+         */
+        case "cubic6": {
+            const fun = x => x * x * x * 2 / 3 - x * 2
+            cubicContLevel(gameState, fun)
+            break
+        }
+
+        case "cubic7": {
+            const fun = x => -x * x * x * 2 / 3 + x * 2
+            cubicContLevel(gameState, fun)
+            break
+        }
+
+        case "cubic8": {
+            const fun = x => 0.1 * x * x * x + 0.3 * x * x + 0.3 * x - 1
+            cubicContLevel(gameState, fun)
+            break
+        }
+
+
+
+        /**
+         * Exponential Levels
+         * 
+         */
+        case "exp": {
+            puzzleMenu(gameState, "4")
+            break
+        }
+
+        case "exp1": {
+            expDiscLevel(gameState, 4)
+            break
+        }
+
+        case "exp2": {
+            expDiscLevel(gameState, 8)
+            break
+        }
+
+        case "exp3": {
+            expDiscLevel(gameState, 16)
+            break
+        }
+
+        /**
+         * 
+         */
+        case "exp4": {
+            const fun = x => Math.E ** x / 2
+            const blocks = [[MathBlock.VARIABLE, "x"], [MathBlock.POWER, "2"], [MathBlock.EXPONENT, "e"]]
+            const grid_setting = { grid_width: 4, grid_height: 4, x_axis: 4, y_axis: 2 }
+            genContLevel(gameState, fun, blocks, grid_setting)
+            break
+        }
+
+        case "exp5": {
+            const fun = x => Math.E ** x / 2
+            const blocks = [[MathBlock.VARIABLE, "x"], [MathBlock.POWER, "2"], [MathBlock.EXPONENT, "e"]]
+            const grid_setting = { grid_width: 4, grid_height: 4, x_axis: 4, y_axis: 2 }
+            genContLevel(gameState, fun, blocks, grid_setting)
+            break
+        }
+
+        case "sin": {
+            puzzleMenu(gameState, "5", "sin")
+            break
+        }
+
+        case "sin1": {
+            sinDiscLevel(gameState, 4, "sin2", 4)
+            break
+        }
+
+        case "sin2": {
+            sinDiscLevel(gameState, 8, "sin3", 4)
+            break
+        }
+
+        case "sin3": {
+            sinDiscLevel(gameState, 8, "sin4", 8)
+            break
+        }
+
+        case "sin4": {
+            sinDiscLevel(gameState, 16, "sin5", 8)
+            break
+        }
+
+        /**
+         * 6 sum
+         * 
+         * Discrete intuition:
+         * When we add two functions 
+         * 
+         * sin(x) + x^2
+         * 
+         * the rate of change of one function is 
+         * added to the rate of change of the other...
+         * 
+         * x^2 + sin(x)
+         * 
+         * Are we graphing only the highlighted block here?
+         * Can you highlight a block on the lhs...
+         * Yes, but the sum is still shown as well.
+         * 
+         */
+
+        case "sum": {
+            puzzleMenu(gameState, "6", "sum")
+            break
+        }
+
+
+        case "sum1": {
+            const fun = x => x * x / 8 + Math.sin(x)
+            const blocks = [[MathBlock.VARIABLE, "x"], [MathBlock.POWER, "2"], [MathBlock.EXPONENT, "e"], [MathBlock.FUNCTION, "sin"], [MathBlock.BIN_OP, "+"]]
+            genContLevel(gameState, fun, blocks)
+            break
+        }
+
+
+        /**
+         * 7 prod
+         * 
+         * Discrete intuition
+         * 
+         * Multiplying 
+         * 
+         * x^2 sin(x)
+         * 
+         * 2x sin(x) + cos(x) x^2
+         * 
+         * x * x is a good puzzle since it calls back to something 
+         * we already know
+         * 
+         * (f * g)' = f' * g + g' * f
+         * 
+         * 
+         * Area of a rectangle is good intuition here...
+         * 
+         */
+
+        case "prod": {
+            puzzleMenu(gameState, "7", "prod")
+            break
+        }
+
+        case "prodTest": {
+            const fun = x => x * x / 8 + Math.sin(x)
+            const blocks = [[MathBlock.VARIABLE, "x"], [MathBlock.POWER, "2"], [MathBlock.EXPONENT, "e"], [MathBlock.FUNCTION, "sin"], [MathBlock.BIN_OP, "+"], [MathBlock.BIN_OP, "*"]]
+            genContLevel(gameState, fun, blocks)
+            break
+        }
+
+        /**
+         * 8 chain
+         */
+
+        case "chain": {
+            puzzleMenu(gameState, "8", "chain")
+            break
+        }
+
+        /**
+         * Chain rule
+         * 
+         * Discrete: inputs become outputs....
+         * f(g(x))' = f'(g(x)) g'(x)
+         * Output of g is input of f
+         * So rate of change of f (g(x)) is
+         * rate of change of  
+         * 
+         * sin(x^2)
+         * 
+         * e^(x^2)
+         * 
+         * (sin(x))^2
+         * 
+         * (e^x)^2
+         * 
+         */
+
+    }
 }
 
 
@@ -691,614 +1095,3 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
 //     gameState.update = () => { }
 //     levelNavigation(gameState, () => tracer.solved)
 // }
-
-
-
-/**
- * 
- * The main function for serving up scenes.
- * 
- * The comments above each level describe the intended 
- * things that the level should teach.
- * 
- */
-export function loadScene(gameState, sceneName, clearTemp = true) {
-    gameState.stored.sceneName = sceneName
-    gameState.update = () => { }
-    if (clearTemp){
-        gameState.temp = {}
-    }
-    gameState.mouseDown = null
-    gameState.keyPressed = null
-    switch (sceneName) {
-        case "":
-        case "mapMenu": {
-            var buttons = []
-
-            break
-        }
-        /**
-         * The main menu of the game.
-         */
-        case "startMenu": {
-            const startButton = new Button({originX:200, originY:300, width:200, height:50, lineWidth:5,
-                 onclick:(() => loadScene(gameState,"introDoor")), label:"Start"})
-            const nextScene = gameState.temp.nextScene
-            if (nextScene && nextScene != "startMenu"){
-                console.log('next scene',nextScene)
-                startButton.onclick = (() => loadScene(gameState,nextScene))
-                startButton.label = "Continue"
-            }
-            const about_button = new Button({originX:200, originY:380, width:200, height:50, lineWidth: 5,
-                onclick:(() => window.location.replace("about.html")), label:"About"})
-            gameState.objects = [
-                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linear_img"),
-                new TextBox({originX:200, originY:150, content: "Calculus I", font : "60px monospace", color : Color.black}),
-                new TextBox({originX:200, originY:200, content: "A puzzle game", font : "30px monospace", color : Color.black}),
-                startButton, about_button
-            ]
-            break
-        }
-        /**
-         * The exterior of the ship with the door closed.
-         * Clicking on the door takes you to intro puzzles.
-         */
-        case "introDoor": {
-            linearPlanet(gameState)
-            break
-        }
-        case "escapeMenu": {
-            gameState.objects = [
-                new Button(300, 250, 100, 100, () => loadScene(gameState,"intro"), "Continue"),
-                new Button(300, 250, 100, 100, () => loadScene(gameState,"intro"), "Main menu")
-            ]
-            break
-        }
-        case "ship": {
-            const dist = gameState.stored.totalDistance
-            // Check to make sure planet is updated
-            if (dist >= PLANET_DATA[gameState.stored.planetIndex+1].distance){
-                gameState.stored.planetIndex++
-            }
-            if (dist == PLANET_DATA[gameState.stored.planetIndex].distance){
-                gameState.landed = true
-            }
-            const planetIndex = gameState.stored.planetIndex
-            const landed = gameState.stored.landed
-            const text_content = [
-                "Current location: " + (!landed ?  "In space" : "Landed on "+PLANET_DATA[planetIndex].name + " Planet"),
-                "Navigating to: " + PLANET_DATA[planetIndex+1].name + " Planet",
-            ]
-
-
-
-            const background = new ImageObject(200, 50, CANVAS_WIDTH*0.8, CANVAS_HEIGHT*0.8, 
-                landed ? PLANET_DATA[planetIndex].imgId : "")
-
-            var exitTo = PLANET_DATA[planetIndex].scene
-            const door_button = new Button({originX:40, originY:200, width:180, height:560, onclick:(() => { loadScene(gameState,exitTo) }), label:""})
-            door_button.visible = false
-            const nav_button = new Button({originX:350, originY:550, width:890, height:240, onclick:(() => { loadScene(gameState,"navigation") }), label:""})
-            nav_button.visible = false
-            door_button.active = landed
-
-            gameState.objects = [
-                background,
-                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "interior_img"),
-                new TextBox(400, 260, text_content[0], "30px monospace", Color.green),
-                new TextBox(400, 300, text_content[1], "30px monospace", Color.green),
-                //new TextBox(580, 280, text_content[2], "30px monospace", Color.green),
-                door_button, nav_button
-            ]
-            
-            gameState.update(() => {
-            })
-            break
-        }
-        /**
-         * Navigation puzzles in the ship
-         */
-        case "navigation": {
-            rngLevel(gameState, 'ship')
-            break
-        }
-        /** Intro Levels
-         * Difficulty here is quite low, player should only struggle with
-         * understanding what the goal is and what they have under their
-         * control.
-         */
-        case "intro": {
-            gameState.stored.planetIndex = 0
-            puzzleMenu(gameState, 1, PLANET_DATA[0].puzzles,"introDoor")
-            gameState.keyPressed = key => {
-                console.log(key)
-                if (key == 'Escape' || key == 'ArrowLeft') {
-                    loadScene(gameState,"introDoor")
-                }
-            }
-            break
-        }
-
-        /**
-         * 1x1 to gradually introduce the slider/target mechanics
-         */
-        case "intro1": {
-            const gridLeft = new Grid({
-                canvasX:560, canvasY:430, canvasWidth:100, canvasHeight:100, 
-                gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false
-            })
-
-            const gridRight = new Grid({canvasX:900, canvasY:430, canvasWidth:100, canvasHeight:100,
-                gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false
-            })
-            
-            const slider = new Slider({grid:gridRight, gridPos:0})
-
-            const target = new Target({grid: gridLeft, gridX:1, gridY:1, size:20})
-            const tracer = new IntegralTracer({grid: gridLeft, sliders: [slider], targets:[target]})
-            const backButton = new Button({originX:50, originY: 50, width:100, height: 100, onclick: ()=>loadScene(gameState,"introDoor"), label:"↑"})
-            gameState.objects = [gridLeft, gridRight, slider, target, tracer, backButton]
-            gameState.update = () => { }
-            break
-        }
-
-        /**
-         * 2x2
-         */
-        case "intro2": {
-            const gridLeft = new Grid({canvasX:560, canvasY:430, canvasWidth:200, canvasHeight:200, 
-                gridXMin:-1, gridYMin:0, gridXMax:1, gridYMax:2, labels:false, arrows:false})
-            //const gridLeft = new Grid(560, 430, 200, 200, 2, 2, 5)
-            const gridRight = new Grid({canvasX:900, canvasY:430, canvasWidth:200, canvasHeight:200, 
-                gridXMin:-1, gridYMin:-1, gridXMax:1, gridYMax:1, labels:false, arrows:false})
-            const sliders = [
-                new Slider({grid:gridRight, gridPos:-1}),
-                new Slider({grid:gridRight, gridPos:0}),
-            ]
-            const targets = [
-                new Target({grid: gridLeft, gridX:0, gridY:1, size:20}),
-                new Target({grid: gridLeft, gridX:1, gridY:2, size:20})
-            ]
-            const tracer =  new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets})
-            const backButton = new Button({originX:50, originY: 50, width:100, height: 100, onclick: ()=>loadScene(gameState,"introDoor"), label:"↑"})
-            gameState.objects = [gridLeft, gridRight, tracer, backButton].concat(sliders).concat(targets)
-            gameState.update = () => { }
-            break
-        }
-
-        /**
-         * Now go to 4x4 but still only move in positive direction or 0.
-         */
-        case "intro4Pos": {
-            simpleDiscLevel(gameState, [0, 1, 1, 2])
-            break
-        }
-
-        /**
-         * Introduce negative direction.
-         */
-        case "introNeg": {
-            simpleDiscLevel(gameState, [1, 0, -1, 0])
-            break
-        }
-
-        /**
-         * Sliders can be set to partial units, specifically half
-         */
-        case "introFrac": {
-            simpleDiscLevel(gameState, [0.5, 1, 0.5, 1.5])
-            break
-        }
-
-        /**
-         * Reinforce previous levels, also use max slider values
-         */
-        case "introCombined": {
-            simpleDiscLevel(gameState, [2, 1.5, -0.5, -2])
-            break
-        }
-
-        /**
-         * - If sliders are on half units, the resulting slope is halved.
-         */
-        case "intro8": {
-            simpleDiscLevel(gameState, [1, 0.5, -0.1, -0.8, -0.4, 0.6, 0.2, 0.4])
-            break
-        }
-
-        /**
-         * A final challenge for the introduction. The only time we will actually ask for 16 sliders
-         * to be manually moved.
-         */
-        case "intro16": {
-            simpleDiscLevel(gameState, [0.25, 0.5, 0.75, 1, 1.25, 1, 0.75, 0.5,
-                0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1], 0,  15,  12)
-            break
-        }
-
-        // -----------------------------------------------------------------------------------------------------
-        case "linearExperiment":{
-            experimentMenu(gameState, "introDoor")
-            break
-        }
-
-        case "linearTrial1":{
-            experimentTrial({gameState:gameState, exitTo:"linearExperiment", solutionFun: x=>0.5*x,
-                solutionDdx:x=>0.5, solutionFunString:"0.5t", solutionDdxString:"0.5"})
-            break
-        }
-
-        case "linearRule":{
-            const constants = [new MathBlock({type:MathBlock.VARIABLE, token:"a"}),new MathBlock({type:MathBlock.VARIABLE, token:"b"})]
-            const blocks = constants.concat(ALL_BLOCKS)
-            const sySlider = new Slider({canvasX: 1200, canvasY: 200, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
-            const tySlider = new Slider({canvasX: 1300, canvasY: 200, maxValue:5, sliderLength:10, showAxis:true})
-            const mbm = new MathBlockManager({blocks : blocks, originX: 700, originY:160, outputType:"none",
-                scaleYSlider: sySlider, translateYSlider:tySlider,
-            })
-            const targetBlock = new MathBlock({type: MathBlock.BIN_OP, token:"+", originX: 200, originY: 150})
-            const multBlock = new MathBlock({type: MathBlock.BIN_OP, token:"*"})
-            multBlock.setChild(0, new MathBlock({type: MathBlock.VARIABLE, token:"a"})) 
-            multBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"x"})) 
-            targetBlock.setChild(0, multBlock) 
-            targetBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"b"})) 
-            gameState.objects = [
-                new TextBox({originX: 50, originY:200, content:'f(x) =', font:'40px monospace'}),
-                new TextBox({originX: 500, originY:200, content:'f\'(x) =', font:'40px monospace'}),
-                new Button({originX:50, originY:50, width:50, height:50,
-                    onclick:(() => loadScene(gameState,"introDoor")),
-                    label:"↑", lineWidth:5}),
-                sySlider, tySlider, mbm, targetBlock
-                
-            ]
-            gameState.update = () => { }
-            break
-        }
-
-        
-
-        //------------------------------------------------------------------------------------------------------
-        // Quadratic Planet
-        //------------------------------------------------------------------------------------------------------
-        case "quadDoor": {
-            const completion = planetCompletion(gameState)
-            const door_button = new Button({originX:1160, originY:460, widht:100, height:150, onclick:(() => { loadScene(gameState, "ship") }), label:""})
-            door_button.visible = false
-
-
-            
-            gameState.objects = [
-                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "quad_img"),
-                new ImageObject(1000, 250, 400, 500, "ship_img"),
-                door_button
-            ]
-            gameState.objects.push({
-                update: function(ctx){
-                    Color.setColor(ctx,Color.black)
-                    ctx.fillRect(1186,480,48,114)
-                }
-            })   
-            break
-        }
-
-        /**
-         * Quadratic Levels
-         * We introduce the mathblock interface while teaching that the 
-         * derivative of $x^2$ is $x$. We don't actually identify the 
-         * quadratic as $x^2$ until the next section.
-         */
-        case "quadMenu": {
-            puzzleMenu(gameState, 2, PLANET_DATA[1].puzzles,"quadDoor") 
-            break
-        }
-
-        /**
-         * - A quadratic shape on the left can be achieved by a linear
-         *   shape on the right.
-         */
-        case "quad4": {
-            quadDiscLevel(gameState, 4)
-            break
-        }
-
-        /**
-         * - As we add more sliders the curve becomes smoother
-         */
-        case "quad8": {
-            quadDiscLevel(gameState, 8)
-            break
-        }
-
-        case "quad16": {
-            quadDiscLevel(gameState, 16, true)
-            break
-        }
-
-        case "quad32": {
-            quadDiscLevel(gameState, 32, true)
-            break
-        }
-
-        case "quadSmooth": {
-            quadDiscLevel(gameState, 200, true)
-            break
-        }
-
-
-        case "quadShort4": {
-            quadDiscLevel(gameState, 4, false, x => x*x/4)
-            break
-        }
-        case "quadShort8": {
-            quadDiscLevel(gameState, 8, false, x => x*x/4)
-            break
-        }
-        case "quadShort16": {
-            quadDiscLevel(gameState, 16, true, x => x*x/4)
-            break
-        }
-        case "quadShort32": {
-            quadDiscLevel(gameState, 16, true, x => x*x/4)
-            break
-        }
-        case "quadShortSmooth": {
-            quadDiscLevel(gameState, 200, true, x => x*x/4)
-            break
-        }
-
-        case "quadNeg4": {
-            quadDiscLevel(gameState, 4, false, x => -x*x/2+2)
-            break
-        }
-        case "quadNeg8": {
-            quadDiscLevel(gameState, 8, false, x => -x*x/2+2)
-            break
-        }
-        case "quadNeg16": {
-            quadDiscLevel(gameState, 16, true, x => -x*x/2+2)
-            break
-        }
-        case "quadNeg32": {
-            quadDiscLevel(gameState, 32, true, x => -x*x/2+2)
-            break
-        }
-        case "quadNegSmooth": {
-            quadDiscLevel(gameState, 200, true, x => -x*x/2+2)
-            break
-        }
-
-        /**
-         * Cubic levels
-         * 
-         * - Another thing that could be good for cubic is triple discrete graphs.
-         */
-        case "cubic": {
-            puzzleMenu(gameState, "3")
-            break
-        }
-
-        case "cubic4": {
-            twoGridLevel(gameState, 4, null, x => x * x * x / 6)
-            break
-        }
-
-        case "cubic8": {
-            twoGridLevel(gameState, 8, null, x => x * x * x / 6)
-            break
-        }
-
-        case "cubic16": {
-            twoGridLevel(gameState, 16, 2, x => x * x * x / 6)
-            break
-        }
-
-        case "cubic32": {
-            twoGridLevel(gameState, 32, 2, x => x * x * x / 6)
-            break
-        }
-
-        case "cubic400": {
-            twoGridLevel(gameState, 400, 2, x => x * x * x / 6)
-            break
-        }
-
-
-
-        /**
-         * Small scale
-         */
-        case "cubic5": {
-            const fun = x => x * x * x / 10
-            cubicContLevel(gameState, fun)
-            break
-        }
-
-        /**
-         * 
-         */
-        case "cubic6": {
-            const fun = x => x * x * x * 2 / 3 - x * 2
-            cubicContLevel(gameState, fun)
-            break
-        }
-
-        case "cubic7": {
-            const fun = x => -x * x * x * 2 / 3 + x * 2
-            cubicContLevel(gameState, fun)
-            break
-        }
-
-        case "cubic8": {
-            const fun = x => 0.1 * x * x * x + 0.3 * x * x + 0.3 * x - 1
-            cubicContLevel(gameState, fun)
-            break
-        }
-
-
-
-        /**
-         * Exponential Levels
-         * 
-         */
-        case "exp": {
-            puzzleMenu(gameState, "4")
-            break
-        }
-
-        case "exp1": {
-            expDiscLevel(gameState, 4)
-            break
-        }
-
-        case "exp2": {
-            expDiscLevel(gameState, 8)
-            break
-        }
-
-        case "exp3": {
-            expDiscLevel(gameState, 16)
-            break
-        }
-
-        /**
-         * 
-         */
-        case "exp4": {
-            const fun = x => Math.E ** x / 2
-            const blocks = [[MathBlock.VARIABLE, "x"], [MathBlock.POWER, "2"], [MathBlock.EXPONENT, "e"]]
-            const grid_setting = { grid_width: 4, grid_height: 4, x_axis: 4, y_axis: 2 }
-            genContLevel(gameState, fun, blocks, grid_setting)
-            break
-        }
-
-        case "exp5": {
-            const fun = x => Math.E ** x / 2
-            const blocks = [[MathBlock.VARIABLE, "x"], [MathBlock.POWER, "2"], [MathBlock.EXPONENT, "e"]]
-            const grid_setting = { grid_width: 4, grid_height: 4, x_axis: 4, y_axis: 2 }
-            genContLevel(gameState, fun, blocks, grid_setting)
-            break
-        }
-
-        case "sin": {
-            puzzleMenu(gameState, "5", "sin")
-            break
-        }
-
-        case "sin1": {
-            sinDiscLevel(gameState, 4, "sin2", 4)
-            break
-        }
-
-        case "sin2": {
-            sinDiscLevel(gameState, 8, "sin3", 4)
-            break
-        }
-
-        case "sin3": {
-            sinDiscLevel(gameState, 8, "sin4", 8)
-            break
-        }
-
-        case "sin4": {
-            sinDiscLevel(gameState, 16, "sin5", 8)
-            break
-        }
-
-        /**
-         * 6 sum
-         * 
-         * Discrete intuition:
-         * When we add two functions 
-         * 
-         * sin(x) + x^2
-         * 
-         * the rate of change of one function is 
-         * added to the rate of change of the other...
-         * 
-         * x^2 + sin(x)
-         * 
-         * Are we graphing only the highlighted block here?
-         * Can you highlight a block on the lhs...
-         * Yes, but the sum is still shown as well.
-         * 
-         */
-
-        case "sum": {
-            puzzleMenu(gameState, "6", "sum")
-            break
-        }
-
-
-        case "sum1": {
-            const fun = x => x * x / 8 + Math.sin(x)
-            const blocks = [[MathBlock.VARIABLE, "x"], [MathBlock.POWER, "2"], [MathBlock.EXPONENT, "e"], [MathBlock.FUNCTION, "sin"], [MathBlock.BIN_OP, "+"]]
-            genContLevel(gameState, fun, blocks)
-            break
-        }
-
-
-        /**
-         * 7 prod
-         * 
-         * Discrete intuition
-         * 
-         * Multiplying 
-         * 
-         * x^2 sin(x)
-         * 
-         * 2x sin(x) + cos(x) x^2
-         * 
-         * x * x is a good puzzle since it calls back to something 
-         * we already know
-         * 
-         * (f * g)' = f' * g + g' * f
-         * 
-         * 
-         * Area of a rectangle is good intuition here...
-         * 
-         */
-
-        case "prod": {
-            puzzleMenu(gameState, "7", "prod")
-            break
-        }
-
-        case "prodTest": {
-            const fun = x => x * x / 8 + Math.sin(x)
-            const blocks = [[MathBlock.VARIABLE, "x"], [MathBlock.POWER, "2"], [MathBlock.EXPONENT, "e"], [MathBlock.FUNCTION, "sin"], [MathBlock.BIN_OP, "+"], [MathBlock.BIN_OP, "*"]]
-            genContLevel(gameState, fun, blocks)
-            break
-        }
-
-        /**
-         * 8 chain
-         */
-
-        case "chain": {
-            puzzleMenu(gameState, "8", "chain")
-            break
-        }
-
-        /**
-         * Chain rule
-         * 
-         * Discrete: inputs become outputs....
-         * f(g(x))' = f'(g(x)) g'(x)
-         * Output of g is input of f
-         * So rate of change of f (g(x)) is
-         * rate of change of  
-         * 
-         * sin(x^2)
-         * 
-         * e^(x^2)
-         * 
-         * (sin(x))^2
-         * 
-         * (e^x)^2
-         * 
-         */
-
-    }
-}
-
-

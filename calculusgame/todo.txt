@@ -8,7 +8,7 @@ Overworld
 - Planet map
 
 
-3 days - Overworld. Day 1: put buttons on map. Make planet map. Day 2. Track progress lock things Day 3. Same as 2
+3 days - Overworld.  Make planet map. Day 2. Track progress lock things Day 3. Same as 2
 1 day - Asteroids
 1 day - derivative arrows, time permetting better experiment graphic (with a train maybe)
 1 day - rule solver

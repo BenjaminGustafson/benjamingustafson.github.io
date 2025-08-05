@@ -1,6 +1,6 @@
 import {Color, Shapes} from '../util/index.js'
 import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox} from '../GameObjects/index.js'
-import { loadScene, planetCompletion, CANVAS_WIDTH, CANVAS_HEIGHT } from '../Scene.js'
+import * as Scene from '../Scene.js'
 
 /**
  * The map is isometric tiles of 128 x 64. 
@@ -11,27 +11,27 @@ import { loadScene, planetCompletion, CANVAS_WIDTH, CANVAS_HEIGHT } from '../Sce
  */
 
 export function linearPlanet(gameState){
-    const completion = planetCompletion(gameState)
-    const open = completion == 1
-    const door_button = new Button({originX:200, originY:600, width:100, height:60, onclick:(() => { loadScene(gameState,"ship") }), label:"Ship"})
+    const door_button = new Button({originX:200, originY:600, width:100, height:60, onclick:(() => { Scene.loadScene(gameState,"planetMap") }), label:"Ship"})
     
-    const puzzleButton = new Button({originX:200, originY:400, width:150, height:100, onclick:(() => { loadScene(gameState, "intro") }), label:"Puzzles"})
+    const puzzleButton = new Button({originX:200, originY:400, width:150, height:100,
+         onclick:(() => { Scene.loadScene(gameState, "intro") }), label:"Puzzles"})
     const experimentButton = new Button({originX:180, originY:130, width:100, height:60, 
-        onclick:(() => { loadScene(gameState, "linearExperiment") }), label: "Lab"})
+        onclick:(() => { Scene.loadScene(gameState, "linearExperiment") }), label: "Lab"})
 
 
     // ---------------------------- Puzzle buttons ----------------------------------
-    const levels = ["intro1", "intro2", "intro4Pos", "introNeg", "introFrac", "introCombined", "intro8", "intro16"]
+    const levels = Scene.PLANET_DATA['Linear']['puzzles']
     var buttons = []
     for (let i = 0; i < levels.length; i++) {
         const button = new Button({originX:0, originY:0, width:50, height:50, fontSize: 20,
             onclick:(() => {
                 gameState.stored.levelIndex = i;
-                loadScene(gameState,levels[i])
+                Scene.loadScene(gameState,levels[i])
             }),
-            label: 1 + "." + (i + 1)
+            label: 1 + "." + (i + 1),
+            bgColor: Color.black,
         })
-        if (gameState.stored.planetCompletedLevels[gameState.stored.planetIndex][levels[i]]) {
+        if (gameState.stored.completedScenes[levels[i]]) {
             button.color = Color.blue
         }
         buttons.push(button)
@@ -49,21 +49,60 @@ export function linearPlanet(gameState){
 
     //-------------------------------- Dialogue Buttons -----------------------------
 
-
-
     gameState.objects = [
-        new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linearPlanetBg"),
-        new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "linearPlanetFg"),
-        //new TextBox({originX:100, originY:100, content: "1. Linear Planet", font : "40px monospace", color : Color.black}),
-        //puzzleButton,
+        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetBg"),
+        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetFg"),
         experimentButton,
         door_button,
-        // new Button({originX:200, originY:600, width:100, height:100, 
-        //     onclick:(() => { loadScene(gameState, "linearRule") }),
-        //     label: "Rule"
-        // }),
     ]
     gameState.objects = gameState.objects.concat(buttons)
+
+}
+
+
+export function linearPuzzle1 (gameState){
+    const gridLeft = new Grid({
+        canvasX:560, canvasY:430, canvasWidth:100, canvasHeight:100, 
+        gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false
+    })
+
+    const gridRight = new Grid({canvasX:900, canvasY:430, canvasWidth:100, canvasHeight:100,
+        gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false
+    })
+    
+    const slider = new Slider({grid:gridRight, gridPos:0})
+
+    const target = new Target({grid: gridLeft, gridX:1, gridY:1, size:20})
+    const tracer = new IntegralTracer({grid: gridLeft, sliders: [slider], targets:[target]})
+    const backButton = new Button({originX:50, originY: 50, width:100, height: 100,
+        onclick: ()=>Scene.loadScene(gameState,"linearPlanet"), label:"↑"})
+    
+    // Objects and update
+    gameState.objects = [gridLeft, gridRight, slider, target, tracer, backButton]
+    gameState.update = () => {
+        if (slider.solved){
+            gameState.stored.completedScenes[gameState.sceneName]
+        }
+    }
+}
+
+export function linearPuzzle2 (gameState){
+    const gridLeft = new Grid({canvasX:560, canvasY:430, canvasWidth:200, canvasHeight:200, 
+        gridXMin:-1, gridYMin:0, gridXMax:1, gridYMax:2, labels:false, arrows:false})
+    //const gridLeft = new Grid(560, 430, 200, 200, 2, 2, 5)
+    const gridRight = new Grid({canvasX:900, canvasY:430, canvasWidth:200, canvasHeight:200, 
+        gridXMin:-1, gridYMin:-1, gridXMax:1, gridYMax:1, labels:false, arrows:false})
+    const sliders = [
+        new Slider({grid:gridRight, gridPos:-1}),
+        new Slider({grid:gridRight, gridPos:0}),
+    ]
+    const targets = [
+        new Target({grid: gridLeft, gridX:0, gridY:1, size:20}),
+        new Target({grid: gridLeft, gridX:1, gridY:2, size:20})
+    ]
+    const tracer =  new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets})
+    const backButton = new Button({originX:50, originY: 50, width:100, height: 100, onclick: ()=>loadScene(gameState,"linearPlanet"), label:"↑"})
+    gameState.objects = [gridLeft, gridRight, tracer, backButton].concat(sliders).concat(targets)
 }
 
 /**
@@ -74,8 +113,8 @@ export function linearPlanet(gameState){
  * @param {*} tracerStart y-intercept where the tracer starts from
  * @param {number} targetSize The size of the targets and sliders
  */
-export function simpleDiscLevel(gameState, targetVals, tracerStart = 0, targetSize = 20, sliderSize = 15, exitTo = 'introDoor') {
-    const backButton = new Button({originX:50, originY: 50, width:100, height: 100, onclick: ()=>loadScene(gameState,exitTo), label:"↑"})
+export function simpleDiscLevel(gameState, targetVals, tracerStart = 0, targetSize = 20, sliderSize = 15, exitTo = 'linearPlanet') {
+    const backButton = new Button({originX:50, originY: 50, width:100, height: 100, onclick: ()=>Scene.loadScene(gameState,exitTo), label:"↑"})
     const gridLeft = new Grid({canvasX:300, canvasY:250, canvasWidth:400, canvasHeight:400, 
         gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:false, arrows:true})
     const gridRight = new Grid({canvasX:900, canvasY:250, canvasWidth:400, canvasHeight:400, 
