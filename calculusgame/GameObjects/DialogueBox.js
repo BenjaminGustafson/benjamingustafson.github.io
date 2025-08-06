@@ -41,7 +41,7 @@ export class DialogueBox extends GameObject{
 
     update(ctx, audioManager, mouse){
         Color.setFill(ctx,Color.black)
-        Shapes.Rectangle({ctx:ctx, originX: 0, originY: 600, width:1600, height:300, inset: true})
+        Shapes.Rectangle({ctx:ctx, originX: 50, originY: 600, width:1500, height:200, inset: true, shadow:8})
         
         Color.setColor(ctx,Color.white)
         const string = this.text[this.textIndex]

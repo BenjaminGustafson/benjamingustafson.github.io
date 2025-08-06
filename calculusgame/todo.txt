@@ -1,35 +1,29 @@
 
-Overworld 
-- Rule scene
-- Planets unlocked after rule scene
-- NPC dialogue
-- Puzzles locked
-- Lab progress
-- Planet map
 
 
-3 days - Overworld.  Make planet map. Day 2. Track progress lock things Day 3. Same as 2
 1 day - Asteroids
 1 day - derivative arrows, time permetting better experiment graphic (with a train maybe)
-1 day - rule solver
+1 day - rule 
+Overworld 
+- Lab progress
+- Quadratic unlocks
 
 --------------------
 Essential:
-- Overworld - hard - includes planet map and navigation logic
-- Asteroids medium
-- Derivative arrows (experiment step) medium
-- Rule solver
+- PC moves on map
+- Quadratic map
+- Quadratic puzzles
 
 Overworld: not including map creation, just getting all of the logic 
 
 Optional
 - Drawing puzzles - easy
 - Sandbox mode: set f(x) and f'(x) - easy
-- NPC dialogue - medium
 - Alien language - hard
 - PC in overworld - easy
 - Dropshadows easy
-- Screen transitions - medium
+- Screen transitions - medium, easy to wipe to black and then wipe in scene, harder to wipe scene to scene
+Zoom out from landing pad
 - UI element borders - easy
 - Mathblock destructive - medium
 

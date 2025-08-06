@@ -29,7 +29,7 @@ var keysPressed = {}
 
 // Setup - called on page load 
 function setup() {
-    
+    console.log ('version 8-6-2025')
     // Game is drawn on this canvas
     var canvas = document.getElementById('myCanvas');
 
