@@ -40,6 +40,7 @@ function setup() {
          "glass_002.ogg", "switch1.ogg","switch9.ogg","switch6.ogg", "switch13.ogg", 'click_003.ogg', 'click2.ogg',
         'click3.ogg',
         'drop_003.ogg', 'drop_001.ogg', //target adder
+        'error_008.ogg','bong_001.ogg' // dialogue
     ];
 
     Promise.all(
@@ -86,7 +87,7 @@ function setup() {
             strikes: 0, // the number of strikes (incorrect answers) at the navigation puzzle
             navPuzzleMastery: {}, // list of mastery scores, indexed by puzzle type. {'linear1': 0.9}. null if puzzle not unlocked yet
             navPuzzleAttempts: {}, // number of attempted puzzles, indexed by puzzle type
-            mathblocksUnlocked: [MathBlock.CONSTANT],// the MathBlocks currently available, excluding variables
+            mathBlocksUnlocked: [{type:MathBlock.CONSTANT}],// the MathBlocks currently available, excluding variables
         }
 
         for (const planet in PLANET_DATA){
@@ -221,7 +222,9 @@ function setup() {
 
         // Draw all GameObjects
         for (let i = 0; i < gameState.objects.length; i++) {
-            gameState.objects[i].update(ctx, audioManager, mouse);
+            const obj = gameState.objects[i]
+            if (!obj.hidden)
+                obj.update(ctx, audioManager, mouse);
         }
 
         // Reset mouse state

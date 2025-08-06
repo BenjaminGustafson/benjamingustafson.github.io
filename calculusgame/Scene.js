@@ -2,6 +2,7 @@ import * as GameObjects from './GameObjects/index.js'
 import {Shapes, Color} from './util/index.js'
 import * as Menus from './Scenes/Menus.js'
 import * as Linear from './Scenes/Linear.js'
+import * as Experiment from './Scenes/Experiment.js'
 
 
 /**
@@ -62,6 +63,8 @@ export const PLANET_DATA = {
     },
 }
 
+
+
 /**
  * Linear
  * Quadratic 
@@ -101,7 +104,6 @@ export function planetCompletion(gameState){
     const id = gameState.stored.planetIndex
     const puzzles = PLANET_DATA[id].puzzles
     const progress = gameState.stored.planetCompletedLevels[id]
-    console.log(id,puzzles,progress)
     var numComplete = 0
     for(let i = 0; i < puzzles.length; i++){
         if (progress[puzzles[i]]){
@@ -202,7 +204,6 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
             if (ty_slider.active) {
                 for (let i = 0; i < num_sliders; i++) {
                     const val = ty_slider.value + sySlider.value * fun(gridRight.canvasToGrid(sliders[i].originX, 0).x)
-                    console.log(val)
                     sliders[i].setValue(val)
                 }
             }
@@ -212,6 +213,7 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
     }
     levelNavigation(gameState, () => tracer.solved)
 }
+
 
 
 /**
@@ -252,43 +254,46 @@ export function loadScene(gameState, sceneName, message = {}) {
         /**
          * 1x1 grid to introduce interface
          */
-        case "intro1": Linear.linearPuzzle1(gameState)
+        case "intro1": Linear.linearPuzzle1(gameState, {nextScenes:["intro2"]})
         break
 
         /**
          * 2x2 grid to introduce interface
          */
-        case "intro2": {
-            
-            break
-        }
+        case "intro2": Linear.linearPuzzle2(gameState,  {nextScenes:["intro4Pos"]})
+        break
 
         /**
          * 4x4 grid but still only nonnegative slopes.
          */
         case "intro4Pos": 
-            Linear.simpleDiscLevel(gameState, [0, 1, 1, 2])
+            Linear.simpleDiscLevel(gameState, {targetVals:[0, 1, 1, 2],  nextScenes:["introNeg"]})
             break
 
         /**
          * Introduce negative slopes.
          */
         case "introNeg": 
-            Linear.simpleDiscLevel(gameState, [1, 0, -1, 0])
+            Linear.simpleDiscLevel(gameState, {targetVals:[1, 0, -1, 0], nextScenes:["linearDialogue1"]})
             break
+
+        case 'linearDialogue1':
+            Linear.linearDialogueScene(gameState, {exitTo:"linearPlanet", nextScenes:["introFrac"]})
+            break
+
 
         /**
          * Introduce fractional slopes, slope = 1/2
          */
         case "introFrac": 
-            Linear.simpleDiscLevel(gameState, [0.5, 1, 0.5, 1.5])
+            Linear.simpleDiscLevel(gameState, {targetVals:[0.5, 1, 0.5, 1.5], nextScenes:["introCombined"]})
             break
 
         /**
          * Reinforce previous levels, some fractional, some negative
          */
         case "introCombined": 
-            Linear.simpleDiscLevel(gameState, [2, 1.5, -0.5, -2])
+            Linear.simpleDiscLevel(gameState, {targetVals:[2, 1.5, -0.5, -2], nextScenes:["intro8"]})
             break
 
         /**
@@ -296,7 +301,7 @@ export function loadScene(gameState, sceneName, message = {}) {
          *  the resulting slope is halved.
          */
         case "intro8": 
-            Linear.simpleDiscLevel(gameState, [1, 0.5, -0.1, -0.8, -0.4, 0.6, 0.2, 0.4])
+            Linear.simpleDiscLevel(gameState, {targetVals:[1, 0.5, -0.1, -0.8, -0.4, 0.6, 0.2, 0.4], nextScenes:["intro16"]})
             break
 
         /**
@@ -306,19 +311,18 @@ export function loadScene(gameState, sceneName, message = {}) {
          * to be manually moved.
          */
         case "intro16": 
-            Linear.simpleDiscLevel(gameState, [0.25, 0.5, 0.75, 1, 1.25, 1, 0.75, 0.5,
-                0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1], 0,  15,  12)
+            Linear.simpleDiscLevel(gameState, {targetVals:[0.25, 0.5, 0.75, 1, 1.25, 1, 0.75, 0.5,
+                0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1],  targetSize:15,  sliderSize:12, nextScenes:["linearExperiment"]})
             break
 
         // Experiment ------------------------------------------------- 
         case "linearExperiment":
-            experimentMenu(gameState, "linearPlanet")
+            Experiment.experimentMenu(gameState)
             break
         
 
         case "linearTrial1":{
-            experimentTrial({gameState:gameState, exitTo:"linearExperiment", solutionFun: x=>0.5*x,
-                solutionDdx:x=>0.5, solutionFunString:"0.5t", solutionDdxString:"0.5"})
+            Experiment.experimentTrial(gameState, 'linearExperiment')
             break
         }
 

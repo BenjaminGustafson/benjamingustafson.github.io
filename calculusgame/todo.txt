@@ -1,9 +1,9 @@
 
 Overworld 
-- Fix puzzle progress
-- Ship locked
-- Puzzles locked
+- Rule scene
+- Planets unlocked after rule scene
 - NPC dialogue
+- Puzzles locked
 - Lab progress
 - Planet map
 

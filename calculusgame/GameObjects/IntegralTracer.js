@@ -129,7 +129,6 @@ export class IntegralTracer {
                 const t = (cxPixel - prevCxPrecise) / (cxPrecise - prevCxPrecise) 
                 newGridYs.push( t * gyPrev + (1-t) * gy)
                 cxPixel++
-                console.log(gx,gy)
             }
             gyPrev = gy
         }
@@ -201,7 +200,6 @@ export class IntegralTracer {
                     continue
                 }
             }
-            //console.log(cyObj,x,y, this.gridYs[i], i)
             Shapes.Line(ctx,x, prevCy, x+1, cy, this.lineWidth)
             this.targets.forEach(t => {
                 if (t.lineIntersect(x,prevCy,x+1,cy) || t.pointIntersect(x,prevCy)){

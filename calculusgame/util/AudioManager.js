@@ -13,7 +13,14 @@ export class AudioManager {
         this.buffers.set(name, audioBuffer);
     }
 
-
+    /**
+     * 
+     * @param {*} name 
+     * @param {*} pitch - number of semitones to pitch shift up
+     * @param {*} volume 
+     * @param {*} force 
+     * @returns 
+     */
     play(name, pitch = 0 , volume = 1.0, force = false) {
         if (! force && (this.lastTimePlayed[name] != null && Date.now() - this.lastTimePlayed[name] < 35)) {
             return;

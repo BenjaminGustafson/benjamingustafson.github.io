@@ -1,11 +1,30 @@
 import {Color, Shapes} from '../util/index.js'
 import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox} from '../GameObjects/index.js'
-import { loadScene } from '../Scene.js'
+import { loadScene, PLANET_DATA } from '../Scene.js'
 
-export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, solutionFunString, solutionDdxString}){
+const EXPERIMENT_DATA = {
+    'linearTrial1':{
+        solutionFun: x=>0.5*x,
+        solutionDdx:x=>0.5,
+        solutionFunString:"0.5t",
+        solutionDdxString:"0.5"
+    }
+}
+
+export function experimentTrial(gameState, experimentMenu){
 
     const gss = gameState.stored
-    const backButton = new Button({originX:50, originY:50, width:50, height:50, onclick:(() => loadScene(gameState,exitTo)), label:"↑"})
+
+    const solutionFun = EXPERIMENT_DATA[gss.sceneName].solutionFun
+    const solutionDdx = EXPERIMENT_DATA[gss.sceneName].solutionDdx
+    const solutionFunString = EXPERIMENT_DATA[gss.sceneName].solutionFunString
+    const solutionDdxString = EXPERIMENT_DATA[gss.sceneName].solutionDdxString
+
+
+    // Back button
+    const exitTo = experimentMenu
+    const backButton = new Button({originX:50, originY:50, width:50, height:50,
+        onclick:(() => loadScene(gameState,exitTo)), label:"↑"})
 
     // Grid
     const gridLeft = new Grid({canvasX:100, canvasY:400, canvasWidth:400, canvasHeight:400, 
@@ -16,15 +35,12 @@ export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, so
     const adder = new TargetAdder({grid:gridLeft})
     const funTracer = new FunctionTracer({grid:gridLeft})
 
-    const blocks = [
-        new MathBlock({type:MathBlock.CONSTANT}),
-        new MathBlock({type:MathBlock.VARIABLE, token:'t'}),
-        new MathBlock({type:MathBlock.POWER, token:'2'}),
-        new MathBlock({type:MathBlock.EXPONENT}),
-        new MathBlock({type:MathBlock.FUNCTION, token:'sin'}),
-        new MathBlock({type:MathBlock.BIN_OP, token:'+'}),
-        new MathBlock({type:MathBlock.BIN_OP, token:'*'}),
-    ]
+    const blocks = [new MathBlock({type:MathBlock.VARIABLE, token:'t'})]
+    console.log(gss.mathBlocksUnlocked)
+    for (let b of gss.mathBlocksUnlocked){
+        console.log(b)
+        blocks.push(new MathBlock({type: b.type, token: b.token}))
+    }
     const mngr = new MathBlockManager({
         blocks:blocks, toolBarX:750, toolBarY:400,
         translateYSlider:tySlider, scaleYSlider:sySlider, blockSize:26,
@@ -289,11 +305,12 @@ export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, so
                     errorText.content = ''
                     step++
                     gameState.objects = mainObjs.concat(step4Objs)
+                    gameState.stored.completedScenes[gameState.stored.sceneName] = true
                 }else{
                     errorText.content = 'v(' + check.x + ') should be ' + solutionDdx(check.x).toFixed(2) + ' not ' + funTracer.fun(check.x).toFixed(2)
                 }
             }else if (step == 4){ // SOLVED
-                // TODO set global record of solving
+                
                 loadScene(gameState,exitTo)
             }
         }),
@@ -326,24 +343,28 @@ export function experimentTrial({gameState, exitTo, solutionFun, solutionDdx, so
 }
 
 
-const trials = ["linearTrial1","linearTrial2","linearTrial3","linearTrial4","linearTrial5"]
-
-export function experimentMenu(gameState, exitTo){
+/**
+ * 
+ * 
+ * @param {*} gameState 
+ * @param {*} exitTo 
+ */
+export function experimentMenu(gameState){
     const gss = gameState.stored
-    const backButton = new Button({originX:50, originY:50, width:50, height:50, onclick:(() => loadScene(gameState,exitTo)), label:"↑"})
+    const trials = PLANET_DATA[gss.planet].trials
+
+    const backButton = new Button({originX:50, originY:50, width:50, height:50,
+        onclick:(() => loadScene(gameState,PLANET_DATA[gss.planet].scene)), label:"↑"})
     backButton.lineWidth = 5
     const trialButtons = []
-    const planetIndex = gss.planetIndex
-    const completedRule = gss.planetCompletedRule[planetIndex]
-    const completedTrials = gss.planetCompletedTrials[planetIndex]
 
-    for (let i = 0; i < 10; i++){
-        if (trials.length <= i) break
+    for (let i = 0; i < trials.length; i++){
         const button = new Button({originX:200,originY:150+i*60,width:100, height:50,
             onclick:(() => loadScene(gameState,trials[i])), label:i+1})
         button.lineWidth = 5
-        if (completedTrials < i){
-            button.active = false
+
+        if (gameState.stored.completedScenes[trials[i]]) {
+            button.bgColor = Color.blue
         }
         trialButtons.push(button)
     }
@@ -356,14 +377,19 @@ export function experimentMenu(gameState, exitTo){
             ctx.font = '40px monospace'
             ctx.textAlign = 'start'
             ctx.textBaseline = 'alphabetic'
-            ctx.fillText('Trial', 200,100);
-            ctx.fillText('p(t)', 400,100);
-            ctx.fillText('v(t)', 800,100);
+            ctx.fillText('Trial', 200,100)
+            ctx.fillText('p(t)', 400,100)
+            ctx.fillText('v(t)', 800,100)
             Color.setColor(ctx,Color.lightGray)
-            Shapes.Line(ctx,150,120,1500,120);
-            Shapes.Line(ctx,350,50,350,850);
-            Shapes.Line(ctx,750,50,750,850);
-            Shapes.Line(ctx,150,760,1500,760);
+            Shapes.Line(ctx,150,120,1500,120)
+            Shapes.Line(ctx,350,50,350,850)
+            Shapes.Line(ctx,750,50,750,850)
+            Shapes.Line(ctx,150,760,1500,760)
+            for (let i = 0; i < trials.length; i++){
+                if (EXPERIMENT_DATA[trials[i]]){
+                    ctx.fillText(EXPERIMENT_DATA[trials[i]].solutionFunString,400,150+i*60)
+                }
+            }
         }
     }
     gameState.objects = [
