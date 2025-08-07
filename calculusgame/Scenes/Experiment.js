@@ -7,31 +7,81 @@ const EXPERIMENT_DATA = {
         solutionFun: x=>0.5*x,
         solutionDdx:x=>0.5,
         solutionFunString:"0.5t",
-        solutionDdxString:"0.5"
+        solutionDdxString:"0.5",
+        syFunMax: 2,
+        syFunLen: 4,
+        tyFunMax: 10,
+        tyFunLen: 10,
+        syDdxMax: 2,
+        syDdxLen: 4,
+        tyDdxMax: 2,
+        tyDdxLen: 4,
+        numMeasurement:5,
+        ddxSliderSpacing:2,
     },
     'linearTrial2':{
         solutionFun: x=>5-0.5*x,
         solutionDdx: x=>-0.5,
         solutionFunString:"-0.5t + 5",
-        solutionDdxString:"-0.5"
+        solutionDdxString:"-0.5",
+        syFunMax: 2,
+        syFunLen: 4,
+        tyFunMax: 10,
+        tyFunLen: 10,
+        syDdxMax: 2,
+        syDdxLen: 4,
+        tyDdxMax: 2,
+        tyDdxLen: 4,
+        numMeasurement:5,
+        ddxSliderSpacing:2,
     },
     'linearTrial3':{
         solutionFun: x=>1+1.5*x,
         solutionDdx: x=>-0.5,
         solutionFunString:"1.5t + 1",
-        solutionDdxString:"1.5"
+        solutionDdxString:"1.5",
+        syFunMax: 2,
+        syFunLen: 4,
+        tyFunMax: 10,
+        tyFunLen: 10,
+        syDdxMax: 2,
+        syDdxLen: 4,
+        tyDdxMax: 2,
+        tyDdxLen: 4,
+        numMeasurement:4,
+        ddxSliderSpacing:2,
     },
     'linearTrial4':{
         solutionFun: x=>2*x,
         solutionDdx: x=>2,
         solutionFunString:"2 t",
-        solutionDdxString:"2"
+        solutionDdxString:"2",
+        syFunMax: 2,
+        syFunLen: 4,
+        tyFunMax: 10,
+        tyFunLen: 10,
+        syDdxMax: 2,
+        syDdxLen: 4,
+        tyDdxMax: 2,
+        tyDdxLen: 4,
+        numMeasurement:5,
+        ddxSliderSpacing:1,
     },
     'linearTrial5':{
         solutionFun: x=>10-x,
         solutionDdx: x=>-1,
         solutionFunString:"-1t + 10",
-        solutionDdxString:"-1"
+        solutionDdxString:"-1",
+        syFunMax: 2,
+        syFunLen: 4,
+        tyFunMax: 10,
+        tyFunLen: 10,
+        syDdxMax: 2,
+        syDdxLen: 4,
+        tyDdxMax: 2,
+        tyDdxLen: 4,
+        numMeasurement:5,
+        ddxSliderSpacing:2,
     }
 }
 
@@ -44,7 +94,6 @@ export function experimentTrial(gameState, experimentMenu){
     const solutionFunString = EXPERIMENT_DATA[gss.sceneName].solutionFunString
     const solutionDdxString = EXPERIMENT_DATA[gss.sceneName].solutionDdxString
 
-
     // Back button
     const exitTo = experimentMenu
     const backButton = new Button({originX:50, originY:50, width:50, height:50,
@@ -54,8 +103,11 @@ export function experimentTrial(gameState, experimentMenu){
     const gridLeft = new Grid({canvasX:100, canvasY:400, canvasWidth:400, canvasHeight:400, 
         gridXMin:0, gridXMax:10, gridYMin:0, gridYMax:10, labels:true})
 
-    const sySlider = new Slider({canvasX: 580, canvasY:400, canvasLength:400, sliderLength:4, maxValue:2, showAxis: true})
-    const tySlider = new Slider({canvasX: 650, canvasY:400, canvasLength:400, sliderLength:10, maxValue:10, showAxis: true})
+    const gridRight = new Grid({canvasX:580, canvasY:400, canvasWidth:400, canvasHeight:400, 
+        gridXMin:0, gridXMax:10, gridYMin:-2, gridYMax:2, labels:true})
+
+    const sySlider = new Slider({canvasX: 580, canvasY:400, canvasLength:400, sliderLength:10, maxValue:5, showAxis: true})
+    const tySlider = new Slider({canvasX: 650, canvasY:400, canvasLength:400, sliderLength:10, maxValue:5, showAxis: true})
     const adder = new TargetAdder({grid:gridLeft})
     const funTracer = new FunctionTracer({grid:gridLeft})
 
@@ -77,20 +129,24 @@ export function experimentTrial(gameState, experimentMenu){
         update: function(ctx){
             const image = document.getElementById("quad_img")
             Color.setColor(ctx,Color.darkBlack)
-            Shapes.Rectangle({ctx:ctx, originX:900, originY:200, width:700, height:700, inset:true})
-            ctx.drawImage(image, 0,0, 1600*600/900,900, 910, 210, 680, 680)
+            const x = 1000
+            const y = 200
+            const w = 600
+            const h = 700
+            Shapes.Rectangle({ctx:ctx, originX:x, originY:y, width:w, height:h, inset:true})
+            ctx.drawImage(image, 0,0, 1600*600/900,900, x+10, y+10, w-20, h-20)
         }
     }
 
     // TURTLE
     const maxTime = 10
     var time = 0
-    var playing = true
+    var playing = false
     var startTime = Date.now()
     var startValue = 0
-    const maxDist = 500
+    const maxDist = 400
     const turtle = {
-        originX:1000,
+        originX:1100,
         originY:700,
         update: function(ctx){
             const width = 100
@@ -107,27 +163,28 @@ export function experimentTrial(gameState, experimentMenu){
 
     const fakeTurtle = {
         update: function (ctx){
-            const width = 80
-            var x = 0
-            if (step == 2){
-                x = turtle.originX - width + (funTracer.fun(time) * maxDist/maxTime)
-            }else if (step >= 3){
-                x = turtle.originX - width + (solutionFun(time) * maxDist/maxTime)
-                Color.setColor(ctx, Color.red)
-                const dx = funTracer.fun(time)* maxDist/maxTime
-                if (dx != 0){
-                    Shapes.Line(ctx, x+width-5, 500+width/2, x+width-5+dx, 500+width/2, 5, "arrow", 5,true)
-                }
-            }
-            Color.setColor(ctx,Color.green)
-            Shapes.Rectangle({ctx:ctx, originX:x, originY:500, width:width,height:width, inset:true})
+            // const width = 80
+            // var x = 0
+            // if (step == 2){
+            //     x = turtle.originX - width + (funTracer.fun(time) * maxDist/maxTime)
+            // }else if (step >= 3){
+            //     x = turtle.originX - width + (solutionFun(time) * maxDist/maxTime)
+            //     Color.setColor(ctx, Color.red)
+            //     const dx = funTracer.fun(time)* maxDist/maxTime
+            //     if (dx != 0){
+            //         Shapes.Line(ctx, x+width-5, 500+width/2, x+width-5+dx, 500+width/2, 5, "arrow", 5,true)
+            //     }
+            // }
+            // Color.setColor(ctx,Color.green)
+            // Shapes.Rectangle({ctx:ctx, originX:x, originY:500, width:width,height:width, inset:true})
         }
     }
 
     // TIME CONTROLS
-    const tSlider = new Slider({canvasX:920,canvasY:150,canvasLength:500,sliderLength:10, maxValue:10, vertical:false, showAxis:true})
-    const timeLabel = new TextBox({originX:900,originY:80, font:'26px monospace'})
-    const playPauseButton = new Button({originX:1450,originY:120,width:50,height:50,
+    const tSlider = new Slider({canvasX:1100,canvasY:150,canvasLength:450,
+        sliderLength:10, maxValue:10, vertical:false, increment:1})
+    const timeLabel = new TextBox({originX:1000,originY:80, font:'26px monospace'})
+    const playPauseButton = new Button({originX:1000,originY:120,width:50,height:50,
         onclick: function(){
             if (time >= maxTime){
                 playing = true
@@ -173,6 +230,18 @@ export function experimentTrial(gameState, experimentMenu){
         }
     }
 
+    const sliders = []
+    const spacing = EXPERIMENT_DATA[gss.sceneName].ddxSliderSpacing
+    for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
+        sliders.push(new Slider({grid:gridRight, gridPos:i,increment:0.1,circleRadius:15}))
+    }
+    const tracer = new IntegralTracer({grid: gridLeft, originGridY: solutionFun(0), 
+        sliders:sliders, targets:adder.targets})
+
+    const ddxTargets = []
+
+
+
     const text1 = {
         update: function(ctx){
             Color.setColor(ctx,Color.white)
@@ -181,11 +250,29 @@ export function experimentTrial(gameState, experimentMenu){
             ctx.textBaseline = 'top'
             ctx.fillText('Step 1: Measure the turtle\'s position over time.', 150,50)
             ctx.fillText("Click on the graph to add measurements.", 150,80)
+            if (gss.sceneName == 'linearTrial1')  ctx.fillText("Hint: Measure t=0,2,4,6,8.", 150,110)
             ctx.translate(25,700)
             ctx.rotate(-Math.PI/2)
             ctx.fillText("Position p(t)", 0,0)
             ctx.resetTransform()
             ctx.fillText("Time t", 250, 850)
+        }
+    }
+
+    const mDdxText = {
+        update: function(ctx){
+            Color.setColor(ctx,Color.white)
+            ctx.font = '20px monospace'
+            ctx.textAlign = 'start'
+            ctx.textBaseline = 'top'
+            ctx.fillText('Step 2: Measure the turle\'s velocity, v(t).', 150,50)
+            ctx.fillText("Use the sliders to set the velocity.", 150,80)
+            ctx.translate(25,700)
+            ctx.rotate(-Math.PI/2)
+            ctx.fillText("Position p(t)", 0,0)
+            ctx.resetTransform()
+            ctx.fillText("Time t", 250, 850)
+            ctx.fillText("p(t) = ", 20,200)
         }
     }
 
@@ -195,7 +282,7 @@ export function experimentTrial(gameState, experimentMenu){
             ctx.font = '20px monospace'
             ctx.textAlign = 'start'
             ctx.textBaseline = 'top'
-            ctx.fillText('Step 2: Guess the turtle\'s position function, p(t).', 150,50)
+            ctx.fillText('Step 3: Guess the turtle\'s position function, p(t).', 150,50)
             ctx.fillText("Use the blocks to set the function.", 150,80)
             ctx.translate(25,700)
             ctx.rotate(-Math.PI/2)
@@ -212,7 +299,7 @@ export function experimentTrial(gameState, experimentMenu){
             ctx.font = '20px monospace'
             ctx.textAlign = 'start'
             ctx.textBaseline = 'top'
-            ctx.fillText('Step 3: Guess the turtle\'s velocity function, v(t).', 150,50)
+            ctx.fillText('Step 4: Guess the turtle\'s velocity function, v(t).', 150,50)
             ctx.fillText("Use the blocks to set the function.", 150,80)
             ctx.translate(25,700)
             ctx.rotate(-Math.PI/2)
@@ -293,57 +380,73 @@ export function experimentTrial(gameState, experimentMenu){
 
     const errorText = new TextBox({originX:880, originY:140, align: 'right'})
 
-    var step = 1
-    const minCorrectTargets = 5
+    var step = 'measureF'
+    const minCorrectTargets = EXPERIMENT_DATA[gss.sceneName].numMeasurement
     const SKIP_CHECKS = false // debug option
-    const continueButton = new Button({originX:740, originY:50, width:100, height:60, fontSize:16,
+    const continueButton = new Button({originX:840, originY:50, width:100, height:60, fontSize:16,
         onclick:(() => {
-            if (step == 1){
+            if (step == 'measureF'){
                 const numCorrect = checkTargets()
                 if (numCorrect >= minCorrectTargets || SKIP_CHECKS){
                     adder.targets = adder.targets.filter(t => t.unhitColor == Color.magenta)
-                    gameState.objects = mainObjs.concat(step2Objs).concat(adder.targets)
+                    gameState.objects = mainObjs.concat(meaureDdxObjs).concat(adder.targets)
                     funTracer.targets = adder.targets
                     errorText.content = ''
-                    step ++
+                    step = 'measureDdx'
                 }else{
                     errorText.content = numCorrect + '/' + minCorrectTargets + ' correct measurements'
                 }
-            }else if (step == 2){
+            }else if (step == 'measureDdx'){
+                if (tracer.solved || SKIP_CHECKS){
+                    sySlider.setSize(EXPERIMENT_DATA[gss.sceneName].syFunMax, EXPERIMENT_DATA[gss.sceneName].syFunLen)
+                    tySlider.setSize(EXPERIMENT_DATA[gss.sceneName].tyFunMax, EXPERIMENT_DATA[gss.sceneName].tyFunLen)
+
+                    gameState.objects = mainObjs.concat(fitFObjs).concat(adder.targets)
+                    step = 'fitF'
+                }
+            }else if (step == 'fitF'){
                 const check = checkFunctionsEqual(solutionFun, funTracer.fun)
                 if (check.res || SKIP_CHECKS){
+                    sySlider.setSize(EXPERIMENT_DATA[gss.sceneName].syDdxMax, EXPERIMENT_DATA[gss.sceneName].syDdxLen)
+                    tySlider.setSize(EXPERIMENT_DATA[gss.sceneName].tyDdxMax, EXPERIMENT_DATA[gss.sceneName].tyDdxLen)
+                    gridLeft.setYBounds(-2,2)
+                    for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
+                        ddxTargets.push(new Target({grid: gridLeft, gridX:i,
+                            gridY:solutionDdx(i), size:15}))
+                    }
                     smallTracer.fun = solutionFun
+                    funTracer.targets = ddxTargets
                     mngr.reset()
                     errorText.content = ''
-                    step++
-                    gameState.objects = mainObjs.concat(step3Objs)
+                    step = 'fitDdx'
+                    gameState.objects = mainObjs.concat(fitDdxObjs).concat(ddxTargets)
                 }else{
                     errorText.content = 'p(' + check.x + ') should be ' + solutionFun(check.x).toFixed(2) + ' not ' + funTracer.fun(check.x).toFixed(2)
                 }
-            }else if (step == 3){
+            }else if (step == 'fitDdx'){
                 const check = checkFunctionsEqual(solutionDdx, funTracer.fun)
                 if (check.res || SKIP_CHECKS){
                     funTracer.fun = solutionDdx
                     errorText.content = ''
-                    step++
-                    gameState.objects = mainObjs.concat(step4Objs)
+                    step = 'solved'
+                    gameState.objects = mainObjs.concat(solvedObjs)
                     gameState.stored.completedScenes[gameState.stored.sceneName] = true
                 }else{
                     errorText.content = 'v(' + check.x + ') should be ' + solutionDdx(check.x).toFixed(2) + ' not ' + funTracer.fun(check.x).toFixed(2)
                 }
-            }else if (step == 4){ // SOLVED
-                
+            }else if (step == 'solved'){ // SOLVED
                 loadScene(gameState,exitTo)
             }
         }),
          label:"Continue"})
 
-    const mainObjs = [backButton, gridLeft, bgImage, tSlider, timeLabel, turtle, playPauseButton, numberLine, continueButton, errorText]
-    const step1Objs = [text1, adder]
-    const step2Objs = [sySlider, tySlider, text2, funTracer, fakeTurtle, mngr]
-    const step3Objs = [sySlider, tySlider, text3, funTracer, smallGrid, smallTracer, fakeTurtle, mngr]
-    const step4Objs = [text4, funTracer, smallGrid, smallTracer, fakeTurtle]
-    gameState.objects = mainObjs.concat(step1Objs)
+    const mainObjs = [backButton, gridLeft, continueButton, errorText, bgImage, tSlider, timeLabel, turtle, numberLine, playPauseButton,]
+    const measureFObjs = [text1, adder, ]
+    const meaureDdxObjs = [mDdxText, gridRight, tracer].concat(sliders)
+    const fitFObjs = [sySlider, tySlider, text2, funTracer, fakeTurtle, mngr]
+    const fitDdxObjs = [sySlider, tySlider, text3, funTracer, smallGrid, smallTracer, fakeTurtle, mngr]
+    const solvedObjs = [text4, funTracer, smallGrid, smallTracer, fakeTurtle]
+    gameState.objects = mainObjs.concat(measureFObjs)
     gameState.update = () => {
         tSlider.active = !playing
         if (playing){
@@ -412,9 +515,10 @@ export function experimentMenu(gameState){
             ctx.textBaseline = 'top'
             for (let i = 0; i < trials.length; i++){
                 if (EXPERIMENT_DATA[trials[i]]){
-                    ctx.fillText(EXPERIMENT_DATA[trials[i]].solutionFunString,400,150+i*60)
-                    if (gss.completedScenes[trials[i]])
+                    if (gss.completedScenes[trials[i]]){
+                        ctx.fillText(EXPERIMENT_DATA[trials[i]].solutionFunString,400,150+i*60)
                         ctx.fillText(EXPERIMENT_DATA[trials[i]].solutionDdxString,800,150+i*60)
+                    }
                 }
             }
             ctx.fillText("f(x) = ax+b",400,780)
@@ -441,8 +545,8 @@ export function ruleGuess(gameState){
 
     
 
-    const sySlider = new Slider({canvasX: 1200, canvasY: 200, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
-    const tySlider = new Slider({canvasX: 1300, canvasY: 200, maxValue:5, sliderLength:10, showAxis:true})
+    const sySlider = new Slider({canvasX: 1200, canvasY: 200, maxValue:10, sliderLength:20, startValue: 1, showAxis:true})
+    const tySlider = new Slider({canvasX: 1300, canvasY: 200, maxValue:10, sliderLength:20, showAxis:true})
     const mbField = new MathBlockField({minX:700, minY:150, maxX:1000, maxY:300})
     const mbm = new MathBlockManager({blocks : blocks, originX: 700, originY:160, outputType:"none",
         scaleYSlider: sySlider, translateYSlider:tySlider,

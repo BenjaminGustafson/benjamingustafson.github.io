@@ -96,6 +96,18 @@ export class Slider{
         this.circlePos = this.valueToCanvas(this.value) 
     }
 
+    setSize(maxValue, sliderLength){
+        this.maxValue = maxValue
+        this.sliderLength = sliderLength
+        this.minValue = maxValue - sliderLength
+        this.unitLength = this.canvasLength / this.sliderLength
+        if (this.vertical){
+            this.axis = this.maxValue
+        }else{
+            this.axis = -this.minValue
+        }
+    }
+
     valueToCanvas(val){
         if (this.vertical){
             return this.canvasY + (this.maxValue - val) * this.unitLength

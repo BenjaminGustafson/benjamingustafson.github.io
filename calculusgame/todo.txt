@@ -1,13 +1,13 @@
+
 Issues:
 - Fix asteroid generation
 - Implement asteroid logic when hit
-- Fix Experiment slider ranges
 
-1 day - derivative arrows, time permitting better experiment graphic (with a train maybe)
 
 
 --------------------
 Essential:
+- 
 - PC moves on map
 - Quadratic map
 - Quadratic puzzles

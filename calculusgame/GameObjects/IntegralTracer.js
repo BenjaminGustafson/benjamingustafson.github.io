@@ -17,29 +17,29 @@ export class IntegralTracer {
      * @param {} sliderSpacing - The distance between the sliders in grid coordinates
      */
     constructor({
-        grid, gridX, gridY,
+        grid, originGridX, originGridY,
         sliders = [],
         blockField,
         tracer,
         inputTracer,
-        pixelsPerSec = 100, 
+        pixelsPerSec = 400, 
         precision = 0.001,
         targets = [],
         lineWidth = 5,
         autoCalculate = true,
     }){
         Object.assign(this, {
-            grid, gridX, gridY, sliders, blockField, tracer, 
+            grid, originGridX, originGridY, sliders, blockField, tracer, 
             pixelsPerSec, targets, lineWidth, precision, autoCalculate
         })
-        if (gridX == null){
-            this.gridX = this.grid.gridXMin
+        if (originGridX == null){
+            this.originGridX = this.grid.gridXMin
         }
-        if (gridY == null){
-            this.gridY = 0
+        if (originGridY == null){
+            this.originGridY = 0
         }
-        this.canvasX = this.grid.gridToCanvasX(this.gridX)
-        this.canvasY = this.grid.gridToCanvasY(this.gridY)
+        this.originCanvasX = this.grid.gridToCanvasX(this.originGridX)
+        this.originCanvasY = this.grid.gridToCanvasY(this.originGridY)
 
         if (this.sliders.length > 0){
             this.sliders = sliders
@@ -55,43 +55,62 @@ export class IntegralTracer {
         }
 
         // Dynamic vars
-        this.pixel = 0
-        this.index = 0
-        this.gridYs = [] // Indexed in pixels past start
+        /**
+         * The number of pixels from the start that the tracer is on.
+         */
+        this.pixelIndex = 0
+        
+        /**
+         * The y value corresponding to each traced pixel.
+         */
+        this.gridYs = []
+
+        /**
+         * True if the tracer hits all targets. Turns the color blue.
+         */
         this.solved = false
-        this.stopped = false
-        this.doneTracing = false
+
+        /**
+         * Tracer has 3 states:
+         */
+        this.STOPPED_AT_BEGGINING = 0
+        this.TRACING = 1
+        this.STOPPED_AT_END = 2
+        this.state = this.STOPPED_AT_BEGGINING
+
+        /**
+         * The most recent value traced. 
+         * Gives the start or end value if the tracer is stopped.
+         */
         this.currentValue = 0
+
+        /**
+         * The current grid X-value.
+         */
         this.currentX = 0
+
+        /**
+         * If input is tracer, the index of the tracer's input.
+         */
+        this.tracerIndex = 0
 
         this.solvedColor = Color.blue
         this.unsolvedColor = Color.red
 
+        /**
+         * Flag for 
+         */
         this.recalculate = false
+
         this.reset()
         this.startTime = Infinity
     }
     
-    /**
-     * Sets the tracer back to the beginning
-     */
-    reset(){
-        this.pixel = 0
-        this.index = 0
-        this.solved = false
-        this.targets.forEach(t => {
-            t.hit = false
-        })
-        this.doneTracing = false
-        this.recalculate = true
-        this.startTime = Date.now()
-    }
 
     /**
      * Given a grid x, return the grid y of the input function
      */
     inputGridY(gx){
-        
         switch (this.type){
             case 'sliders':
                 // Assuming sliders start from the left of the grid and are equally spaced
@@ -106,25 +125,22 @@ export class IntegralTracer {
                 }
                 return this.blockField.rootBlock.toFunction()(gx)
             case 'tracer':
-                const index = Math.round(this.inputTracer.grid.gridToCanvasX(gx) - this.inputTracer.grid.canvasX)
-                if (index < 0 || index >= this.inputTracer.gridYs.length) return 0
-                return this.inputTracer.gridYs[index]
+                const tracerIndex = Math.round(this.inputTracer.grid.gridToCanvasX(gx) - this.inputTracer.grid.canvasX)
+                if (tracerIndex < 0 || tracerIndex >= this.inputTracer.gridYs.length) return 0
+                return this.inputTracer.gridYs[tracerIndex]
         }
     }
 
     /**
      * Calculates the y-values for the tracer
-     * 
-     * TODO: optimally, we would only recaculate the integral when there has been a change in input...
      */
     calculateYs(){
-        var newGridYs = [this.gridY] // Grid y-values for each pixel
-        var gy = this.gridY // Accumulated grid y-value
-        var gyPrev = this.gridY
-        var cxPixel = this.canvasX + 1 // Canvas x of the next pixel to be added to the array
+        var newGridYs = [this.originGridY] // Grid y-values for each pixel
+        var gy = this.originGridY // Accumulated grid y-value
+        var gyPrev = this.originGridY
+        var cxPixel = this.originCanvasX + 1 // Canvas x of the next pixel to be added to the array
 
-        for (let gx = this.grid.gridXMin; gx <= this.grid.gridXMax; gx += this.precision){
-            //if (cxPixel - this.canvasX > this.canvasX + this.pixel) break
+        for (let gx = this.grid.gridXMin; gx <= this.grid.gridXMax+1; gx += this.precision){
             gy += this.inputGridY(gx) * this.precision
             const cxPrecise = this.grid.gridToCanvasX(gx)
             if (cxPrecise >= cxPixel){
@@ -135,121 +151,140 @@ export class IntegralTracer {
             }
             gyPrev = gy
         }
-        
-
-        // Old version
-        // for (let i = 0; i < this.pixel; i++){
-        //     const cx = this.canvasX + i
-        //     const gx = this.grid.canvasToGridX(cx)
-        //     gy += this.inputGridY(gx)/this.grid.xScale
-        //     newGridYs.push(gy)
-        //     if (Math.abs(newGridYs[i]-this.gridYs[i]) > 0.001){
-        //         this.reset()
-        //     }
-        // }
 
         this.gridYs = newGridYs
-        this.recalculate = false
     }
 
+    
+    /**
+     * Sets the tracer back to the beginning.
+     * Should be called internally whenever the input changes.
+     */
+    reset(){
+        this.state = this.STOPPED_AT_BEGGINING
+        this.pixelIndex = 0
+        this.tracerIndex = 0
+        this.solved = false
+        this.targets.forEach(t => {
+            t.hit = false
+        })
+    }
+
+    /**
+     * Start tracing.
+     */
     start(){
+        if (this.state != this.STOPPED_AT_BEGGINING){
+            this.reset()
+        }
+        this.state = this.TRACING
         this.calculateYs()
-        this.stopped = false
         this.startTime = Date.now()
     }
 
-    stop(){
-        this.stopped = true
-    }
-
     update(ctx, audioManager, mouse){
-        this.currentX = this.grid.canvasToGridX(this.canvasX + this.pixel)
-        if (this.gridYs[this.pixel] != null){
-            this.currentValue = this.gridYs[this.pixel]
-            if (this.pixel > 0)
-                this.currentDelta = this.gridYs[this.pixel] - this.gridYs[this.pixel-1]
+
+        this.currentX = this.grid.canvasToGridX(this.originCanvasX + this.pixelIndex)
+        if (this.gridYs[this.pixelIndex] != null){
+            this.currentValue = this.gridYs[this.pixelIndex]
+            if (this.pixelIndex > 0)
+                this.currentDelta = this.gridYs[this.pixelIndex] - this.gridYs[this.pixelIndex-1]
             else
                 this.currentDelta = 1
         }
-        // If the mathblock is not defined, don't trace
+
+        // If the mathblock is not defined, reset
         if (this.type == "mathBlock" && 
             (!this.blockField.rootBlock || !this.blockField.rootBlock.toFunction())){
             this.reset()
             return
-        } else if (this.type == "sliders"){
+        } 
+        // If sliders are grabbed, reset
+        else if (this.type == "sliders"){
             for (let i = 0; i < this.sliders.length; i++){
-                if (this.sliders[i].grabbed){
+                if (this.sliders[i].grabbed || this.sliders[i].mouseValue != this.sliders[i].value){
                     this.reset()
                     return
                 }
             }
-            if (this.pixel == 0){
+            // If no sliders are grabbed, start tracing
+            if (this.state == this.STOPPED_AT_BEGGINING)
                 this.start()
-            }
         }
+
+        if (this.state == this.STOPPED_AT_BEGGINING) return
+
 
         Color.setColor(ctx, this.solved ? this.solvedColor : this.unsolvedColor)
 
-        var x = this.canvasX
         var cyObj = this.grid.gridToCanvasBoundedY(this.gridYs[0])
         var prevCy = cyObj.y
         var prevOob = cyObj.out
-        var i = 1
-        while (x < this.canvasX + this.pixel){
+
+        // i = the index of the current pixel in gridYs to draw
+        for (let i = 1; i <= this.pixelIndex; i++){
+            // x = the canvas value of the current pixel
+            var x = this.originCanvasX+i
+            
             cyObj = this.grid.gridToCanvasBoundedY(this.gridYs[i])
             const cy = cyObj.y
+
+            // Out of bounds
             if (cyObj.out){
-                x++
-                i++
-                prevCy = cy
-                if (x == this.canvasX + this.pixel-1 && !this.doneTracing){
+                if (x == this.originCanvasX + this.pixelIndex-1 && !this.doneTracing){
                     // Draw an indicator that we are out of bounds
                     Shapes.Line(ctx, x, cy, x, cy, this.lineWidth*2)
                 }
                 // If we have 2 out of bounds in a row, do not draw the line
-                if (prevOob){ 
+                if (prevOob){
+                    prevCy = cy
                     continue
                 }
             }
-            Shapes.Line(ctx,x, prevCy, x+1, cy, this.lineWidth)
-            this.targets.forEach(t => {
-                if (t.lineIntersect(x,prevCy,x+1,cy) || t.pointIntersect(x,prevCy)){
-                    if (!t.hit){
-                        audioManager.play('drop_002',this.gridYs[i-1]/this.grid.gridHeight*12)
-                    }
-                    t.hit = true
-                }
-            })
-            prevCy = cy
-            x++
-            i++
-            prevOob = cyObj.out
-        }
-        
 
-        
+            //Draw line
+            Shapes.Line(ctx,x-1, prevCy, x, cy, this.lineWidth)
 
-        // Before we have drawn past the end of the grid, increment frames
-        if (this.pixel < this.grid.canvasWidth){
-            if (!this.stopped){
-                const elapsedTime = (Date.now() - this.startTime)/1000
-                this.pixel = Math.floor(this.pixelsPerSec * elapsedTime)
-            }
-            this.doneTracing = false
-        }else{ // After we reach the end, check if solved
-            this.pixel = this.grid.canvasWidth
-            if (!this.doneTracing){ // First time only
-                this.solved = true
+            // Check if line hit targets on last iteration
+            if (!cyObj.out){ //i == this.pixelIndex && 
                 this.targets.forEach(t => {
-                    if (!t.hit){
-                        this.solved = false
+                    if (t.lineIntersect(x,prevCy,x+1,cy) || t.pointIntersect(x,prevCy)){
+                        if (!t.hit){
+                            audioManager.play('drop_002',this.gridYs[i-1]/this.grid.gridHeight*12)
+                        }
+                        t.hit = true
                     }
                 })
-                if (this.solved){
-                    audioManager.play('confirmation_001')
-                }
             }
-            this.doneTracing = true
+                
+            // Set vars for next iter
+            prevCy = cy
+            prevOob = cyObj.out
+        }
+
+        // Before we have drawn past the end of the grid, increment frames
+        if (this.state == this.TRACING){
+            const elapsedTime = (Date.now() - this.startTime)/1000
+            this.pixelIndex = Math.floor(this.pixelsPerSec * elapsedTime)
+            // If we have reached the end
+            if (this.pixelIndex >= this.grid.canvasWidth){
+                this.pixelIndex = this.grid.canvasWidth
+                this.state = this.STOPPED_AT_END
+            }
+        }
+        else if (this.state == this.STOPPED_AT_END && !this.solved){
+            // Check if solved
+            this.solved = true
+            if (this.targets.length == 0) this.solved = false
+            var i = 0
+            this.targets.forEach(t => {
+                if (!t.hit){
+                    this.solved = false
+                }
+            })
+            if (this.solved){
+                audioManager.play('confirmation_001')
+            }
         }
     }
 

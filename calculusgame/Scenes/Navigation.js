@@ -95,9 +95,8 @@ export function navScene(gameState) {
 
 
     const tracer = new IntegralTracer({grid: gridLeft, blockField: blockField,
-         targets:targets, gridY: fun(gridLeft.gridXMin), pixelsPerSec:50, autoCalculate:false,
+         targets:targets, originGridY: fun(gridLeft.gridXMin), pixelsPerSec:50, autoCalculate:false,
         precision:0.0001})
-    tracer.stop()
 
     const shipIcon = document.getElementById("shipicon_img");
     const linIcon = document.getElementById("linearicon_img");
@@ -337,7 +336,6 @@ export function navScene(gameState) {
                 startButton.onclick = () => {changeToState('Trace')}
                 gameState.objects = mainObjs.concat([funLeft, funRight, tracer, mathBlockFun]).concat(targets)
                 gameState.objects.push(mngr)
-                tracer.stop()
             break
             case 'Trace':
                 tracer.frame = 0

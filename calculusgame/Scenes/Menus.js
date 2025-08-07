@@ -79,16 +79,27 @@ export function planetMap (gameState){
         popUp = true
     }
     // Planet Buttons
-    const planetButtons = {
-        'Linear': new Button( {originX: 100, originY: 400, width: 200, height:50,
-            onclick: () => {travelTo('Linear')}, label:'Linear'}),
-        'Quadratic': new Button({originX: 400, originY: 400, width: 200, height:50,
-            onclick: () => {travelTo('Quadratic')}, label:'Quadratic'})
+    const planetPositions = {
+        'Linear':[100,400],
+        'Quadratic':[300,500],
+        'Cubic':[400,200],
+        'Exponential':[600,300],
+        'Sine':[600,600],
+        'Power':[800,400],
+        'Sum':[1000,400],
+        'Product':[1200,400],
+        'Chain':[1400,400]
     }
+    
+    const planetButtons = {}
+    for (let planet in Scene.PLANET_DATA){
+        planetButtons[planet] = new Button( {
+            originX: planetPositions[planet][0], originY: planetPositions[planet][1],
+            width: planet.length*15+30, height:50,
+            onclick: () => {travelTo(planet)},
+            label:planet
+        })
 
-
-
-    for (const planet in planetButtons){
         switch (gss.planetProgress[planet]){
             case 'complete':
                 planetButtons[planet].color = Color.blue
@@ -99,8 +110,9 @@ export function planetMap (gameState){
             case 'locked':
                 planetButtons[planet].active = false
                 break
-        } 
+        }
     }
+
 
     // Set objects and update
     const baseObjs = [backButton].concat(Object.values(planetButtons))
