@@ -75,7 +75,7 @@ export function planetMap (gameState){
         if (gameState.stored.planet == planet){
             Scene.loadScene(gameState, Scene.PLANET_DATA[planet].scene)
         }
-        gameState.stored.nextPlanet = planet
+        gss.nextPlanet = planet
         popUp = true
     }
     // Planet Buttons
@@ -86,6 +86,8 @@ export function planetMap (gameState){
             onclick: () => {travelTo('Quadratic')}, label:'Quadratic'})
     }
 
+
+
     for (const planet in planetButtons){
         switch (gss.planetProgress[planet]){
             case 'complete':
@@ -93,6 +95,7 @@ export function planetMap (gameState){
                 break
             case 'in progress':
                 break
+            default:
             case 'locked':
                 planetButtons[planet].active = false
                 break

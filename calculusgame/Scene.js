@@ -3,6 +3,7 @@ import {Shapes, Color} from './util/index.js'
 import * as Menus from './Scenes/Menus.js'
 import * as Linear from './Scenes/Linear.js'
 import * as Experiment from './Scenes/Experiment.js'
+import * as Navigation from './Scenes/Navigation.js'
 
 
 /**
@@ -42,11 +43,12 @@ export const PLANET_DATA = {
         scene:"linearPlanet",
         puzzles: ["intro1", "intro2", "intro4Pos", "introNeg", "introFrac", "introCombined", "intro8", "intro16"],
         trials: ["linearTrial1","linearTrial2","linearTrial3","linearTrial4","linearTrial5"],
+        rule: "linearRule",
         nextPlanets: ['Quadratic'],
     },
     'Quadratic':{
         distance: 10,
-        scene:"quadDoor",
+        scene:"quadraticPlanet",
         puzzles:["quad4", "quad8", "quad16", "quad32", "quadSmooth", "quadShort4",
             "quadShort8", "quadShort16", "quadShort32", "quadShortSmooth",
             "quadNeg4", "quadNeg8", "quadNeg16", "quadNeg32", "quadNegSmooth",
@@ -239,7 +241,7 @@ export function loadScene(gameState, sceneName, message = {}) {
         case "planetMap": Menus.planetMap(gameState)
         break
 
-        case "navigation": Menus.rngLevel(gameState, 'ship')
+        case "navigation": Navigation.navScene(gameState, 'ship')
         break
 
         //------------------------------------------------------------
@@ -305,10 +307,8 @@ export function loadScene(gameState, sceneName, message = {}) {
             break
 
         /**
-         * 4x4 grid with 8 sliders.
-         * A final challenge for the introduction.
-         * The only time we will ask for 16 sliders
-         * to be manually moved.
+         * 4x4 grid with 8 sliders. A final challenge for the introduction.
+         * The only time we will ask for 16 sliders  to be manually moved.
          */
         case "intro16": 
             Linear.simpleDiscLevel(gameState, {targetVals:[0.25, 0.5, 0.75, 1, 1.25, 1, 0.75, 0.5,
@@ -321,61 +321,24 @@ export function loadScene(gameState, sceneName, message = {}) {
             break
         
 
-        case "linearTrial1":{
+        case "linearTrial1":
+        case "linearTrial2":
+        case "linearTrial3":
+        case "linearTrial4":
+        case "linearTrial5":
             Experiment.experimentTrial(gameState, 'linearExperiment')
             break
-        }
 
-        case "linearRule":{
-            const constants = [new MathBlock({type:MathBlock.VARIABLE, token:"a"}),new MathBlock({type:MathBlock.VARIABLE, token:"b"})]
-            const blocks = constants.concat(ALL_BLOCKS)
-            const sySlider = new Slider({canvasX: 1200, canvasY: 200, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
-            const tySlider = new Slider({canvasX: 1300, canvasY: 200, maxValue:5, sliderLength:10, showAxis:true})
-            const mbm = new MathBlockManager({blocks : blocks, originX: 700, originY:160, outputType:"none",
-                scaleYSlider: sySlider, translateYSlider:tySlider,
-            })
-            const targetBlock = new MathBlock({type: MathBlock.BIN_OP, token:"+", originX: 200, originY: 150})
-            const multBlock = new MathBlock({type: MathBlock.BIN_OP, token:"*"})
-            multBlock.setChild(0, new MathBlock({type: MathBlock.VARIABLE, token:"a"})) 
-            multBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"x"})) 
-            targetBlock.setChild(0, multBlock) 
-            targetBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"b"})) 
-            gameState.objects = [
-                new TextBox({originX: 50, originY:200, content:'f(x) =', font:'40px monospace'}),
-                new TextBox({originX: 500, originY:200, content:'f\'(x) =', font:'40px monospace'}),
-                new Button({originX:50, originY:50, width:50, height:50,
-                    onclick:(() => loadScene(gameState,"linearPlanet")),
-                    label:"↑", lineWidth:5}),
-                sySlider, tySlider, mbm, targetBlock
-                
-            ]
-            gameState.update = () => { }
-            break
-        }
+        case "linearRule": Experiment.ruleGuess(gameState)            
+        break
 
         
 
         //------------------------------------------------------------
         // Quadratic Planet
         //------------------------------------------------------------
-        case "quadDoor": {
-            const completion = planetCompletion(gameState)
-            const door_button = new Button({originX:1160, originY:460, widht:100, height:150, onclick:(() => { loadScene(gameState, "ship") }), label:""})
-            door_button.visible = false
-
-
+        case "quadraticPlanet": {
             
-            gameState.objects = [
-                new ImageObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, "quad_img"),
-                new ImageObject(1000, 250, 400, 500, "ship_img"),
-                door_button
-            ]
-            gameState.objects.push({
-                update: function(ctx){
-                    Color.setColor(ctx,Color.black)
-                    ctx.fillRect(1186,480,48,114)
-                }
-            })   
             break
         }
 

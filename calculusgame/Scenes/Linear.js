@@ -13,6 +13,7 @@ import * as Scene from '../Scene.js'
 
 export function linearPlanet(gameState){
     const gss = gameState.stored
+    gss.planet = 'Linear'
     const door_button = new Button({originX:200, originY:600, width:100, height:60, onclick:(() => { Scene.loadScene(gameState,"planetMap") }), label:"Ship"})
     
     const experimentButton = new Button({originX:180, originY:130, width:100, height:60, 

@@ -8,6 +8,30 @@ const EXPERIMENT_DATA = {
         solutionDdx:x=>0.5,
         solutionFunString:"0.5t",
         solutionDdxString:"0.5"
+    },
+    'linearTrial2':{
+        solutionFun: x=>5-0.5*x,
+        solutionDdx: x=>-0.5,
+        solutionFunString:"-0.5t + 5",
+        solutionDdxString:"-0.5"
+    },
+    'linearTrial3':{
+        solutionFun: x=>1+1.5*x,
+        solutionDdx: x=>-0.5,
+        solutionFunString:"1.5t + 1",
+        solutionDdxString:"1.5"
+    },
+    'linearTrial4':{
+        solutionFun: x=>2*x,
+        solutionDdx: x=>2,
+        solutionFunString:"2 t",
+        solutionDdxString:"2"
+    },
+    'linearTrial5':{
+        solutionFun: x=>10-x,
+        solutionDdx: x=>-1,
+        solutionFunString:"-1t + 10",
+        solutionDdxString:"-1"
     }
 }
 
@@ -30,15 +54,13 @@ export function experimentTrial(gameState, experimentMenu){
     const gridLeft = new Grid({canvasX:100, canvasY:400, canvasWidth:400, canvasHeight:400, 
         gridXMin:0, gridXMax:10, gridYMin:0, gridYMax:10, labels:true})
 
-    const sySlider = new Slider({canvasX: 580, canvasY:400, canvasLength:400, sliderLength:4, maxValue:4})
-    const tySlider = new Slider({canvasX: 650, canvasY:400, canvasLength:400, sliderLength:4, maxValue:4})
+    const sySlider = new Slider({canvasX: 580, canvasY:400, canvasLength:400, sliderLength:4, maxValue:2, showAxis: true})
+    const tySlider = new Slider({canvasX: 650, canvasY:400, canvasLength:400, sliderLength:10, maxValue:10, showAxis: true})
     const adder = new TargetAdder({grid:gridLeft})
     const funTracer = new FunctionTracer({grid:gridLeft})
 
     const blocks = [new MathBlock({type:MathBlock.VARIABLE, token:'t'})]
-    console.log(gss.mathBlocksUnlocked)
     for (let b of gss.mathBlocksUnlocked){
-        console.log(b)
         blocks.push(new MathBlock({type: b.type, token: b.token}))
     }
     const mngr = new MathBlockManager({
@@ -369,8 +391,10 @@ export function experimentMenu(gameState){
         trialButtons.push(button)
     }
     const ruleButton = new Button({originX:200,originY:780,width:100,height:50,
-        onclick:(() => loadScene(gameState,exitTo)),label:"Rule"})
-    ruleButton.lineWidth = 5
+        onclick:(() => loadScene(gameState, PLANET_DATA[gss.planet].rule)),label:"Rule"})
+    if (gss.completedScenes[PLANET_DATA[gss.planet].rule] == 'complete') {
+        ruleButton.bgColor = Color.blue
+    }
     const table = {
         update: function(ctx){
             Color.setColor(ctx,Color.white)
@@ -385,15 +409,97 @@ export function experimentMenu(gameState){
             Shapes.Line(ctx,350,50,350,850)
             Shapes.Line(ctx,750,50,750,850)
             Shapes.Line(ctx,150,760,1500,760)
+            ctx.textBaseline = 'top'
             for (let i = 0; i < trials.length; i++){
                 if (EXPERIMENT_DATA[trials[i]]){
                     ctx.fillText(EXPERIMENT_DATA[trials[i]].solutionFunString,400,150+i*60)
+                    if (gss.completedScenes[trials[i]])
+                        ctx.fillText(EXPERIMENT_DATA[trials[i]].solutionDdxString,800,150+i*60)
                 }
             }
+            ctx.fillText("f(x) = ax+b",400,780)
+            ctx.fillText("f'(x) = " + (gss.completedScenes['linearRule'] ? 'a' : ''),800,780)
+
         }
     }
     gameState.objects = [
         backButton,table,ruleButton
     ]
     gameState.objects = gameState.objects.concat(trialButtons)
+}
+
+export function ruleGuess(gameState){
+    const gss = gameState.stored
+    const blocks = [
+        new MathBlock({type:MathBlock.VARIABLE, token:"x"}),
+        new MathBlock({type:MathBlock.VARIABLE, token:"a"}),
+        new MathBlock({type:MathBlock.VARIABLE, token:"b"}),
+    ]
+    for (let b of gss.mathBlocksUnlocked){
+        blocks.push(new MathBlock({type: b.type, token: b.token}))
+    }
+
+    
+
+    const sySlider = new Slider({canvasX: 1200, canvasY: 200, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
+    const tySlider = new Slider({canvasX: 1300, canvasY: 200, maxValue:5, sliderLength:10, showAxis:true})
+    const mbField = new MathBlockField({minX:700, minY:150, maxX:1000, maxY:300})
+    const mbm = new MathBlockManager({blocks : blocks, originX: 700, originY:160, outputType:"none",
+        scaleYSlider: sySlider, translateYSlider:tySlider,
+        blockFields: [ mbField ],
+    })
+
+    const targetBlock = new MathBlock({type: MathBlock.BIN_OP, token:"+", originX: 200, originY: 150})
+    const multBlock = new MathBlock({type: MathBlock.BIN_OP, token:"*"})
+    multBlock.setChild(0, new MathBlock({type: MathBlock.VARIABLE, token:"a"})) 
+    multBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"x"})) 
+    targetBlock.setChild(0, multBlock) 
+    targetBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"b"}))
+
+    const correctDdx = (x,a,b) => a
+    const checkResult = new TextBox({originX: 100, originY: 550, font:'30px monospace', align:'left', baseline:'top'})
+    const checkButton = new Button({originX: 100, originY:400, width: 200, height: 100, label:"Check",
+        onclick: () => {
+            if (mbField.rootBlock == null || mbField.rootBlock.toFunction() == null){
+                checkResult.content = 'No function set'
+                return
+            } 
+                
+            // What is an appropriate number of checks here? Somewhere from 100 to 10000
+            var correct = true
+            for(let a = -10; a <= 10; a += 5){
+            for (let b = -10; b <= 10; b += 5){
+                const fun = mbField.rootBlock.toFunction({a:a, b:b})
+            for (let x = -10; x <= 10; x++){
+                const y1 = fun(x)
+                const y2 = correctDdx(x,a,b)
+                if (Math.abs(y1 - y2) > 0.00001){
+                    correct = false
+                    break
+                }
+            }
+            }
+            }
+            if (correct){
+                checkResult.content = 'Correct!'
+                gss.completedScenes[gss.sceneName] = 'complete'
+                if (gss.planetProgress['Quadratic'] != 'complete')
+                    gss.planetProgress['Quadratic'] = 'in progress'
+            }else{
+                checkResult.content = 'Incorrect'
+            }
+        }
+     })
+
+    gameState.objects = [
+        new TextBox({originX: 50, originY:200, content:'f(x) =', font:'40px monospace'}),
+        new TextBox({originX: 500, originY:200, content:'f\'(x) =', font:'40px monospace'}),
+        new Button({originX:50, originY:50, width:50, height:50,
+            onclick:(() => loadScene(gameState,"linearExperiment")),
+            label:"↑", lineWidth:5}),
+        sySlider, tySlider, mbm, targetBlock,
+        checkButton, checkResult
+    ]
+    gameState.update = () => { }
+
 }

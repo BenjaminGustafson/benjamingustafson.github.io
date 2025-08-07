@@ -1,16 +1,16 @@
 import {Color, Shapes} from '../util/index.js'
 import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox} from '../GameObjects/index.js'
-import { loadScene, PLANET_DATA, CANVAS_HEIGHT, ALL_BLOCKS } from '../Scene.js'
+import { loadScene, PLANET_DATA, CANVAS_HEIGHT } from '../Scene.js'
 
 /**
  * 
  * The randomly generated navigation levels
  * 
  */
-export function rngLevel(gameState, exitTo) {
+export function navScene(gameState) {
     const gss = gameState.stored
-    const prevPlanet = PLANET_DATA[gss.planetIndex]
-    const nextPlanet = PLANET_DATA[gss.planetIndex+1]
+    const prevPlanet = gss.planet
+    const nextPlanet = gss.nextPlanet
 
     
     //gss.currentNavFunction = null
@@ -95,7 +95,7 @@ export function rngLevel(gameState, exitTo) {
 
 
     const tracer = new IntegralTracer({grid: gridLeft, blockField: blockField,
-         targets:targets, gridY: fun(gridLeft.gridXMin), framesPerUnit:1, autoCalculate:false,
+         targets:targets, gridY: fun(gridLeft.gridXMin), pixelsPerSec:50, autoCalculate:false,
         precision:0.0001})
     tracer.stop()
 
@@ -146,12 +146,99 @@ export function rngLevel(gameState, exitTo) {
         }
     }
 
+    // Asteroids
     const shipViewer = {
+        shipImg: document.getElementById("shipSide"),
+        asteroidImg: document.getElementById("asteroidImg"),
+        originX: 300,
+        originY:50,
+        width:650,
+        height:150,
+        shipX: fun(-10),
+        shipWidth:3,
+        asteroids:[],
+        update: function(ctx, audio, mouse){
+            Color.setFill(ctx, Color.darkBlack)
+            ctx.save()
+            ctx.beginPath()
+            ctx.rect(this.originX, this.originY, this.width, this.height)
+            ctx.clip()
+            Shapes.Rectangle({ctx:ctx, originX:this.originX, originY:this.originY, width:this.width,height:this.height,inset:true} )
+            if (state == 'Trace'){
+                this.shipX = tracer.currentValue
+                this.shipXMin = this.shipX - this.shipWidth/2
+                this.shipXMax = this.shipX + this.shipWidth/2
+            }
+            ctx.save() // Local coordinates at center of rect
+            ctx.translate(this.originX + this.width/2, this.originY + this.height/2)
+            ctx.scale((this.width-100)/20,(this.width-100)/20)
+            ctx.save() // Flip ship if needed
+            ctx.translate(this.shipX,0)
+            if (tracer.currentDelta < 0) ctx.scale(-1,1)
+            ctx.drawImage(this.shipImg, -this.shipWidth/2,-this.shipWidth/3/2,this.shipWidth,this.shipWidth/3)
+            ctx.restore() // Back to local coords
+            const t = tracer.currentX
+            if (state == 'Trace'){
+                var hit = false
+                for (let asteroid of this.asteroids){
+                    if (asteroid.y(t) > -5 && asteroid.y(t) < 5)
+                        ctx.drawImage(this.asteroidImg, asteroid.x-0.5,asteroid.y(t)-0.5, 1,1)
+                    if (this.checkCollision(asteroid, this.shipX, t)){
+                        hit = true
+                    }
+                }
+                if (hit){
+                    ctx.fillStyle = `rgb(255,0,0,0.5)`
+                    ctx.fillRect(this.shipX - this.shipWidth/2, - this.shipWidth/3/2, this.shipWidth,this.shipWidth/3)
+                }
+            }
+            this.prevShipX = this.shipX
+            ctx.restore() // back to global coords
+            ctx.restore() // unclip
+            for (let asteroid of this.asteroids){
+                Color.setColor(ctx,asteroid.color)
+                ctx.fillRect(gridLeft.gridToCanvasX(asteroid.tIntercept)-10,gridLeft.gridToCanvasY(asteroid.x), 20,20)
+            }
+            for (let i = -10; i < 10; i+=0.1){
+                Color.setColor(ctx,Color.magenta)
+                ctx.strokeRect(gridLeft.gridToCanvasX(i)-30,gridLeft.gridToCanvasY(fun(i))-10, 60,20)
+            }
+        },
+        generateAsteroids: function(){
 
+            outerLoop: for (let i = 0; i < 100; i++){
+                const asteroid = {
+                    x: Math.random()*20-10, 
+                    tIntercept: Math.random()*20-10,
+                    slope: (Math.floor(Math.random()*2)*4-2),
+                    y: function(t){
+                        return this.slope * t - this.tIntercept * this.slope
+                    },
+                    color: Color.red,
+                }
+                for (let t = asteroid.tIntercept-0.5; t <= asteroid.tIntercept + 0.5; t+=0.01){
+                    if (this.checkCollision(asteroid, fun(t), t)){
+                        //continue outerLoop
+                        asteroid.color = Color.blue
+                    }
+                }
+                this.asteroids.push(asteroid)
+            }
+        },
+        checkCollision: function(asteroid, shipX, time){
+            if (asteroid.y(time) -0.5 > 0.5 || asteroid.y(time) + 0.5 < -0.5 
+            || asteroid.x > shipX + this.shipWidth/2 || asteroid.x+1 < shipX - this.shipWidth/2){
+                 return false
+            }else {
+                return true
+            }
+        },
     }
 
+    shipViewer.generateAsteroids()
+
     const backButton = new Button({originX: 50, originY: 50, width:50, height:50,
-         onclick:(() => loadScene(gameState,"ship")), label:"↑", lineWidth:5})
+         onclick:(() => loadScene(gameState,"planetMap")), label:"↑", lineWidth:5})
 
 
     const startButton = new Button({originX: 150, originY: 50, width: 100, height:100,label:"Start"})
@@ -164,15 +251,15 @@ export function rngLevel(gameState, exitTo) {
             ctx.textAlign = 'center'
             ctx.textBaseline = 'top'
             Color.setColor(ctx, Color.white)
-            ctx.fillText("Time (s)", padLeft + 200, gridY+gridDim+50)
-            ctx.fillText("Time (s)", 800, gridY+gridDim+50)
+            ctx.fillText("Time", padLeft + 200, gridY+gridDim+50)
+            ctx.fillText("Time", 800, gridY+gridDim+50)
             ctx.translate(padLeft -70,600)
             ctx.rotate(-Math.PI/2)
-            ctx.fillText("Position (u)", 0, 0)
+            ctx.fillText("Position", 0, 0)
             ctx.resetTransform()
             ctx.translate(540,600)
             ctx.rotate(-Math.PI/2)
-            ctx.fillText("Velocity (u/s)", 0, 0)
+            ctx.fillText("Velocity", 0, 0)
             ctx.resetTransform()
         }
     }
@@ -220,14 +307,14 @@ export function rngLevel(gameState, exitTo) {
      * - Strikeout: The result of the trace is a failure 3 times. Go back to Input with a new function.
      * - Success: The result of the trace is a success. Wait for continue button to go to travelling.
      */
-    const mainObjs  = [gridLeft, gridRight, tySlider, sySlider, backButton, startButton, axisLabels, strikes, progressBar]
+    const mainObjs  = [gridLeft, gridRight, shipViewer, tySlider, sySlider, startButton, axisLabels, strikes, progressBar]
     
     var state = "Travel"
 
     var startTime = 0 // Date.now() for keeping track of time in state
     const travelDistance = 100 // how far is travelled at a time
     var startDistance = 0 // Distance at start of travel animation
-    const planetDistance = 1000 // Distance from start to destination
+    const planetDistance = 200 // Distance from start to destination
     const travelTime = 1 // Seconds of travel animation
     
     // DEBUG
@@ -284,7 +371,7 @@ export function rngLevel(gameState, exitTo) {
                 startButton.active = true
                 startButton.label = "Done"
                 startButton.onclick = () => {
-                    loadScene(gameState, exitTo)
+                    loadScene(gameState, PLANET_DATA[gss.nextPlanet].scene)
                 }
                 break
         }

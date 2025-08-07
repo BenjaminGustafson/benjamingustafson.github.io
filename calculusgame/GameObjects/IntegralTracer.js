@@ -22,7 +22,7 @@ export class IntegralTracer {
         blockField,
         tracer,
         inputTracer,
-        framesPerUnit = 4, // actually pixels per frame
+        pixelsPerSec = 100, 
         precision = 0.001,
         targets = [],
         lineWidth = 5,
@@ -30,7 +30,7 @@ export class IntegralTracer {
     }){
         Object.assign(this, {
             grid, gridX, gridY, sliders, blockField, tracer, 
-            framesPerUnit, targets, lineWidth, precision, autoCalculate
+            pixelsPerSec, targets, lineWidth, precision, autoCalculate
         })
         if (gridX == null){
             this.gridX = this.grid.gridXMin
@@ -55,26 +55,28 @@ export class IntegralTracer {
         }
 
         // Dynamic vars
-        this.frame = 0
+        this.pixel = 0
         this.index = 0
         this.gridYs = [] // Indexed in pixels past start
         this.solved = false
         this.stopped = false
         this.doneTracing = false
         this.currentValue = 0
+        this.currentX = 0
 
         this.solvedColor = Color.blue
         this.unsolvedColor = Color.red
 
         this.recalculate = false
         this.reset()
+        this.startTime = Infinity
     }
     
     /**
      * Sets the tracer back to the beginning
      */
     reset(){
-        this.frame = 0
+        this.pixel = 0
         this.index = 0
         this.solved = false
         this.targets.forEach(t => {
@@ -82,6 +84,7 @@ export class IntegralTracer {
         })
         this.doneTracing = false
         this.recalculate = true
+        this.startTime = Date.now()
     }
 
     /**
@@ -121,7 +124,7 @@ export class IntegralTracer {
         var cxPixel = this.canvasX + 1 // Canvas x of the next pixel to be added to the array
 
         for (let gx = this.grid.gridXMin; gx <= this.grid.gridXMax; gx += this.precision){
-            //if (cxPixel - this.canvasX > this.canvasX + this.frame) break
+            //if (cxPixel - this.canvasX > this.canvasX + this.pixel) break
             gy += this.inputGridY(gx) * this.precision
             const cxPrecise = this.grid.gridToCanvasX(gx)
             if (cxPrecise >= cxPixel){
@@ -135,7 +138,7 @@ export class IntegralTracer {
         
 
         // Old version
-        // for (let i = 0; i < this.frame; i++){
+        // for (let i = 0; i < this.pixel; i++){
         //     const cx = this.canvasX + i
         //     const gx = this.grid.canvasToGridX(cx)
         //     gy += this.inputGridY(gx)/this.grid.xScale
@@ -146,13 +149,13 @@ export class IntegralTracer {
         // }
 
         this.gridYs = newGridYs
-        this.currentValue = this.gridYs[this.gridYs.length-1]
         this.recalculate = false
     }
 
     start(){
         this.calculateYs()
         this.stopped = false
+        this.startTime = Date.now()
     }
 
     stop(){
@@ -160,6 +163,14 @@ export class IntegralTracer {
     }
 
     update(ctx, audioManager, mouse){
+        this.currentX = this.grid.canvasToGridX(this.canvasX + this.pixel)
+        if (this.gridYs[this.pixel] != null){
+            this.currentValue = this.gridYs[this.pixel]
+            if (this.pixel > 0)
+                this.currentDelta = this.gridYs[this.pixel] - this.gridYs[this.pixel-1]
+            else
+                this.currentDelta = 1
+        }
         // If the mathblock is not defined, don't trace
         if (this.type == "mathBlock" && 
             (!this.blockField.rootBlock || !this.blockField.rootBlock.toFunction())){
@@ -172,7 +183,7 @@ export class IntegralTracer {
                     return
                 }
             }
-            if (this.frame == 0){
+            if (this.pixel == 0){
                 this.start()
             }
         }
@@ -184,14 +195,14 @@ export class IntegralTracer {
         var prevCy = cyObj.y
         var prevOob = cyObj.out
         var i = 1
-        while (x < this.canvasX + this.frame){
+        while (x < this.canvasX + this.pixel){
             cyObj = this.grid.gridToCanvasBoundedY(this.gridYs[i])
             const cy = cyObj.y
             if (cyObj.out){
                 x++
                 i++
                 prevCy = cy
-                if (x == this.canvasX + this.frame-1 && !this.doneTracing){
+                if (x == this.canvasX + this.pixel-1 && !this.doneTracing){
                     // Draw an indicator that we are out of bounds
                     Shapes.Line(ctx, x, cy, x, cy, this.lineWidth*2)
                 }
@@ -213,15 +224,20 @@ export class IntegralTracer {
             x++
             i++
             prevOob = cyObj.out
-        }        
+        }
+        
+
+        
 
         // Before we have drawn past the end of the grid, increment frames
-        if (this.frame < this.grid.canvasWidth){
+        if (this.pixel < this.grid.canvasWidth){
             if (!this.stopped){
-                this.frame += this.framesPerUnit // TODO: make this relative to Date.now()
+                const elapsedTime = (Date.now() - this.startTime)/1000
+                this.pixel = Math.floor(this.pixelsPerSec * elapsedTime)
             }
             this.doneTracing = false
         }else{ // After we reach the end, check if solved
+            this.pixel = this.grid.canvasWidth
             if (!this.doneTracing){ // First time only
                 this.solved = true
                 this.targets.forEach(t => {

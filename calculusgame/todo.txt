@@ -1,18 +1,18 @@
+Issues:
+- Fix asteroid generation
+- Implement asteroid logic when hit
+- Fix Experiment slider ranges
 
+1 day - derivative arrows, time permitting better experiment graphic (with a train maybe)
 
-
-1 day - Asteroids
-1 day - derivative arrows, time permetting better experiment graphic (with a train maybe)
-1 day - rule 
-Overworld 
-- Lab progress
-- Quadratic unlocks
 
 --------------------
 Essential:
 - PC moves on map
 - Quadratic map
 - Quadratic puzzles
+Post demo?:
+- Map and puzzles for power, exp, sin, sum, prod, chain 
 
 Overworld: not including map creation, just getting all of the logic 
 
@@ -26,6 +26,7 @@ Optional
 Zoom out from landing pad
 - UI element borders - easy
 - Mathblock destructive - medium
+- Curated nav puzzles
 
 ----------------------------
 

@@ -111,6 +111,9 @@ function setup() {
             }else { // Save data exists
                 gameState.stored = parsed
                 console.log("Loaded save")
+
+                // TODO: Check that save data has the expected fields
+
                 if (build != 'dev') {
                     savedScene = gameState.stored.sceneName
                     gameState.stored.sceneName = 'startMenu' // always start at menu
@@ -169,22 +172,16 @@ function setup() {
                     localStorage.clear()
                     break
                 case 's':
-                    gameState.stored.planetCompletedLevels[gameState.stored.planetIndex][gameState.stored.sceneName] = true
-                    break
-                case 'r':
-                    localStorage.setItem("startScene", gameState.sceneName)
+                    gameState.stored.completedScenes[gameState.stored.sceneName] = 'complete'
                     break
                 case '0':
                     gameState.stored.navDistance = 0
                     break
                 case 'ArrowRight':
-                    gameState.stored.totalDistance++
+                    gameState.stored.navDistance += 100
                     break
                 case 'ArrowLeft':
-                    gameState.stored.totalDistance = Math.floor(gameState.stored.totalDistance) - 1
-                    break
-                case 'p':
-                    gameState.stored.planetIndex = 0 
+                    gameState.stored.navDistance = Math.floor(gameState.stored.totalDistance) - 1
                     break
                 case 'f':
                     gameState.stored.currentNavFunction = null 

@@ -396,11 +396,14 @@ export class MathBlock {
      * @param {*} offset 
      * @returns 
      */
-    toFunction(){
+    toFunction(constants={}){
         switch(this.type){
             case MathBlock.CONSTANT:
                 return x => this.translateY
             case MathBlock.VARIABLE:
+                if (constants[this.token] != null){
+                    return x => this.translateY + this.scaleY*constants[this.token]
+                }
                 return (x => this.translateY + this.scaleY*x)
             case MathBlock.POWER:
                 if (this.children[0] != null && this.children[0].toFunction() != null){

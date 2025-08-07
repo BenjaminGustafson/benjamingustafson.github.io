@@ -302,18 +302,24 @@ export class MathBlockField {
         this.rootBlock = null
         this.width = maxX - minX
         this.height = maxY - minY
-        this.baseColor = Color.gray
-        this.hoverColor = Color.lightGray
+        this.baseColor = Color.black
+        this.hoverColor = Color.gray
         this.isHovered = false
     }
 
     update(ctx, audioManager, mouse){
+        Color.setColor(ctx,this.isHovered ? this.hoverColor : this.baseColor)
+        Shapes.Rectangle({ctx:ctx,originX:this.minX,originY:this.minY,width:this.width,height:this.height,recessed:true})
+        this.isHovered = false
         if (this.rootBlock == null){
-            Color.setColor(ctx,this.isHovered ? this.hoverColor : this.baseColor)
-            Shapes.Rectangle({ctx:ctx,originX:this.minX,originY:this.minY,width:this.width,height:this.height,recessed:true})
-            this.isHovered = false
+            
         }else{
+            ctx.save()
+            ctx.beginPath()
+            ctx.rect(this.minX, this.minY, this.width, this.height)
+            ctx.clip()
             this.rootBlock.update(ctx, audioManager, mouse)
+            ctx.restore()
         }
     }
 
