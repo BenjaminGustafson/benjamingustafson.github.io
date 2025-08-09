@@ -74,7 +74,7 @@ export function navScene(gameState) {
         new MathBlock({type:MathBlock.BIN_OP, token:'/'}),
     ]
 
-    const blockField = new MathBlockField({minX: 600, minY:250, maxX: 1000, maxY:350})
+    const blockField = new MathBlockField({minX: 600, minY:250, maxX: 1200, maxY:350})
     const mngr = new MathBlockManager({
         blocks:mathBlocks, blockSize:26,
         translateYSlider:tySlider, scaleYSlider:sySlider, 
@@ -194,14 +194,14 @@ export function navScene(gameState) {
             this.prevShipX = this.shipX
             ctx.restore() // back to global coords
             ctx.restore() // unclip
-            for (let asteroid of this.asteroids){
-                Color.setColor(ctx,asteroid.color)
-                ctx.fillRect(gridLeft.gridToCanvasX(asteroid.tIntercept)-10,gridLeft.gridToCanvasY(asteroid.x), 20,20)
-            }
-            for (let i = -10; i < 10; i+=0.1){
-                Color.setColor(ctx,Color.magenta)
-                ctx.strokeRect(gridLeft.gridToCanvasX(i)-30,gridLeft.gridToCanvasY(fun(i))-10, 60,20)
-            }
+            // for (let asteroid of this.asteroids){
+            //     Color.setColor(ctx,asteroid.color)
+            //     ctx.fillRect(gridLeft.gridToCanvasX(asteroid.tIntercept)-10,gridLeft.gridToCanvasY(asteroid.x), 20,20)
+            // }
+            // for (let i = -10; i < 10; i+=0.1){
+            //     Color.setColor(ctx,Color.magenta)
+            //     ctx.strokeRect(gridLeft.gridToCanvasX(i)-30,gridLeft.gridToCanvasY(fun(i))-10, 60,20)
+            // }
         },
         generateAsteroids: function(){
 
@@ -217,8 +217,8 @@ export function navScene(gameState) {
                 }
                 for (let t = asteroid.tIntercept-0.5; t <= asteroid.tIntercept + 0.5; t+=0.01){
                     if (this.checkCollision(asteroid, fun(t), t)){
-                        //continue outerLoop
-                        asteroid.color = Color.blue
+                        continue outerLoop
+                        //asteroid.color = Color.blue
                     }
                 }
                 this.asteroids.push(asteroid)
@@ -378,6 +378,7 @@ export function navScene(gameState) {
     changeToState('Travel')
 
     gameState.update = () => {
+        console.log('state', state)
         switch (state) {
             case 'Travel':{
                 const deltaTime = (Date.now() - startTime)/1000
@@ -402,7 +403,7 @@ export function navScene(gameState) {
             }
                 break
             case "Trace":{
-                if (tracer.doneTracing) {
+                if (tracer.state == tracer.STOPPED_AT_END) {
                     if (tracer.solved) {
                         changeToState('Solved')
                     } else {
