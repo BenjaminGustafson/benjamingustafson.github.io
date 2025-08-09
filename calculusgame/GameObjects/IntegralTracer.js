@@ -76,6 +76,7 @@ export class IntegralTracer {
         this.STOPPED_AT_BEGGINING = 0
         this.TRACING = 1
         this.STOPPED_AT_END = 2
+        this.AT_END = 3
         this.state = this.STOPPED_AT_BEGGINING
 
         /**
@@ -269,10 +270,11 @@ export class IntegralTracer {
             // If we have reached the end
             if (this.pixelIndex >= this.grid.canvasWidth){
                 this.pixelIndex = this.grid.canvasWidth
-                this.state = this.STOPPED_AT_END
+                this.state = this.AT_END
             }
         }
-        else if (this.state == this.STOPPED_AT_END && !this.solved){
+        else if (this.state == this.AT_END){
+            this.state = this.STOPPED_AT_END
             // Check if solved
             this.solved = true
             if (this.targets.length == 0) this.solved = false

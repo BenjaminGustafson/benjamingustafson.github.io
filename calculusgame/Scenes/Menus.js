@@ -23,9 +23,10 @@ export function startMenu(gameState, nextScene){
     const about_button = new Button({originX:200, originY:380, width:200, height:50, lineWidth: 5,
         onclick:(() => window.location.replace("about.html")), label:"About"})
     gameState.objects = [
-        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linear_img"),
-        new TextBox({originX:200, originY:150, content: "Calculus I", font : "60px monospace", color : Color.black}),
-        new TextBox({originX:200, originY:200, content: "A puzzle game", font : "30px monospace", color : Color.black}),
+        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "menuImg"),
+        //new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetFg"),
+        new TextBox({originX:200, originY:150, content: "Calculus I", font : "60px monospace", color : Color.white}),
+        new TextBox({originX:200, originY:200, content: "A puzzle game", font : "30px monospace", color : Color.white}),
         startButton, about_button
     ]
 }

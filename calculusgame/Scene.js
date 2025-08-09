@@ -227,7 +227,9 @@ function quadDiscLevel(gameState, num_sliders, withButton = false, func = (x => 
  * 
  */
 export function loadScene(gameState, sceneName, message = {}) {
+    gameState.stored.prevScene = gameState.stored.sceneName
     gameState.stored.sceneName = sceneName
+
     gameState.update = () => { }
 
     switch (sceneName) {

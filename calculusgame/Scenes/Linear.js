@@ -11,13 +11,36 @@ import * as Scene from '../Scene.js'
  * 
  */
 
+
+
+function isometricToCanvas(x, y){
+    const cx = x * 64 + (y- 8) * -64 - 160
+    const cy = x * 32 + (y- 8) * 32 + 192
+    return {x: cx, y : cy}
+}
+
+
 export function linearPlanet(gameState){
     const gss = gameState.stored
     gss.planet = 'Linear'
     const door_button = new Button({originX:200, originY:600, width:100, height:60, onclick:(() => { Scene.loadScene(gameState,"planetMap") }), label:"Ship"})
-    
+
     const experimentButton = new Button({originX:180, originY:130, width:100, height:60, 
-        onclick:(() => { Scene.loadScene(gameState, "linearExperiment") }), label: "Lab"})
+        onclick:(() => { Scene.loadScene(gameState, "linearExperiment") }), label: "Lab"
+    })
+    // TODO: abstract out this scene button creation
+    switch (gss.completedScenes['linearExperiment']){
+        case 'complete':
+            experimentButton.bgColor = Color.blue
+            break
+        case 'in progress':
+            experimentButton.active = true
+            break
+        default:
+            case 'locked':
+            experimentButton.active = false
+            break
+    }
 
 
     // ---------------------------- Puzzle buttons ----------------------------------
@@ -27,7 +50,7 @@ export function linearPlanet(gameState){
         const button = new Button({originX:0, originY:0, width:50, height:50, fontSize: 20,
             onclick:(() => {
                 gss.levelIndex = i;
-                Scene.loadScene(gameState,levels[i])
+                player.moveTo(levels[i])
             }),
             label: 1 + "." + (i + 1),
             bgColor: Color.black,
@@ -79,8 +102,185 @@ export function linearPlanet(gameState){
             break
     }
 
+
+    // Player ---------------------------------------
+    // [x,y,  dx,dy] where dx dy is the direction to face when stopped at node
+    // SW 0,1 NW -1,0 NE 0,-1 SE 1,0
+    const nodes = {
+        'planetMap': [8,9,  0,1],
+        [levels[0]]: [8,7,  0,-1],
+        [levels[1]]: [11,4, 0,-1],
+        [levels[2]]: [14,2, 1,0],
+        [levels[3]]: [12,0, 0,-1],
+        [levels[4]]: [3,-5, -1,0],
+        [levels[5]]: [2,-7, 0,-1],
+        [levels[6]]: [0,-5, -1,0],
+        [levels[7]]: [0,-2, -1,0],
+        ['linearExperiment']: [11,4, -1,0],
+    }
+
+    const paths = 
+    [
+        {start: 'planetMap', end: levels[0]},
+        {start: levels[0], end: levels[1], steps: [[10,7],[10,4]] },
+        {start: levels[1], end: levels[2], steps: [[14,4]] },
+        {start: levels[2], end: levels[3], steps: [[14,0]] },
+        {start: levels[3], end: levels[4], steps: [[9,0],[9,-4], [3,-4]] },
+        {start: levels[4], end: levels[5], steps: [[3,-7]] },
+        {start: levels[5], end: levels[6], steps: [[1,-7],[1,-6],[0,-6]] },
+        {start: levels[6], end: levels[7], steps: [] },
+        {start: levels[7], end: 'linearExperiment', steps: [[0,0],[-1,0],[-1,1],[-2,1]]},
+
+    ]
+    
+    // Path does not include starting node
+    const adjacencyTable = {}
+    for (const {start, end, steps=[]} of paths) {
+        const forward = steps.slice() // copy array
+        forward.push(nodes[end])
+        const reverse = []
+        for (let i = forward.length-2; i >= 0; i--){
+            reverse.push(forward[i])
+        }
+        reverse.push(nodes[start])
+        if (adjacencyTable[start] == null)
+            adjacencyTable[start] = {}
+        if (adjacencyTable[end] == null)
+            adjacencyTable[end] = {}
+        adjacencyTable[start][end] = forward
+        adjacencyTable[end][start] = reverse
+    }
+
+
+    // BFS should be sufficient
+    function bfsPath(adj, start, goal) {
+        const queue = [[start]]
+        const visited = new Set([start])
+        
+        while (queue.length > 0) {
+            const nodePath = queue.shift()
+            const node = nodePath[nodePath.length - 1]
+            console.log(node, nodePath)
+            if (node == goal) {
+                var coordPath = []
+                for (let i = 0; i < nodePath.length -1; i++){
+                    coordPath = coordPath.concat(adj[nodePath[i]][nodePath[i+1]])
+                }
+                return coordPath
+            }
+        
+            for (const neighbor in adj[node]) {
+                if (!visited.has(neighbor)) {
+                    visited.add(neighbor)
+                    queue.push([...nodePath, neighbor])
+                }
+            }
+        }
+        return null
+    }
+      
+    if (!nodes[gss.playerLocation]){
+        gss.playerLocation = 'planetMap'
+    }
+
+
+    const player = {
+        currentNode: gss.playerLocation,
+        isoX: nodes[gss.playerLocation][0],
+        isoY: nodes[gss.playerLocation][1],
+        pathIndex: 0,
+        currentPath: [],
+        state: 'stopped',
+        imgNE: document.getElementById('astronautB_NE'),
+        imgSE: document.getElementById('astronautB_SE'),
+        imgNW: document.getElementById('astronautB_NW'),
+        imgSW: document.getElementById('astronautB_SW'),
+        dx:nodes[gss.playerLocation][2],
+        dy:nodes[gss.playerLocation][3],
+        targetNode:'',
+        startTime: 0,
+        stepTime: 50,
+        stepCount:0,
+        moveTo: function(node){
+            if (this.state == 'moving') return
+            if (node == this.currentNode) {
+                Scene.loadScene(gameState,this.currentNode)
+                return
+            }
+            this.targetNode = node
+            this.currentPath = bfsPath(adjacencyTable, this.currentNode, node)
+            this.pathIndex = 0
+            this.stepTime = Math.max(100,Math.min(200,1000/this.currentPath.length)) // not precise, but good enough
+            const nextTarget = this.currentPath[this.pathIndex]
+            this.dx = Math.sign(nextTarget[0] - this.isoX)
+            this.dy = Math.sign(nextTarget[1] - this.isoY) 
+            this.startTime = Date.now()
+            this.state = 'moving'
+        },
+        update: function (ctx, audio, mouse){
+            switch (this.state){
+                case 'moving':
+                    // Move one tick
+                    if (Date.now() - this.startTime > this.stepTime){
+                        audio.play('click_005', (this.stepCount++%2)*18-18+Math.random()*4, 0.4)
+                        this.isoX += this.dx
+                        this.isoY += this.dy
+                        const targetCoord = this.currentPath[this.pathIndex]
+                        // End of path step
+                        if (this.isoX == targetCoord[0] && this.isoY == targetCoord[1]){
+                            this.pathIndex ++
+                            // End of path
+                            if (this.pathIndex >= this.currentPath.length){
+                                this.currentNode = this.targetNode
+                                this.state = 'stopped'
+                                gss.playerLocation = this.currentNode
+                                this.dx =  nodes[this.currentNode][2]
+                                this.dy = nodes[this.currentNode][3]
+                                Scene.loadScene(gameState,this.currentNode)
+                            }
+                            // Next step
+                            else{    
+                                const nextTarget = this.currentPath[this.pathIndex]
+                                this.dx = Math.sign(nextTarget[0] - this.isoX)
+                                this.dy = Math.sign(nextTarget[1] - this.isoY) 
+                            }
+                        }
+                        this.startTime = Date.now()
+                    }
+
+
+                    break
+                case 'stopped':
+                    break
+            }
+            const {x,y} = isometricToCanvas(this.isoX,this.isoY)
+            const nextCoord = isometricToCanvas(this.isoX + this.dx,this.isoY+this.dy)
+            const nx = nextCoord.x
+            const ny = nextCoord.y
+            const t = Math.max(0,Math.min(1,(Date.now() - this.startTime)/this.stepTime))
+            const lerpX = this.state == 'moving' ? t*nx + (1-t)*x : x
+            const lerpY = this.state == 'moving' ? t*ny + (1-t)*y : y 
+            const jumpY = lerpY - 50 * (-t*t + t) 
+            if (this.dx == 1){
+                ctx.drawImage(this.imgSE, lerpX, jumpY)
+            }else if (this.dx == -1){
+                ctx.drawImage(this.imgNW, lerpX, jumpY)
+            }else if (this.dy == 1){
+                ctx.drawImage(this.imgSW, lerpX, jumpY)
+            }else if (this.dy == -1){
+                ctx.drawImage(this.imgNE, lerpX, jumpY)
+            }else{
+                console.warn('invalid dir', this.dx, this.dy)
+            }
+
+        }
+    }
+
+
+
     gameState.objects = [
         new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetBg"),
+        player,
         new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetFg"),
         experimentButton,
         door_button,

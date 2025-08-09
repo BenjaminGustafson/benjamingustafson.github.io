@@ -391,6 +391,7 @@ export function experimentTrial(gameState, experimentMenu){
                     adder.targets = adder.targets.filter(t => t.unhitColor == Color.magenta)
                     gameState.objects = mainObjs.concat(meaureDdxObjs).concat(adder.targets)
                     funTracer.targets = adder.targets
+                    tracer.targets = adder.targets
                     errorText.content = ''
                     step = 'measureDdx'
                 }else{
@@ -412,7 +413,7 @@ export function experimentTrial(gameState, experimentMenu){
                     gridLeft.setYBounds(-2,2)
                     for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
                         ddxTargets.push(new Target({grid: gridLeft, gridX:i,
-                            gridY:solutionDdx(i), size:15}))
+                            gridY:solutionDdx(i), size:20}))
                     }
                     smallTracer.fun = solutionFun
                     funTracer.targets = ddxTargets
@@ -545,10 +546,10 @@ export function ruleGuess(gameState){
 
     
 
-    const sySlider = new Slider({canvasX: 1200, canvasY: 200, maxValue:10, sliderLength:20, startValue: 1, showAxis:true})
-    const tySlider = new Slider({canvasX: 1300, canvasY: 200, maxValue:10, sliderLength:20, showAxis:true})
-    const mbField = new MathBlockField({minX:700, minY:150, maxX:1000, maxY:300})
-    const mbm = new MathBlockManager({blocks : blocks, originX: 700, originY:160, outputType:"none",
+    const sySlider = new Slider({canvasX: 1200, canvasY: 150, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
+    const tySlider = new Slider({canvasX: 1300, canvasY: 150, maxValue:5, sliderLength:10, showAxis:true})
+    const mbField = new MathBlockField({minX:700, minY:150, maxX:1100, maxY:300})
+    const mbm = new MathBlockManager({blocks : blocks, toolBarX: 1400, toolBarY:150, outputType:"none",
         scaleYSlider: sySlider, translateYSlider:tySlider,
         blockFields: [ mbField ],
     })

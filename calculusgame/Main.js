@@ -40,7 +40,8 @@ function setup() {
          "glass_002.ogg", "switch1.ogg","switch9.ogg","switch6.ogg", "switch13.ogg", 'click_003.ogg', 'click2.ogg',
         'click3.ogg',
         'drop_003.ogg', 'drop_001.ogg', //target adder
-        'error_008.ogg','bong_001.ogg' // dialogue
+        'error_008.ogg','bong_001.ogg', // dialogue
+        'click_005.ogg', // footstep
     ];
 
     Promise.all(
@@ -79,6 +80,7 @@ function setup() {
             // Planet puzzles and experiments
             planetProgress: {}, // progress on each planet. {'PlanetName' : 'complete'} or 'in progress' or 'locked'
             completedScenes: {}, // completed puzzles, trials, and rules by scene name. {"level1":true}
+            playerLocation: 'planetMap', // where the player is in the planet scene
             
             // Navigation
             nextPlanet: null,
@@ -188,6 +190,14 @@ function setup() {
                     break
                 case 'm':
                     console.log(Math.round(mouse.x) + ',' + Math.round(mouse.y))
+                    break
+                case 'q':
+                    for (let planet in PLANET_DATA){
+                        for (let level of PLANET_DATA[planet].puzzles)
+                            gameState.stored.completedScenes[level] = 'complete'
+                        
+                        gameState.stored.planetProgress[planet] = 'complete'
+                    }
                     break
             }
         }
