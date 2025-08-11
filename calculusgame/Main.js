@@ -59,8 +59,8 @@ function setup() {
         y:0,
         down:false, // the mouse has just been pressed
         held:false, // the mouse is being pressed
-        up: false,
-        moved: false,
+        up: false,  // the mouse was just released
+        moved: false, // the mouse was moved
         cursor: 'default'
     }
 
@@ -205,14 +205,17 @@ function setup() {
 
 
     // ------------------------------------- Main update loop --------------------------------------------------------
-    let timer = 0
+    let frameCount = 0
+    var prevTime = Date.now()
     function update() {
 
         // Save progress every 200 frames
-        timer++
-        if (timer >= 200) {
+        frameCount++
+        if (frameCount >= 200) {
+            console.log(1000/ (Date.now() - prevTime) * 200, 'fps')
+            prevTime = Date.now()
             localStorage.setItem('storedState', JSON.stringify(gameState.stored));
-            timer = 0
+            frameCount = 0
         }
 
         gameState.update()
@@ -227,11 +230,15 @@ function setup() {
         // Reset cursor before objects update
         mouse.cursor = 'default'
 
+        // Mouse to pass to inactive objects
+        const defaultMouse = {x:-1, y:-1, down:false, held:false, up: false, moved: false, cursor: 'default'}
+
         // Draw all GameObjects
         for (let i = 0; i < gameState.objects.length; i++) {
             const obj = gameState.objects[i]
-            if (!obj.hidden)
-                obj.update(ctx, audioManager, mouse);
+            if (!obj.hidden){
+                obj.update(ctx, audioManager, obj.noInput ? defaultMouse : mouse);
+            }
         }
 
         // Reset mouse state

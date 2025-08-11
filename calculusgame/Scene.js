@@ -2,6 +2,7 @@ import * as GameObjects from './GameObjects/index.js'
 import {Shapes, Color} from './util/index.js'
 import * as Menus from './Scenes/Menus.js'
 import * as Linear from './Scenes/Linear.js'
+import * as Planet from './Scenes/Planet.js'
 import * as Experiment from './Scenes/Experiment.js'
 import * as Navigation from './Scenes/Navigation.js'
 
@@ -102,18 +103,18 @@ export const PLANET_DATA = {
  * @param {*} gameState the current game state
  * @returns the percent of levels complete
  */
-export function planetCompletion(gameState){
-    const id = gameState.stored.planetIndex
-    const puzzles = PLANET_DATA[id].puzzles
-    const progress = gameState.stored.planetCompletedLevels[id]
-    var numComplete = 0
-    for(let i = 0; i < puzzles.length; i++){
-        if (progress[puzzles[i]]){
-            numComplete++
-        }
-    } 
-    return numComplete / puzzles.length
-}
+// export function planetCompletion(gameState){
+//     const id = gameState.stored.planetIndex
+//     const puzzles = PLANET_DATA[id].puzzles
+//     const progress = gameState.stored.planetCompletedLevels[id]
+//     var numComplete = 0
+//     for(let i = 0; i < puzzles.length; i++){
+//         if (progress[puzzles[i]]){
+//             numComplete++
+//         }
+//     } 
+//     return numComplete / puzzles.length
+// }
 
 /**
  * 
@@ -282,7 +283,7 @@ export function loadScene(gameState, sceneName, message = {}) {
             break
 
         case 'linearDialogue1':
-            Linear.linearDialogueScene(gameState, {exitTo:"linearPlanet", nextScenes:["introFrac"]})
+            Planet.dialogueScene(gameState, {exitTo:"linearPlanet", nextScenes:["introFrac"], text: Linear.dialogue1})
             break
 
 

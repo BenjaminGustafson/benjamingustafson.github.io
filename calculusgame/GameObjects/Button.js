@@ -28,6 +28,7 @@ export class Button extends GameObject{
         lineWidth = 5,
         bgColor = Color.darkBlack,
         fontSize = 30,
+        onhover = (() => {})
     }){
         super()
         Object.assign(this, {
@@ -38,7 +39,8 @@ export class Button extends GameObject{
             color,
             lineWidth,
             bgColor, 
-            fontSize
+            fontSize,
+            onhover
         })
         this.visible = true // when false the button is not drawn, but is still clickable
         this.active = true // when false the button is not clickable and is drawn in gray
@@ -56,6 +58,8 @@ export class Button extends GameObject{
                 mouse.down = false // don't allow clicking multiple things
                 audioManager.play('click_003')
                 this.onclick()
+            }else{
+                this.onhover(ctx, audioManager, mouse)
             }
             //Color.setColor(ctx,Color.adjustLightness(this.color,50))
             mouse.cursor = 'pointer'

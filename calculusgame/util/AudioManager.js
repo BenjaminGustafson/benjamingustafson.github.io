@@ -42,6 +42,22 @@ export class AudioManager {
     
         source.start(0);
     }
+
+    playSine(frequency = 440, duration = 1, volume = 1.0) {
+        const osc = this.context.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = frequency;
+    
+        const gainNode = this.context.createGain();
+        gainNode.gain.value = volume;
+    
+        osc.connect(gainNode);
+        gainNode.connect(this.context.destination);
+    
+        osc.start();
+        osc.stop(this.context.currentTime + duration);
+    }
+    
     
 
     unlock() {

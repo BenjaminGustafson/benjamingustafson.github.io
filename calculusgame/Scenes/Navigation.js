@@ -313,7 +313,7 @@ export function navScene(gameState) {
     var startTime = 0 // Date.now() for keeping track of time in state
     const travelDistance = 100 // how far is travelled at a time
     var startDistance = 0 // Distance at start of travel animation
-    const planetDistance = 200 // Distance from start to destination
+    const planetDistance = 500 // Distance from start to destination
     const travelTime = 1 // Seconds of travel animation
     
     // DEBUG

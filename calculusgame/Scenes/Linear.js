@@ -1,7 +1,8 @@
 import {Color, Shapes} from '../util/index.js'
 import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox, DialogueBox} from '../GameObjects/index.js'
 import * as Scene from '../Scene.js'
-
+import { GameObject } from '../GameObjects/GameObject.js'
+import { createPuzzleButtons, unlockScenes } from './Planet.js'
 
 /**
  * The map is isometric tiles of 128 x 64. 
@@ -19,11 +20,97 @@ function isometricToCanvas(x, y){
     return {x: cx, y : cy}
 }
 
+export const dialogue1 = [
+    "⯘Ⳃⱙⰺⳡ ⰺⳝ⯨⯃⯎ ⱤⳆⰸ⯃ ⳙ⯹ⱡ ⯷ⳞⳤⱭⰶ.",
+    "ⳏⳐⰷ⯁Ⱨⰴ ⯢ⱋⳒⰳⳙ ⯚⯜⯍ ⳙⰿⱆ ⳨⯟ⳑ⳪⳰ ⰴⱢⳈⳡ ⱍ⳧Ⳑⰿ.",
+    "ⳟ⯔ ⳓ⯥ⱄⰳ ⳉⳂⳙ⯎ ⱤⳆⰸ⯃ Ɀⰳⱅⰸⳝ ⯢ⳔⳂⳚ ⱇⱏⰴⳂ ⰳⳤⱑ⯅ⰴ!"
+]
+
+
+
+function drawGlowSprite(ctx, img, x, y, {
+    glowColor = 'rgba(255,255,0,0.9)',
+    radius = 12,
+    strength = 2 // extra passes for intensity
+  } = {}) {
+    // 1) colorize the sprite’s silhouette offscreen
+    const off = document.createElement('canvas');
+    off.width = img.width; off.height = img.height;
+    const octx = off.getContext('2d');
+    octx.drawImage(img, 0, 0);
+    octx.globalCompositeOperation = 'source-in';
+    octx.fillStyle = glowColor;
+    octx.fillRect(0, 0, off.width, off.height);
+  
+    // 2) blur + additive composite as halo
+    ctx.save();
+    ctx.filter = `blur(${radius}px)`;
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < strength; i++) ctx.drawImage(off, x, y);
+    ctx.restore();
+  
+    // 3) draw the sprite on top
+    ctx.drawImage(img, x, y);
+  }
+  
+
+const computerSE = document.getElementById('computerSE')
+function drawComputer(ctx, x, y, {dir = 'SE', complete = null, mouseOver = false}){
+
+
+}
+
+
+class Ship{
+
+}
+
+class PuzzleComputer extends GameObject{
+    constructor(){
+
+    }
+    update(ctx, audio, mouse){
+
+    }
+}
+
+function computerPuzzle(){
+
+    computerObj = {
+        update(ctx,audio,mouse){
+
+        }
+    }
+    return computerObj
+}
+
 
 export function linearPlanet(gameState){
     const gss = gameState.stored
     gss.planet = 'Linear'
-    const door_button = new Button({originX:200, originY:600, width:100, height:60, onclick:(() => { Scene.loadScene(gameState,"planetMap") }), label:"Ship"})
+    const levels = Scene.PLANET_DATA['Linear']['puzzles']
+
+
+    const shipButton = new Button({originX:200, originY:600, width:100, height:60,
+        onclick:(() => { Scene.loadScene(gameState,"planetMap") }),
+        label:"Ship",
+    })
+
+    const ship = {
+        computerImg: document.getElementById('computerSE'),
+        update: function(ctx,audio,mouse){
+            // drawGlowSprite(ctx, this.computerImg, 100,200, {glowColor : 'rgba(255,255,120,0.9)',
+            //     radius : 10,
+            //     strength: 2})
+            // drawGlowSprite(ctx, this.computerImg, 100,300, {glowColor : 'rgba(255,255,120,0.8)',
+            //     radius : 12,
+            //     strength: 3})
+            // drawGlowSprite(ctx, this.computerImg, 600,200, {glowColor : 'rgba(86,180,233,0.7)',
+            //     radius : 8,
+            //     strength: 1})
+            // ctx.drawImage(this.computerImg, 100,100)
+        }
+    }
 
     const experimentButton = new Button({originX:180, originY:130, width:100, height:60, 
         onclick:(() => { Scene.loadScene(gameState, "linearExperiment") }), label: "Lab"
@@ -43,45 +130,8 @@ export function linearPlanet(gameState){
     }
 
 
-    // ---------------------------- Puzzle buttons ----------------------------------
-    const levels = Scene.PLANET_DATA['Linear']['puzzles']
-    var buttons = []
-    for (let i = 0; i < levels.length; i++) {
-        const button = new Button({originX:0, originY:0, width:50, height:50, fontSize: 20,
-            onclick:(() => {
-                gss.levelIndex = i;
-                player.moveTo(levels[i])
-            }),
-            label: 1 + "." + (i + 1),
-            bgColor: Color.black,
-        })
-        switch (gss.completedScenes[levels[i]]){
-            case 'complete':
-                button.bgColor = Color.blue
-                break
-            case 'in progress':
-                button.active = true
-                break
-            default:
-                if (i != 0)
-                    button.active = false
-                break
-        }
-        buttons.push(button)
-    }
 
-
-    const buttonLocations = [
-        [700,600],[1088,603],[1388,707],[1416,505],
-        [961,170],[1271,42],[753,28],[585,67]
-    ]
-
-    for (let i = 0; i < buttons.length; i++) {
-        buttons[i].originX = buttonLocations[i][0]
-        buttons[i].originY = buttonLocations[i][1]
-    }
-
-    //-------------------------------- Dialogue Buttons -----------------------------
+    // Dialogue Buttons
 
     const dialogueButton = new Button({originX:1200, originY:300, width:50, height:50, fontSize: 20,
         onclick:(() => {
@@ -277,25 +327,32 @@ export function linearPlanet(gameState){
     }
 
 
+    // Computer Puzzle buttons 
+    const buttons = createPuzzleButtons(gameState, {
+        levels: levels,
+        player: player,
+        locations : [
+            [700,600],[1088,603],[1388,707],[1416,505],
+            [961,170],[1271,42],[753,28],[585,67]
+        ]
+    })
+
+
 
     gameState.objects = [
         new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetBg"),
         player,
         new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetFg"),
         experimentButton,
-        door_button,
+        shipButton,
         dialogueButton,
+        ship
     ]
     gameState.objects = gameState.objects.concat(buttons)
 
 }
 
 
-function unlockScenes (scenes, gss){
-    scenes.forEach(p => {
-        if (gss.completedScenes[p] != 'complete') gss.completedScenes[p] = 'in progress'
-    })
-}
 
 export function linearPuzzle1 (gameState, {nextScenes}){
     const gss = gameState.stored
@@ -394,31 +451,3 @@ export function simpleDiscLevel(gameState, {
     unlockScenes(nextScenes, gss)
 }
 
-const dialogue1 = [
-    "⯘Ⳃⱙⰺⳡ ⰺⳝ⯨⯃⯎ ⱤⳆⰸ⯃ ⳙ⯹ⱡ ⯷ⳞⳤⱭⰶ.",
-    "ⳏⳐⰷ⯁Ⱨⰴ ⯢ⱋⳒⰳⳙ ⯚⯜⯍ ⳙⰿⱆ ⳨⯟ⳑ⳪⳰ ⰴⱢⳈⳡ ⱍ⳧Ⳑⰿ.",
-    "ⳟ⯔ ⳓ⯥ⱄⰳ ⳉⳂⳙ⯎ ⱤⳆⰸ⯃ Ɀⰳⱅⰸⳝ ⯢ⳔⳂⳚ ⱇⱏⰴⳂ ⰳⳤⱑ⯅ⰴ!"
-]
-
-export function linearDialogueScene(gameState, {nextScenes, exitTo}){
-    const gss = gameState.stored
-    const exitButton = new Button( {originX:50, originY:50, width:50, height:50, 
-        onclick: () => Scene.loadScene(gameState, exitTo), label:"↑"} )
-
-    const dialogueBox = new DialogueBox({
-        portraitId:'glorpPortrait', 
-        text: dialogue1,
-        onComplete: function(){
-            gss.completedScenes[gameState.stored.sceneName] = 'complete'
-            Scene.loadScene(gameState, exitTo)
-        }
-    })
-    
-    gameState.objects = [
-        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetBg"),
-        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetFg"),
-        dialogueBox,
-        exitButton
-    ]
-    unlockScenes(nextScenes, gss)
-}

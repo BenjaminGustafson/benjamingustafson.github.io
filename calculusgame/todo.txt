@@ -1,10 +1,10 @@
 Issues:
-- Fix asteroid generation
-- Implement asteroid logic when hit
-- Fix nav next button 
 
+- Implement nav mastery
 
+- Implement chain rule planet (or quad) using same map as linear
 
+- Abstract out planet level
 
 --------------------
 Essential:
@@ -27,14 +27,14 @@ Optional
     I like numbering the levels. Put a rectangular or oval light ray type highlight, largest would be in progress, no highlight for locked, and blue for complete? 
     would be best if it moves - to draw the eye 
 - UI element borders - easy
-- Curated nav puzzles
+- Curated nav puzzles - to avoid the wild ones
 - Alien language for math symbols
 - Render maps for shadows - might have weird interactions with the path
 
 
 UI Improvements:
 - Exit after puzzles solved
-
+- Mathblocks shrink when max size is reached
 
 ----------------------------
 
