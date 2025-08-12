@@ -14,7 +14,7 @@ import * as Scene from '../Scene.js'
  */
 export function startMenu(gameState, nextScene){
     const startButton = new Button({originX:200, originY:300, width:200, height:50, lineWidth:5,
-        onclick:(() => Scene.loadScene(gameState,"linearPlanet")), label:"Start"})
+        onclick:(() => Scene.loadScene(gameState,"linear")), label:"Start"})
 
     if (nextScene != null && nextScene != "startMenu"){
         startButton.onclick = (() => Scene.loadScene(gameState,nextScene))

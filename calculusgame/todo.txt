@@ -6,6 +6,8 @@ Issues:
 
 - Abstract out planet level
 
+- Navigation should have a 
+
 --------------------
 Essential:
 - Chain rule map

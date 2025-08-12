@@ -1,360 +1,196 @@
 import {Color, Shapes} from '../util/index.js'
-import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox, DialogueBox} from '../GameObjects/index.js'
+import {TileMap, Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox, DialogueBox} from '../GameObjects/index.js'
 import * as Scene from '../Scene.js'
 import { GameObject } from '../GameObjects/GameObject.js'
-import { createPuzzleButtons, unlockScenes } from './Planet.js'
+import { unlockScenes, planetScene, dialogueScene } from './Planet.js'
+import * as Experiment from './Experiment.js'
 
-/**
- * The map is isometric tiles of 128 x 64. 
- * The map is 1600 x 900, so that is 12.5 x 14.0625 tiles
- * The top left corner should be right at a tile intersection
- * Then to move along the path we just need the path coordinates
- * 
- */
+const tileMap = new TileMap({yTileOffset:-8})
 
-
-
-function isometricToCanvas(x, y){
-    const cx = x * 64 + (y- 8) * -64 - 160
-    const cy = x * 32 + (y- 8) * 32 + 192
-    return {x: cx, y : cy}
+// [x,y,  dx,dy] where dx dy is the direction to face when stopped at node
+// SW 0,1 NW -1,0 NE 0,-1 SE 1,0
+const nodes = {
+    'planetMap': [8,9,  0,1],
+    'linear.puzzle.1': [8,7,  0,-1],
+    'linear.puzzle.2': [11,4, 0,-1],
+    'linear.puzzle.3': [14,2, 1,0],
+    'linear.puzzle.4': [12,0, 0,-1],
+    'linear.puzzle.5': [3,-5, -1,0],
+    'linear.puzzle.6': [2,-7, 0,-1],
+    'linear.puzzle.7': [0,-5, -1,0],
+    'linear.puzzle.8': [0,-2, -1,0],
+    'linear.lab': [-2,1, -1,0],
 }
 
-export const dialogue1 = [
-    "⯘Ⳃⱙⰺⳡ ⰺⳝ⯨⯃⯎ ⱤⳆⰸ⯃ ⳙ⯹ⱡ ⯷ⳞⳤⱭⰶ.",
-    "ⳏⳐⰷ⯁Ⱨⰴ ⯢ⱋⳒⰳⳙ ⯚⯜⯍ ⳙⰿⱆ ⳨⯟ⳑ⳪⳰ ⰴⱢⳈⳡ ⱍ⳧Ⳑⰿ.",
-    "ⳟ⯔ ⳓ⯥ⱄⰳ ⳉⳂⳙ⯎ ⱤⳆⰸ⯃ Ɀⰳⱅⰸⳝ ⯢ⳔⳂⳚ ⱇⱏⰴⳂ ⰳⳤⱑ⯅ⰴ!"
+const paths = 
+[
+    {start: 'planetMap', end: 'linear.puzzle.1'},
+    {start: 'linear.puzzle.1', end: 'linear.puzzle.2', steps: [[10,7],[10,4]] },
+    {start: 'linear.puzzle.2', end: 'linear.puzzle.3', steps: [[14,4]] },
+    {start: 'linear.puzzle.3', end: 'linear.puzzle.4', steps: [[14,0]] },
+    {start: 'linear.puzzle.4', end:  'linear.puzzle.5', steps: [[9,0],[9,-4], [3,-4]] },
+    {start: 'linear.puzzle.5', end: 'linear.puzzle.6', steps: [[3,-7]] },
+    {start: 'linear.puzzle.6', end: 'linear.puzzle.7', steps: [[1,-7],[1,-6],[0,-6]] },
+    {start: 'linear.puzzle.7', end: 'linear.puzzle.8', steps: [] },
+    {start: 'linear.puzzle.8', end: 'linear.lab', steps: [[0,0],[-1,0],[-1,1]]},
+
 ]
 
 
-
-function drawGlowSprite(ctx, img, x, y, {
-    glowColor = 'rgba(255,255,0,0.9)',
-    radius = 12,
-    strength = 2 // extra passes for intensity
-  } = {}) {
-    // 1) colorize the sprite’s silhouette offscreen
-    const off = document.createElement('canvas');
-    off.width = img.width; off.height = img.height;
-    const octx = off.getContext('2d');
-    octx.drawImage(img, 0, 0);
-    octx.globalCompositeOperation = 'source-in';
-    octx.fillStyle = glowColor;
-    octx.fillRect(0, 0, off.width, off.height);
-  
-    // 2) blur + additive composite as halo
-    ctx.save();
-    ctx.filter = `blur(${radius}px)`;
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < strength; i++) ctx.drawImage(off, x, y);
-    ctx.restore();
-  
-    // 3) draw the sprite on top
-    ctx.drawImage(img, x, y);
-  }
-  
-
-const computerSE = document.getElementById('computerSE')
-function drawComputer(ctx, x, y, {dir = 'SE', complete = null, mouseOver = false}){
-
-
+const experimentData =  {
+    '1':{
+        solutionFun: x=>0.5*x,
+        solutionDdx:x=>0.5,
+        solutionFunString:"0.5t",
+        solutionDdxString:"0.5",
+        syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
+        syDdxMax: 2,
+        syDdxLen: 4,
+        tyDdxMax: 2,
+        tyDdxLen: 4,
+        numMeasurement:5,
+        ddxSliderSpacing:2,
+    },
+    '2': {
+        solutionFun: x=>5-0.5*x,
+        solutionDdx: x=>-0.5,
+        solutionFunString:"-0.5t + 5",
+        solutionDdxString:"-0.5",
+        syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
+        syDdxMax: 2,
+        syDdxLen: 4,
+        tyDdxMax: 2,
+        tyDdxLen: 4,
+        numMeasurement:5,
+        ddxSliderSpacing:2,
+    },
+    '3':{
+        solutionFun: x=>1+1.5*x,
+        solutionDdx: x=>-0.5,
+        solutionFunString:"1.5t + 1",
+        solutionDdxString:"1.5",
+        syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
+        syDdxMax: 2,
+        syDdxLen: 4,
+        tyDdxMax: 2,
+        tyDdxLen: 4,
+        numMeasurement:4,
+        ddxSliderSpacing:2,
+    },
+    '4':{
+        solutionFun: x=>2*x,
+        solutionDdx: x=>2,
+        solutionFunString:"2 t",
+        solutionDdxString:"2",
+        syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
+        syDdxMax: 2,
+        syDdxLen: 4,
+        tyDdxMax: 2,
+        tyDdxLen: 4,
+        numMeasurement:5,
+        ddxSliderSpacing:1,
+    },
+    '5':{
+        solutionFun: x=>10-x,
+        solutionDdx: x=>-1,
+        solutionFunString:"-1t + 10",
+        solutionDdxString:"-1",
+        syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
+        syDdxMax: 2,
+        syDdxLen: 4,
+        tyDdxMax: 2,
+        tyDdxLen: 4,
+        numMeasurement:5,
+        ddxSliderSpacing:2,
+    }
 }
 
+export function loadScene(gameState, sceneName){
+    gameState.stored.planet = 'Linear'
 
-class Ship{
+    const sceneNameSplit = sceneName.toLowerCase().split('.')
 
-}
-
-class PuzzleComputer extends GameObject{
-    constructor(){
-
-    }
-    update(ctx, audio, mouse){
-
-    }
-}
-
-function computerPuzzle(){
-
-    computerObj = {
-        update(ctx,audio,mouse){
-
-        }
-    }
-    return computerObj
-}
-
-
-export function linearPlanet(gameState){
-    const gss = gameState.stored
-    gss.planet = 'Linear'
-    const levels = Scene.PLANET_DATA['Linear']['puzzles']
-
-
-    const shipButton = new Button({originX:200, originY:600, width:100, height:60,
-        onclick:(() => { Scene.loadScene(gameState,"planetMap") }),
-        label:"Ship",
-    })
-
-    const ship = {
-        computerImg: document.getElementById('computerSE'),
-        update: function(ctx,audio,mouse){
-            // drawGlowSprite(ctx, this.computerImg, 100,200, {glowColor : 'rgba(255,255,120,0.9)',
-            //     radius : 10,
-            //     strength: 2})
-            // drawGlowSprite(ctx, this.computerImg, 100,300, {glowColor : 'rgba(255,255,120,0.8)',
-            //     radius : 12,
-            //     strength: 3})
-            // drawGlowSprite(ctx, this.computerImg, 600,200, {glowColor : 'rgba(86,180,233,0.7)',
-            //     radius : 8,
-            //     strength: 1})
-            // ctx.drawImage(this.computerImg, 100,100)
-        }
+    // Main scene
+    if (sceneNameSplit.length == 1) {
+        linearPlanet(gameState)
+        return
     }
 
-    const experimentButton = new Button({originX:180, originY:130, width:100, height:60, 
-        onclick:(() => { Scene.loadScene(gameState, "linearExperiment") }), label: "Lab"
-    })
-    // TODO: abstract out this scene button creation
-    switch (gss.completedScenes['linearExperiment']){
-        case 'complete':
-            experimentButton.bgColor = Color.blue
-            break
-        case 'in progress':
-            experimentButton.active = true
-            break
-        default:
-            case 'locked':
-            experimentButton.active = false
-            break
-    }
-
-
-
-    // Dialogue Buttons
-
-    const dialogueButton = new Button({originX:1200, originY:300, width:50, height:50, fontSize: 20,
-        onclick:(() => {
-            Scene.loadScene(gameState,'linearDialogue1')
-        }),
-        label: "!",
-    })
-
-    switch (gss.completedScenes['linearDialogue1']){
-        case 'complete':
-            dialogueButton.bgColor = Color.blue
-            break
-        case 'in progress':
-            dialogueButton.active = true
-            break
-        default:
-            dialogueButton.active = false
-            break
-    }
-
-
-    // Player ---------------------------------------
-    // [x,y,  dx,dy] where dx dy is the direction to face when stopped at node
-    // SW 0,1 NW -1,0 NE 0,-1 SE 1,0
-    const nodes = {
-        'planetMap': [8,9,  0,1],
-        [levels[0]]: [8,7,  0,-1],
-        [levels[1]]: [11,4, 0,-1],
-        [levels[2]]: [14,2, 1,0],
-        [levels[3]]: [12,0, 0,-1],
-        [levels[4]]: [3,-5, -1,0],
-        [levels[5]]: [2,-7, 0,-1],
-        [levels[6]]: [0,-5, -1,0],
-        [levels[7]]: [0,-2, -1,0],
-        ['linearExperiment']: [11,4, -1,0],
-    }
-
-    const paths = 
-    [
-        {start: 'planetMap', end: levels[0]},
-        {start: levels[0], end: levels[1], steps: [[10,7],[10,4]] },
-        {start: levels[1], end: levels[2], steps: [[14,4]] },
-        {start: levels[2], end: levels[3], steps: [[14,0]] },
-        {start: levels[3], end: levels[4], steps: [[9,0],[9,-4], [3,-4]] },
-        {start: levels[4], end: levels[5], steps: [[3,-7]] },
-        {start: levels[5], end: levels[6], steps: [[1,-7],[1,-6],[0,-6]] },
-        {start: levels[6], end: levels[7], steps: [] },
-        {start: levels[7], end: 'linearExperiment', steps: [[0,0],[-1,0],[-1,1],[-2,1]]},
-
-    ]
-    
-    // Path does not include starting node
-    const adjacencyTable = {}
-    for (const {start, end, steps=[]} of paths) {
-        const forward = steps.slice() // copy array
-        forward.push(nodes[end])
-        const reverse = []
-        for (let i = forward.length-2; i >= 0; i--){
-            reverse.push(forward[i])
-        }
-        reverse.push(nodes[start])
-        if (adjacencyTable[start] == null)
-            adjacencyTable[start] = {}
-        if (adjacencyTable[end] == null)
-            adjacencyTable[end] = {}
-        adjacencyTable[start][end] = forward
-        adjacencyTable[end][start] = reverse
-    }
-
-
-    // BFS should be sufficient
-    function bfsPath(adj, start, goal) {
-        const queue = [[start]]
-        const visited = new Set([start])
-        
-        while (queue.length > 0) {
-            const nodePath = queue.shift()
-            const node = nodePath[nodePath.length - 1]
-            console.log(node, nodePath)
-            if (node == goal) {
-                var coordPath = []
-                for (let i = 0; i < nodePath.length -1; i++){
-                    coordPath = coordPath.concat(adj[nodePath[i]][nodePath[i+1]])
-                }
-                return coordPath
-            }
-        
-            for (const neighbor in adj[node]) {
-                if (!visited.has(neighbor)) {
-                    visited.add(neighbor)
-                    queue.push([...nodePath, neighbor])
-                }
-            }
-        }
-        return null
-    }
-      
-    if (!nodes[gss.playerLocation]){
-        gss.playerLocation = 'planetMap'
-    }
-
-
-    const player = {
-        currentNode: gss.playerLocation,
-        isoX: nodes[gss.playerLocation][0],
-        isoY: nodes[gss.playerLocation][1],
-        pathIndex: 0,
-        currentPath: [],
-        state: 'stopped',
-        imgNE: document.getElementById('astronautB_NE'),
-        imgSE: document.getElementById('astronautB_SE'),
-        imgNW: document.getElementById('astronautB_NW'),
-        imgSW: document.getElementById('astronautB_SW'),
-        dx:nodes[gss.playerLocation][2],
-        dy:nodes[gss.playerLocation][3],
-        targetNode:'',
-        startTime: 0,
-        stepTime: 50,
-        stepCount:0,
-        moveTo: function(node){
-            if (this.state == 'moving') return
-            if (node == this.currentNode) {
-                Scene.loadScene(gameState,this.currentNode)
-                return
-            }
-            this.targetNode = node
-            this.currentPath = bfsPath(adjacencyTable, this.currentNode, node)
-            this.pathIndex = 0
-            this.stepTime = Math.max(100,Math.min(200,1000/this.currentPath.length)) // not precise, but good enough
-            const nextTarget = this.currentPath[this.pathIndex]
-            this.dx = Math.sign(nextTarget[0] - this.isoX)
-            this.dy = Math.sign(nextTarget[1] - this.isoY) 
-            this.startTime = Date.now()
-            this.state = 'moving'
-        },
-        update: function (ctx, audio, mouse){
-            switch (this.state){
-                case 'moving':
-                    // Move one tick
-                    if (Date.now() - this.startTime > this.stepTime){
-                        audio.play('click_005', (this.stepCount++%2)*18-18+Math.random()*4, 0.4)
-                        this.isoX += this.dx
-                        this.isoY += this.dy
-                        const targetCoord = this.currentPath[this.pathIndex]
-                        // End of path step
-                        if (this.isoX == targetCoord[0] && this.isoY == targetCoord[1]){
-                            this.pathIndex ++
-                            // End of path
-                            if (this.pathIndex >= this.currentPath.length){
-                                this.currentNode = this.targetNode
-                                this.state = 'stopped'
-                                gss.playerLocation = this.currentNode
-                                this.dx =  nodes[this.currentNode][2]
-                                this.dy = nodes[this.currentNode][3]
-                                Scene.loadScene(gameState,this.currentNode)
-                            }
-                            // Next step
-                            else{    
-                                const nextTarget = this.currentPath[this.pathIndex]
-                                this.dx = Math.sign(nextTarget[0] - this.isoX)
-                                this.dy = Math.sign(nextTarget[1] - this.isoY) 
-                            }
-                        }
-                        this.startTime = Date.now()
-                    }
-
-
+    // Sub-scenes
+    switch(sceneNameSplit[1]){
+        case "puzzle": 
+            switch(sceneNameSplit[2]){
+                case '1':
+                    linearPuzzle1(gameState, {nextScenes:["linear.puzzle.2"]})
                     break
-                case 'stopped':
+                case '2':
+                    linearPuzzle2(gameState,  {nextScenes:["linear.puzzle.3"]})
+                    break
+                case '3':
+                    simpleDiscLevel(gameState, {targetVals:[0, 1, 1, 2],  nextScenes:["linear.puzzle.4"]})
+                    break
+                case '4':
+                    simpleDiscLevel(gameState, {targetVals:[1, 0, -1, 0], nextScenes:["linear.dialogue.1"]})
+                    break
+                case '5':
+                    simpleDiscLevel(gameState, {targetVals:[0.5, 1, 0.5, 1.5], nextScenes:["linear.puzzle.6"]})
+                    break
+                case '6':
+                    simpleDiscLevel(gameState, {targetVals:[2, 1.5, -0.5, -2], nextScenes:["linear.puzzle.7"]})
+                    break
+                case '7':
+                    simpleDiscLevel(gameState, {targetVals:[1, 0.5, -0.1, -0.8, -0.4, 0.6, 0.2, 0.4], nextScenes:["linear.puzzle.8"]})
+                    break
+                case '8':
+                    simpleDiscLevel(gameState, {targetVals:[0.25, 0.5, 0.75, 1, 1.25, 1, 0.75, 0.5,
+                        0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1],  targetSize:15,  sliderSize:12, nextScenes:["linear.lab"]})
                     break
             }
-            const {x,y} = isometricToCanvas(this.isoX,this.isoY)
-            const nextCoord = isometricToCanvas(this.isoX + this.dx,this.isoY+this.dy)
-            const nx = nextCoord.x
-            const ny = nextCoord.y
-            const t = Math.max(0,Math.min(1,(Date.now() - this.startTime)/this.stepTime))
-            const lerpX = this.state == 'moving' ? t*nx + (1-t)*x : x
-            const lerpY = this.state == 'moving' ? t*ny + (1-t)*y : y 
-            const jumpY = lerpY - 50 * (-t*t + t) 
-            if (this.dx == 1){
-                ctx.drawImage(this.imgSE, lerpX, jumpY)
-            }else if (this.dx == -1){
-                ctx.drawImage(this.imgNW, lerpX, jumpY)
-            }else if (this.dy == 1){
-                ctx.drawImage(this.imgSW, lerpX, jumpY)
-            }else if (this.dy == -1){
-                ctx.drawImage(this.imgNE, lerpX, jumpY)
-            }else{
-                console.warn('invalid dir', this.dx, this.dy)
+        break
+
+        case 'dialogue':
+            linearPlanet(gameState)
+            switch(sceneNameSplit[2]){
+                case '1':
+                    dialogueScene(gameState, {exitTo:"linear", nextScenes:["linear.puzzle.5"], text: [    
+                        "⯘Ⳃⱙⰺⳡ ⰺⳝ⯨⯃⯎ ⱤⳆⰸ⯃ ⳙ⯹ⱡ ⯷ⳞⳤⱭⰶ.",
+                        "ⳏⳐⰷ⯁Ⱨⰴ ⯢ⱋⳒⰳⳙ ⯚⯜⯍ ⳙⰿⱆ ⳨⯟ⳑ⳪⳰ ⰴⱢⳈⳡ ⱍ⳧Ⳑⰿ.",
+                        "ⳟ⯔ ⳓ⯥ⱄⰳ ⳉⳂⳙ⯎ ⱤⳆⰸ⯃ Ɀⰳⱅⰸⳝ ⯢ⳔⳂⳚ ⱇⱏⰴⳂ ⰳⳤⱑ⯅ⰴ!"
+                    ]})
+                break
             }
+            break
 
-        }
+        case "lab":
+            Experiment.experimentMenu(gameState, {experimentData: experimentData})
+            break
+        
+        case "trial":
+            if (sceneName[2] == 'rule') {
+                Experiment.ruleGuess(gameState)
+            } else {
+                Experiment.experimentTrial(gameState, experimentData[sceneName[2]])
+            } 
+            break
     }
+}
 
-
-    // Computer Puzzle buttons 
-    const buttons = createPuzzleButtons(gameState, {
-        levels: levels,
-        player: player,
-        locations : [
-            [700,600],[1088,603],[1388,707],[1416,505],
-            [961,170],[1271,42],[753,28],[585,67]
-        ]
+function linearPlanet(gameState){
+    planetScene(gameState, {
+        planetName:'linear',
+        shipX:200, shipY: 600,
+        labX: 180, labY:130,
+        tileMap:tileMap,
+        playerNodes:nodes,
+        playerPaths:paths,
+        bgImg: 'linearPlanetBg',
+        fgImg: 'linearPlanetFg',
     })
-
-
-
-    gameState.objects = [
-        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetBg"),
-        player,
-        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetFg"),
-        experimentButton,
-        shipButton,
-        dialogueButton,
-        ship
-    ]
-    gameState.objects = gameState.objects.concat(buttons)
-
 }
 
 
-
-export function linearPuzzle1 (gameState, {nextScenes}){
+// A 1x1 puzzle
+function linearPuzzle1 (gameState, {nextScenes}){
     const gss = gameState.stored
     const gridLeft = new Grid({
         canvasX:560, canvasY:430, canvasWidth:100, canvasHeight:100, 
@@ -370,7 +206,7 @@ export function linearPuzzle1 (gameState, {nextScenes}){
     const target = new Target({grid: gridLeft, gridX:1, gridY:1, size:20})
     const tracer = new IntegralTracer({grid: gridLeft, sliders: [slider], targets:[target]})
     const backButton = new Button({originX:50, originY: 50, width:100, height: 100,
-        onclick: ()=>Scene.loadScene(gameState,"linearPlanet"), label:"↑"})
+        onclick: ()=>Scene.loadScene(gameState,"linear"), label:"↑"})
     
     unlockScenes(nextScenes, gss)
     // Objects and update
@@ -383,7 +219,8 @@ export function linearPuzzle1 (gameState, {nextScenes}){
     
 }
 
-export function linearPuzzle2 (gameState, {nextScenes}){
+// A 2x2 puzzle
+function linearPuzzle2 (gameState, {nextScenes}){
     const gss = gameState.stored
     const gridLeft = new Grid({canvasX:560, canvasY:430, canvasWidth:200, canvasHeight:200, 
         gridXMin:-1, gridYMin:0, gridXMax:1, gridYMax:2, labels:false, arrows:false})
@@ -400,7 +237,7 @@ export function linearPuzzle2 (gameState, {nextScenes}){
     ]
     const tracer =  new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets})
     const backButton = new Button({originX:50, originY: 50, width:100, height: 100, 
-        onclick: ()=>Scene.loadScene(gameState,"linearPlanet"), label:"↑"})
+        onclick: ()=>Scene.loadScene(gameState,"linear"), label:"↑"})
         
     gameState.objects = [gridLeft, gridRight, tracer, backButton].concat(sliders).concat(targets)
     gameState.update = () => {
@@ -419,10 +256,10 @@ export function linearPuzzle2 (gameState, {nextScenes}){
  * @param {*} tracerStart y-intercept where the tracer starts from
  * @param {number} targetSize The size of the targets and sliders
  */
-export function simpleDiscLevel(gameState, {
+function simpleDiscLevel(gameState, {
     targetVals, tracerStart = 0,
     targetSize = 20, sliderSize = 15,
-    exitTo = 'linearPlanet',
+    exitTo = 'linear',
     nextScenes
 }) {
     const gss = gameState.stored

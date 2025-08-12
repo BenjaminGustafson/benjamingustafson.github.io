@@ -1,98 +1,19 @@
 import {Color, Shapes} from '../util/index.js'
 import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox} from '../GameObjects/index.js'
-import { loadScene, PLANET_DATA } from '../Scene.js'
+import { loadScene } from '../Scene.js'
 
-const EXPERIMENT_DATA = {
-    'linearTrial1':{
-        solutionFun: x=>0.5*x,
-        solutionDdx:x=>0.5,
-        solutionFunString:"0.5t",
-        solutionDdxString:"0.5",
-        syFunMax: 2,
-        syFunLen: 4,
-        tyFunMax: 10,
-        tyFunLen: 10,
-        syDdxMax: 2,
-        syDdxLen: 4,
-        tyDdxMax: 2,
-        tyDdxLen: 4,
-        numMeasurement:5,
-        ddxSliderSpacing:2,
-    },
-    'linearTrial2':{
-        solutionFun: x=>5-0.5*x,
-        solutionDdx: x=>-0.5,
-        solutionFunString:"-0.5t + 5",
-        solutionDdxString:"-0.5",
-        syFunMax: 2,
-        syFunLen: 4,
-        tyFunMax: 10,
-        tyFunLen: 10,
-        syDdxMax: 2,
-        syDdxLen: 4,
-        tyDdxMax: 2,
-        tyDdxLen: 4,
-        numMeasurement:5,
-        ddxSliderSpacing:2,
-    },
-    'linearTrial3':{
-        solutionFun: x=>1+1.5*x,
-        solutionDdx: x=>-0.5,
-        solutionFunString:"1.5t + 1",
-        solutionDdxString:"1.5",
-        syFunMax: 2,
-        syFunLen: 4,
-        tyFunMax: 10,
-        tyFunLen: 10,
-        syDdxMax: 2,
-        syDdxLen: 4,
-        tyDdxMax: 2,
-        tyDdxLen: 4,
-        numMeasurement:4,
-        ddxSliderSpacing:2,
-    },
-    'linearTrial4':{
-        solutionFun: x=>2*x,
-        solutionDdx: x=>2,
-        solutionFunString:"2 t",
-        solutionDdxString:"2",
-        syFunMax: 2,
-        syFunLen: 4,
-        tyFunMax: 10,
-        tyFunLen: 10,
-        syDdxMax: 2,
-        syDdxLen: 4,
-        tyDdxMax: 2,
-        tyDdxLen: 4,
-        numMeasurement:5,
-        ddxSliderSpacing:1,
-    },
-    'linearTrial5':{
-        solutionFun: x=>10-x,
-        solutionDdx: x=>-1,
-        solutionFunString:"-1t + 10",
-        solutionDdxString:"-1",
-        syFunMax: 2,
-        syFunLen: 4,
-        tyFunMax: 10,
-        tyFunLen: 10,
-        syDdxMax: 2,
-        syDdxLen: 4,
-        tyDdxMax: 2,
-        tyDdxLen: 4,
-        numMeasurement:5,
-        ddxSliderSpacing:2,
-    }
-}
 
-export function experimentTrial(gameState, experimentMenu){
+export function experimentTrial(gameState, {
+    solutionFun, solutionDdx,
+    solutionFunString,
+    solutionDdxString,
+    syFunMax, syFunLen, tyFunMax, tyFunLen,
+    syDdxMax, syDdxLen, tyDdxMax, tyDdxLen,
+    numMeasurement,
+    ddxSliderSpacing,
+}){
 
     const gss = gameState.stored
-
-    const solutionFun = EXPERIMENT_DATA[gss.sceneName].solutionFun
-    const solutionDdx = EXPERIMENT_DATA[gss.sceneName].solutionDdx
-    const solutionFunString = EXPERIMENT_DATA[gss.sceneName].solutionFunString
-    const solutionDdxString = EXPERIMENT_DATA[gss.sceneName].solutionDdxString
 
     // Back button
     const exitTo = experimentMenu
@@ -231,7 +152,7 @@ export function experimentTrial(gameState, experimentMenu){
     }
 
     const sliders = []
-    const spacing = EXPERIMENT_DATA[gss.sceneName].ddxSliderSpacing
+    const spacing = ddxSliderSpacing
     for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
         sliders.push(new Slider({grid:gridRight, gridPos:i,increment:0.1,circleRadius:15}))
     }
@@ -381,7 +302,7 @@ export function experimentTrial(gameState, experimentMenu){
     const errorText = new TextBox({originX:880, originY:140, align: 'right'})
 
     var step = 'measureF'
-    const minCorrectTargets = EXPERIMENT_DATA[gss.sceneName].numMeasurement
+    const minCorrectTargets = numMeasurement
     const SKIP_CHECKS = false // debug option
     const continueButton = new Button({originX:840, originY:50, width:100, height:60, fontSize:16,
         onclick:(() => {
@@ -399,8 +320,8 @@ export function experimentTrial(gameState, experimentMenu){
                 }
             }else if (step == 'measureDdx'){
                 if (tracer.solved || SKIP_CHECKS){
-                    sySlider.setSize(EXPERIMENT_DATA[gss.sceneName].syFunMax, EXPERIMENT_DATA[gss.sceneName].syFunLen)
-                    tySlider.setSize(EXPERIMENT_DATA[gss.sceneName].tyFunMax, EXPERIMENT_DATA[gss.sceneName].tyFunLen)
+                    sySlider.setSize(syFunMax, syFunLen)
+                    tySlider.setSize(tyFunMax, tyFunLen)
 
                     gameState.objects = mainObjs.concat(fitFObjs).concat(adder.targets)
                     step = 'fitF'
@@ -408,8 +329,8 @@ export function experimentTrial(gameState, experimentMenu){
             }else if (step == 'fitF'){
                 const check = checkFunctionsEqual(solutionFun, funTracer.fun)
                 if (check.res || SKIP_CHECKS){
-                    sySlider.setSize(EXPERIMENT_DATA[gss.sceneName].syDdxMax, EXPERIMENT_DATA[gss.sceneName].syDdxLen)
-                    tySlider.setSize(EXPERIMENT_DATA[gss.sceneName].tyDdxMax, EXPERIMENT_DATA[gss.sceneName].tyDdxLen)
+                    sySlider.setSize(syDdxMax, syDdxLen)
+                    tySlider.setSize(tyDdxMax, tyDdxLen)
                     gridLeft.setYBounds(-2,2)
                     for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
                         ddxTargets.push(new Target({grid: gridLeft, gridX:i,
@@ -475,28 +396,29 @@ export function experimentTrial(gameState, experimentMenu){
  * @param {*} gameState 
  * @param {*} exitTo 
  */
-export function experimentMenu(gameState){
+export function experimentMenu(gameState, experimentData){
     const gss = gameState.stored
-    const trials = PLANET_DATA[gss.planet].trials
 
     const backButton = new Button({originX:50, originY:50, width:50, height:50,
-        onclick:(() => loadScene(gameState,PLANET_DATA[gss.planet].scene)), label:"↑"})
+        onclick:(() => loadScene(gameState, gss.planet)), label:"↑"})
     backButton.lineWidth = 5
     const trialButtons = []
 
-    for (let i = 0; i < trials.length; i++){
-        const button = new Button({originX:200,originY:150+i*60,width:100, height:50,
-            onclick:(() => loadScene(gameState,trials[i])), label:i+1})
+    let i = 0 
+    for (let exp in experimentData){
+        const expName = gss.planet + ".trial." + exp
+        const button = new Button({originX:200,originY:150+(i++)*60,width:100, height:50,
+            onclick:(() => loadScene(gameState,expName)), label:i+1})
         button.lineWidth = 5
 
-        if (gameState.stored.completedScenes[trials[i]]) {
+        if (gameState.stored.completedScenes[expName]) {
             button.bgColor = Color.blue
         }
         trialButtons.push(button)
     }
     const ruleButton = new Button({originX:200,originY:780,width:100,height:50,
-        onclick:(() => loadScene(gameState, PLANET_DATA[gss.planet].rule)),label:"Rule"})
-    if (gss.completedScenes[PLANET_DATA[gss.planet].rule] == 'complete') {
+        onclick:(() => loadScene(gameState, planet+".trials.rule")),label:"Rule"})
+    if (gss.completedScenes[gss.planet+".trials.rule"] == 'complete') {
         ruleButton.bgColor = Color.blue
     }
     const table = {
@@ -514,16 +436,15 @@ export function experimentMenu(gameState){
             Shapes.Line(ctx,750,50,750,850)
             Shapes.Line(ctx,150,760,1500,760)
             ctx.textBaseline = 'top'
-            for (let i = 0; i < trials.length; i++){
-                if (EXPERIMENT_DATA[trials[i]]){
-                    if (gss.completedScenes[trials[i]]){
-                        ctx.fillText(EXPERIMENT_DATA[trials[i]].solutionFunString,400,150+i*60)
-                        ctx.fillText(EXPERIMENT_DATA[trials[i]].solutionDdxString,800,150+i*60)
-                    }
+            for (let exp in experimentData){
+                const expName = gss.planet + ".trial." + exp
+                if (gss.completedScenes[expName]){
+                    ctx.fillText(experimentData[exp].solutionFunString,400,150+i*60)
+                    ctx.fillText(experimentData[exp].solutionDdxString,800,150+i*60)
                 }
             }
             ctx.fillText("f(x) = ax+b",400,780)
-            ctx.fillText("f'(x) = " + (gss.completedScenes['linearRule'] ? 'a' : ''),800,780)
+            ctx.fillText("f'(x) = " + (gss.completedScenes[gss.planet+".trials.rule"] ? 'a' : ''),800,780)
 
         }
     }
@@ -533,7 +454,7 @@ export function experimentMenu(gameState){
     gameState.objects = gameState.objects.concat(trialButtons)
 }
 
-export function ruleGuess(gameState){
+export function ruleGuess(gameState, {planetUnlock}){
     const gss = gameState.stored
     const blocks = [
         new MathBlock({type:MathBlock.VARIABLE, token:"x"}),
@@ -543,8 +464,6 @@ export function ruleGuess(gameState){
     for (let b of gss.mathBlocksUnlocked){
         blocks.push(new MathBlock({type: b.type, token: b.token}))
     }
-
-    
 
     const sySlider = new Slider({canvasX: 1200, canvasY: 150, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
     const tySlider = new Slider({canvasX: 1300, canvasY: 150, maxValue:5, sliderLength:10, showAxis:true})
@@ -600,7 +519,7 @@ export function ruleGuess(gameState){
         new TextBox({originX: 50, originY:200, content:'f(x) =', font:'40px monospace'}),
         new TextBox({originX: 500, originY:200, content:'f\'(x) =', font:'40px monospace'}),
         new Button({originX:50, originY:50, width:50, height:50,
-            onclick:(() => loadScene(gameState,"linearExperiment")),
+            onclick:(() => loadScene(gameState,"linear.lab")),
             label:"↑", lineWidth:5}),
         sySlider, tySlider, mbm, targetBlock,
         checkButton, checkResult

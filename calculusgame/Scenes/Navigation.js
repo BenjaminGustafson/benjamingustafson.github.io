@@ -1,6 +1,6 @@
 import {Color, Shapes} from '../util/index.js'
 import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox} from '../GameObjects/index.js'
-import { loadScene, PLANET_DATA, CANVAS_HEIGHT } from '../Scene.js'
+import { loadScene, CANVAS_HEIGHT } from '../Scene.js'
 
 /**
  * 
@@ -369,7 +369,7 @@ export function navScene(gameState) {
                 startButton.active = true
                 startButton.label = "Done"
                 startButton.onclick = () => {
-                    loadScene(gameState, PLANET_DATA[gss.nextPlanet].scene)
+                    loadScene(gameState, gss.nextPlanet)
                 }
                 break
         }

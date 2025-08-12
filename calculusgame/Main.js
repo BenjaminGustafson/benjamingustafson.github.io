@@ -1,5 +1,5 @@
 import {Color, Shapes, AudioManager} from './util/index.js'
-import {loadScene, PLANET_DATA} from './Scene.js'
+import {loadScene, PLANETS} from './Scene.js'
 import { MathBlock } from './GameObjects/MathBlock.js'
 
 /** 
@@ -92,7 +92,7 @@ function setup() {
             mathBlocksUnlocked: [{type:MathBlock.CONSTANT}],// the MathBlocks currently available, excluding variables
         }
 
-        for (const planet in PLANET_DATA){
+        for (const planet in PLANETS){
             gameState.stored.planetProgress[planet] = 'locked'
         }
         gameState.stored.planetProgress['Linear'] = 'in progress'        
@@ -192,12 +192,6 @@ function setup() {
                     console.log(Math.round(mouse.x) + ',' + Math.round(mouse.y))
                     break
                 case 'q':
-                    for (let planet in PLANET_DATA){
-                        for (let level of PLANET_DATA[planet].puzzles)
-                            gameState.stored.completedScenes[level] = 'complete'
-                        
-                        gameState.stored.planetProgress[planet] = 'complete'
-                    }
                     break
             }
         }
