@@ -4,7 +4,6 @@ Issues:
 
 - Implement chain rule planet (or quad) using same map as linear
 
-- Abstract out planet level
 
 - Navigation should have a 
 

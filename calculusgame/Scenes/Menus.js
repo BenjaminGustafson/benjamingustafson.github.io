@@ -50,7 +50,7 @@ export function planetMap (gameState){
     const gss = gameState.stored
 
     const backButton =  new Button({originX:50, originY: 50, width:100, height: 100,
-        onclick: ()=>Scene.loadScene(gameState,Scene.PLANET_DATA[gameState.stored.planet].scene), label:"↑"})
+        onclick: ()=>Scene.loadScene(gameState,gss.planet), label:"↑"})
 
     // Confirmation popup
     var popUp = false
@@ -73,8 +73,8 @@ export function planetMap (gameState){
 
     function travelTo(planet){
         // Do not travel if already at planet
-        if (gameState.stored.planet == planet){
-            Scene.loadScene(gameState, Scene.PLANET_DATA[planet].scene)
+        if (gss.planet == planet){
+            Scene.loadScene(gameState, gss.planet)
         }
         gss.nextPlanet = planet
         popUp = true
@@ -93,7 +93,7 @@ export function planetMap (gameState){
     }
     
     const planetButtons = {}
-    for (let planet in Scene.PLANET_DATA){
+    for (let planet in planetPositions){
         planetButtons[planet] = new Button( {
             originX: planetPositions[planet][0], originY: planetPositions[planet][1],
             width: planet.length*15+30, height:50,

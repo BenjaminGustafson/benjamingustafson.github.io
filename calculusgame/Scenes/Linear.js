@@ -33,7 +33,6 @@ const paths =
     {start: 'linear.puzzle.6', end: 'linear.puzzle.7', steps: [[1,-7],[1,-6],[0,-6]] },
     {start: 'linear.puzzle.7', end: 'linear.puzzle.8', steps: [] },
     {start: 'linear.puzzle.8', end: 'linear.lab', steps: [[0,0],[-1,0],[-1,1]]},
-
 ]
 
 
@@ -166,10 +165,10 @@ export function loadScene(gameState, sceneName){
             break
         
         case "trial":
-            if (sceneName[2] == 'rule') {
-                Experiment.ruleGuess(gameState)
+            if (sceneNameSplit[2] == 'rule') {
+                Experiment.ruleGuess(gameState, {})
             } else {
-                Experiment.experimentTrial(gameState, experimentData[sceneName[2]])
+                Experiment.experimentTrial(gameState, experimentData[sceneNameSplit[2]])
             } 
             break
     }

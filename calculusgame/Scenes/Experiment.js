@@ -16,9 +16,8 @@ export function experimentTrial(gameState, {
     const gss = gameState.stored
 
     // Back button
-    const exitTo = experimentMenu
     const backButton = new Button({originX:50, originY:50, width:50, height:50,
-        onclick:(() => loadScene(gameState,exitTo)), label:"↑"})
+        onclick:(() => loadScene(gameState,gss.planet + ".lab")), label:"↑"})
 
     // Grid
     const gridLeft = new Grid({canvasX:100, canvasY:400, canvasWidth:400, canvasHeight:400, 
@@ -48,14 +47,14 @@ export function experimentTrial(gameState, {
     // Experiment
     const bgImage = {
         update: function(ctx){
-            const image = document.getElementById("quad_img")
+            //const image = document.getElementById("quad_img")
             Color.setColor(ctx,Color.darkBlack)
             const x = 1000
             const y = 200
             const w = 600
             const h = 700
             Shapes.Rectangle({ctx:ctx, originX:x, originY:y, width:w, height:h, inset:true})
-            ctx.drawImage(image, 0,0, 1600*600/900,900, x+10, y+10, w-20, h-20)
+            //ctx.drawImage(image, 0,0, 1600*600/900,900, x+10, y+10, w-20, h-20)
         }
     }
 
@@ -396,7 +395,7 @@ export function experimentTrial(gameState, {
  * @param {*} gameState 
  * @param {*} exitTo 
  */
-export function experimentMenu(gameState, experimentData){
+export function experimentMenu(gameState, {experimentData}){
     const gss = gameState.stored
 
     const backButton = new Button({originX:50, originY:50, width:50, height:50,
@@ -408,7 +407,7 @@ export function experimentMenu(gameState, experimentData){
     for (let exp in experimentData){
         const expName = gss.planet + ".trial." + exp
         const button = new Button({originX:200,originY:150+(i++)*60,width:100, height:50,
-            onclick:(() => loadScene(gameState,expName)), label:i+1})
+            onclick:(() => loadScene(gameState,expName)), label:exp})
         button.lineWidth = 5
 
         if (gameState.stored.completedScenes[expName]) {
@@ -417,8 +416,8 @@ export function experimentMenu(gameState, experimentData){
         trialButtons.push(button)
     }
     const ruleButton = new Button({originX:200,originY:780,width:100,height:50,
-        onclick:(() => loadScene(gameState, planet+".trials.rule")),label:"Rule"})
-    if (gss.completedScenes[gss.planet+".trials.rule"] == 'complete') {
+        onclick:(() => loadScene(gameState, gss.planet+".trial.rule")),label:"Rule"})
+    if (gss.completedScenes[gss.planet+".trial.rule"] == 'complete') {
         ruleButton.bgColor = Color.blue
     }
     const table = {
