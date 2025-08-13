@@ -15,6 +15,7 @@ export function planetScene(gameState, {
 }){
     const gss = gameState.stored
 
+
     // Player
     if (!playerNodes[gss.playerLocation]){
         gss.playerLocation = 'planetMap'
@@ -60,7 +61,7 @@ export function planetScene(gameState, {
     // Dialogue
     const dialogueButton = new Button({originX:1200, originY:300, width:50, height:50, fontSize: 20,
         onclick:(() => {
-            Scene.loadScene(gameState,'linear.dialogue.1')
+            player.moveTo('linear.dialogue.1')
         }),
         label: "!",
     })
@@ -71,7 +72,7 @@ export function planetScene(gameState, {
         originX:shipX,
         originY:shipY,
         width:100, height:60,
-        onclick:(() => { Scene.loadScene(gameState,"planetMap") }),
+        onclick:(() => { player.moveTo('planetMap') }),
         label:"Ship",
     })
 

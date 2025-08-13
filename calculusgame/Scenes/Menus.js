@@ -81,15 +81,15 @@ export function planetMap (gameState){
     }
     // Planet Buttons
     const planetPositions = {
-        'Linear':[100,400],
-        'Quadratic':[300,500],
-        'Cubic':[400,200],
-        'Exponential':[600,300],
-        'Sine':[600,600],
-        'Power':[800,400],
-        'Sum':[1000,400],
-        'Product':[1200,400],
-        'Chain':[1400,400]
+        'linear':[100,400],
+        'quadratic':[300,500],
+        'cubic':[400,200],
+        'exponential':[600,300],
+        'sine':[600,600],
+        'power':[800,400],
+        'sum':[1000,400],
+        'product':[1200,400],
+        'chain':[1400,400]
     }
     
     const planetButtons = {}
@@ -98,7 +98,7 @@ export function planetMap (gameState){
             originX: planetPositions[planet][0], originY: planetPositions[planet][1],
             width: planet.length*15+30, height:50,
             onclick: () => {travelTo(planet)},
-            label:planet
+            label: planet.charAt(0).toUpperCase() + planet.slice(1),
         })
 
         switch (gss.planetProgress[planet]){

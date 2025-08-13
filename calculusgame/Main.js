@@ -74,7 +74,7 @@ function setup() {
     function initStoredState(){
         gameState.stored = {
             sceneName: "startMenu", // the unique name of the current scene
-            planet: 'Linear', // the current planet landed on, or the planet we just left
+            planet: 'linear', // the current planet landed on, or the planet we just left
             landed:true, // true if the ship is on a planet, false if it is in space
             
             // Planet puzzles and experiments
@@ -86,6 +86,7 @@ function setup() {
             nextPlanet: null,
             navDistance: 0, // the distance the trip has travelled during navigation
             currentNavFunction: null, // the puzzle that the navigation is currently on
+            currentNavPuzzleType: null,
             strikes: 0, // the number of strikes (incorrect answers) at the navigation puzzle
             navPuzzleMastery: {}, // list of mastery scores, indexed by puzzle type. {'linear1': 0.9}. null if puzzle not unlocked yet
             navPuzzleAttempts: {}, // number of attempted puzzles, indexed by puzzle type
@@ -95,7 +96,7 @@ function setup() {
         for (const planet in PLANETS){
             gameState.stored.planetProgress[planet] = 'locked'
         }
-        gameState.stored.planetProgress['Linear'] = 'in progress'        
+        gameState.stored.planetProgress['linear'] = 'in progress'        
     }
 
     // Try to load stored data

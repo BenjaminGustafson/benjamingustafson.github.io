@@ -15,6 +15,7 @@ const nodes = {
     'linear.puzzle.2': [11,4, 0,-1],
     'linear.puzzle.3': [14,2, 1,0],
     'linear.puzzle.4': [12,0, 0,-1],
+    'linear.dialogue.1': [9,-2, -1,0],
     'linear.puzzle.5': [3,-5, -1,0],
     'linear.puzzle.6': [2,-7, 0,-1],
     'linear.puzzle.7': [0,-5, -1,0],
@@ -28,7 +29,8 @@ const paths =
     {start: 'linear.puzzle.1', end: 'linear.puzzle.2', steps: [[10,7],[10,4]] },
     {start: 'linear.puzzle.2', end: 'linear.puzzle.3', steps: [[14,4]] },
     {start: 'linear.puzzle.3', end: 'linear.puzzle.4', steps: [[14,0]] },
-    {start: 'linear.puzzle.4', end:  'linear.puzzle.5', steps: [[9,0],[9,-4], [3,-4]] },
+    {start: 'linear.puzzle.4', end:  'linear.dialogue.1', steps: [[9,0]] },
+    {start: 'linear.dialogue.1', end:  'linear.puzzle.5', steps: [[9,-4], [3,-4]] },
     {start: 'linear.puzzle.5', end: 'linear.puzzle.6', steps: [[3,-7]] },
     {start: 'linear.puzzle.6', end: 'linear.puzzle.7', steps: [[1,-7],[1,-6],[0,-6]] },
     {start: 'linear.puzzle.7', end: 'linear.puzzle.8', steps: [] },
@@ -105,7 +107,7 @@ const experimentData =  {
 }
 
 export function loadScene(gameState, sceneName){
-    gameState.stored.planet = 'Linear'
+    gameState.stored.planet = 'linear'
 
     const sceneNameSplit = sceneName.toLowerCase().split('.')
 
@@ -166,7 +168,7 @@ export function loadScene(gameState, sceneName){
         
         case "trial":
             if (sceneNameSplit[2] == 'rule') {
-                Experiment.ruleGuess(gameState, {})
+                Experiment.ruleGuess(gameState, {planetUnlock:'quadratic'})
             } else {
                 Experiment.experimentTrial(gameState, experimentData[sceneNameSplit[2]])
             } 

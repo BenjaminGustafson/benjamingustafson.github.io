@@ -306,7 +306,7 @@ export function navScene(gameState) {
      * - Strikeout: The result of the trace is a failure 3 times. Go back to Input with a new function.
      * - Success: The result of the trace is a success. Wait for continue button to go to travelling.
      */
-    const mainObjs  = [gridLeft, gridRight, shipViewer, tySlider, sySlider, startButton, axisLabels, strikes, progressBar]
+    const mainObjs  = [gridLeft, gridRight, shipViewer, tySlider, sySlider, startButton, axisLabels, strikes, progressBar, backButton]
     
     var state = "Travel"
 
@@ -404,9 +404,12 @@ export function navScene(gameState) {
                 break
             case "Trace":{
                 if (tracer.state == tracer.STOPPED_AT_END) {
+                    // Correct answer
                     if (tracer.solved) {
                         changeToState('Solved')
+                    // Incorrect answer
                     } else {
+
                         gameState.stored.strikes += 1
                         if (gameState.stored.strikes == 3) {
                             changeToState('Strikeout')
@@ -431,7 +434,9 @@ export function navScene(gameState) {
 }
 
 
-
+/**
+ * Create a random mathblock
+ */
 function randSimpleBlock (composable = false) {
     const i = Math.floor(Math.random()*(composable ? 3 : 4)) 
     const block = new MathBlock({})
@@ -480,17 +485,17 @@ function newRNGPuzzle (gameState){
     gss.strikes = 0
     var puzzleMastery = gss.navPuzzleMastery
 
-    const DEBUG = true
+    const DEBUG = false
     if (DEBUG){
         puzzleMastery = {
-            'Linear':0,
-            'Quadratic':0,
-            'Cubic':0,
-            'Exponential':0,
-            'Sine':0,
-            'Sum':0,
-            'Product':0,
-            'Chain':0,
+            'linear':0,
+            'quadratic':0,
+            'cubic':0,
+            'exponential':0,
+            'sine':0,
+            'sum':0,
+            'product':0,
+            'chain':0,
         }
     }
     // Pick puzzle type so that probability of each type is proportional to (1-mastery)
@@ -498,38 +503,39 @@ function newRNGPuzzle (gameState){
     for (const key in puzzleMastery){
         sum += 1 - puzzleMastery[key]
     }
-    const randPuzzleType = Math.random()*sum
+    const randNum = Math.random()*sum
     var puzzleType = ''
     var sum2 = 0
     for (const key in puzzleMastery){
         sum2 += 1 - puzzleMastery[key]
-        if (randPuzzleType < sum2){
+        if (randNum < sum2){
             puzzleType = key
             break
         }
     }
-    console.log('Puzzle chosen', sum, randPuzzleType, puzzleType, puzzleMastery[puzzleType])
- 
+    console.log('Puzzle chosen', sum, randNum, puzzleType, puzzleMastery)
+    gss.currentNavPuzzleType = puzzleType
+
     var mathBlockFun = null
-    switch (puzzleType){
-        case "Chain":{ 
+    switch (puzzleType.toLowerCase()){
+        case "chain":{ 
             mathBlockFun = randSimpleBlock(true)
             mathBlockFun.setChild(0, randSimpleBlock())
         }
             break
-        case "Product":{ 
+        case "product":{ 
             mathBlockFun = new MathBlock({type:MathBlock.BIN_OP , token:'*'})
             mathBlockFun.setChild(0, randSimpleBlock())
             mathBlockFun.setChild(1, randSimpleBlock())
         }
             break
-        case "Sum":{ 
+        case "sum":{ 
             mathBlockFun = new MathBlock({type:MathBlock.BIN_OP , token:'+'})
             mathBlockFun.setChild(0, randSimpleBlock())
             mathBlockFun.setChild(1, randSimpleBlock())
         }
             break
-        case "Exponential":{
+        case "exponential":{
             // m e^x + b -> m e^x
             const m = Math.floor((Math.random()*10-5)*10)/10
             const b = Math.floor((Math.random()*10-5)*10)/10
@@ -539,7 +545,7 @@ function newRNGPuzzle (gameState){
             mathBlockFun.children[0] = new MathBlock({type:MathBlock.VARIABLE,token: 'x'})
             break
         }
-        case "Sine":{
+        case "sine":{
             // m sine(x) + b -> m cos (x)
             const m = Math.floor((Math.random()*10-5)*10)/10
             const b = Math.floor((Math.random()*10-5)*10)/10
@@ -549,7 +555,7 @@ function newRNGPuzzle (gameState){
             mathBlockFun.children[0] = new MathBlock({type:MathBlock.VARIABLE,token: 'x'})
             break
         }
-        case "Cubic":{
+        case "cubic":{
             // m x^3 + b -> 3 m x
             const m = Math.floor((Math.random()*3.2-1.6)*10)/10
             const b = Math.floor((Math.random()*10-5)*10)/10
@@ -559,7 +565,7 @@ function newRNGPuzzle (gameState){
             mathBlockFun.children[0] = new MathBlock({type:MathBlock.VARIABLE,token: 'x'})
             break
         }
-        case "Quadratic":{
+        case "quadratic":{
             // m x^2 + b -> 2 m x
             const m = Math.floor((Math.random()*5-2.5)*10)/10
             const b = Math.floor((Math.random()*10-5)*10)/10
@@ -570,7 +576,7 @@ function newRNGPuzzle (gameState){
             break
         }
         default:
-        case "Linear":{
+        case "linear":{
             // Random slope and intercept in [-5,5]
             const m = Math.floor((Math.random()*10-5)*10)/10
             const b = Math.floor((Math.random()*10-5)*10)/10
@@ -606,3 +612,19 @@ function newRNGPuzzle (gameState){
     return mathBlockFun
 }
 
+/**
+ * 
+ * puzzleMastery is the exponential moving average of the .
+ * It is a score from 0 to 1.
+ * 
+ * alpha is a parameter of how quickly the mastery changes 
+ * 
+ * @param {*} gameState
+ * @param {number} puzzleType  
+ * @param {number} wasCorrect 0 if incorrect, 1 if correct
+ */
+function updateNavigationProgress(gameState, puzzleType, wasCorrect){
+    gameState.stored.numPuzzles[puzzleType] ++
+    const alpha = 0.3
+    gameState.stored.puzzleMastery[puzzleType] = alpha * wasCorrect + (1-alpha) * gameState.stored.puzzleMastery[puzzleType]
+}

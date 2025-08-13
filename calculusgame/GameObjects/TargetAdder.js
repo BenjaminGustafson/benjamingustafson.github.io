@@ -17,6 +17,8 @@ export class TargetAdder{
         this.targetGY = 0
         this.targetGX = 0
         this.targetSize = 15
+
+        this.clickedOn = false
     }   
 
 
@@ -54,13 +56,21 @@ export class TargetAdder{
         this.overGrid = x >= g.originX - p && x <= g.originX + g.canvasWidth +p && y >= g.originY-p && y <= g.originY + g.canvasHeight + p
         if (this.overGrid){
             const gridCoord = g.canvasToGrid(x,y)
-            this.targetGX = Math.round(gridCoord.x/this.precision)*this.precision
-            this.targetGY = Math.round(gridCoord.y/this.precision)*this.precision
+            const newTargetGX = Math.round(gridCoord.x/this.precision)*this.precision
+            const newTargetGY = Math.round(gridCoord.y/this.precision)*this.precision
+            if ((mouse.held && (newTargetGX != this.targetGX || newTargetGY != this.targetGY))){
+                audioManager.play('click_001', this.targetGY/this.grid.gridHeight*6-6, 0.2)
+            }
+            this.targetGX = newTargetGX
+            this.targetGY = newTargetGY
             this.targetX = g.gridToCanvasX(this.targetGX)
             this.targetY = g.gridToCanvasY(this.targetGY)
             mouse.cursor = "pointer"
 
-            if (mouse.up){
+            if (mouse.down){
+                this.clickedOn = true
+            }else if (this.clickedOn && mouse.up){
+                this.clickedOn = false
                 const newTargets = this.targets.filter(t => !(t.x == this.targetX && t.y == this.targetY))
                 if (newTargets.length == this.targets.length){
                     audioManager.play('drop_003', this.targetGY/this.grid.gridHeight*12)

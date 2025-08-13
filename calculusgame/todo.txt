@@ -1,11 +1,14 @@
-Issues:
 
-- Implement nav mastery
+- Nav bugfixes - distance resets
+- Quad puzzles, quad lab, ... this is beyond the demo. Just have arriving at quad planet be the end of the demo
+- Dev tools to skip levels
 
-- Implement chain rule planet (or quad) using same map as linear
-
-
-- Navigation should have a 
+- Post puzzle solve, next arrow that walks you to the next puzzle
+- Scene transitions from map to puzzle. Same for ship and lab
+- Navigation should have an intermediate scene, to show the current engine speed
+    Then you don't need the progress bar in the nav scene
+- Element highlights
+- Experiment scene fix
 
 --------------------
 Essential:
@@ -18,12 +21,16 @@ Essential:
 Post demo?:
 - Map and puzzles for quad, power, exp, sin, sum, prod, chain 
 
+
+
 Optional
+- Item get
+- Journal update
+- Screen transitions - medium, easy to wipe to black and then wipe in scene, harder to wipe scene to scene. Zoom out from landing pad.
+- Improve planet map. has progress, has lines
 - Drawing puzzles - easy
 - Mathblock destructive - medium
 - Sandbox mode: set f(x) and f'(x) - easy
-- Improve planet map. has progress, has lines
-- Screen transitions - medium, easy to wipe to black and then wipe in scene, harder to wipe scene to scene. Zoom out from landing pad.
 - Map elements highlight when moused over, rather than having buttons. Could put stuff behind computer screen, either numbers or just plain color
     I like numbering the levels. Put a rectangular or oval light ray type highlight, largest would be in progress, no highlight for locked, and blue for complete? 
     would be best if it moves - to draw the eye 
@@ -32,12 +39,25 @@ Optional
 - Alien language for math symbols
 - Render maps for shadows - might have weird interactions with the path
 
+Experiment improvemnets:
+- Square graphs
+- Sliders show current value
+- 
 
 UI Improvements:
 - Exit after puzzles solved
 - Mathblocks shrink when max size is reached
 
+Maps:
+Conifer forest
+Mountain with stone
+Pink trees
+Desert
+Lake, boardwalk, lilypads
+Beach
+
 ----------------------------
+
 
 
 BUGS / Issues:

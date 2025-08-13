@@ -2,6 +2,7 @@ import * as GameObjects from './GameObjects/index.js'
 import {Shapes, Color} from './util/index.js'
 import * as Menus from './Scenes/Menus.js'
 import * as Linear from './Scenes/Linear.js'
+import * as Quadratic from './Scenes/Quadratic.js'
 import * as Planet from './Scenes/Planet.js'
 import * as Experiment from './Scenes/Experiment.js'
 import * as Navigation from './Scenes/Navigation.js'
@@ -9,7 +10,7 @@ import * as Navigation from './Scenes/Navigation.js'
 
 export const CANVAS_WIDTH = 1600
 export const CANVAS_HEIGHT = 900
-export const PLANETS = ['Linear', 'Quadratic']
+export const PLANETS = ['linear', 'quadratic']
 
 /**
  * 
@@ -48,26 +49,10 @@ export function loadScene(gameState, sceneName, message = {}) {
 
         // Quadratic Planet
         case "quadratic": {
-            
+            Quadratic.loadScene(gameState, sceneName)
             break
         }
     }
 }
 
 
-/**
- * 
- * puzzleMastery is the exponential moving average of the .
- * It is a score from 0 to 1.
- * 
- * alpha is a parameter of how quickly the mastery changes 
- * 
- * @param {*} gameState
- * @param {number} puzzleType  
- * @param {number} wasCorrect 0 if incorrect, 1 if correct
- */
-function updateNavigationProgress(gameState, puzzleType, wasCorrect){
-    gameState.stored.numPuzzles[puzzleType] ++
-    const alpha = 0.3
-    gameState.stored.puzzleMastery[puzzleType] = alpha * wasCorrect + (1-alpha) * gameState.stored.puzzleMastery[puzzleType]
-}

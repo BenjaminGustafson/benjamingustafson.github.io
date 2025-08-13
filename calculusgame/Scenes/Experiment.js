@@ -506,8 +506,13 @@ export function ruleGuess(gameState, {planetUnlock}){
             if (correct){
                 checkResult.content = 'Correct!'
                 gss.completedScenes[gss.sceneName] = 'complete'
-                if (gss.planetProgress['Quadratic'] != 'complete')
-                    gss.planetProgress['Quadratic'] = 'in progress'
+                if (gss.planetProgress[planetUnlock] != 'complete')
+                    gss.planetProgress[[planetUnlock]] = 'in progress'
+
+                // Unlock TODO: have a popup the first time this happens
+                if (gss.navPuzzleMastery[gss.planet] == null){
+                    gss.navPuzzleMastery[gss.planet] = 0
+                }
             }else{
                 checkResult.content = 'Incorrect'
             }
