@@ -5,8 +5,8 @@ import * as Scene from '../Scene.js'
 export function planetScene(gameState, {
     planetName,
     puzzleLocations,
-    shipX, shipY,
-    labX, labY,
+    shipX, shipY, shipDir='SE',
+    labX, labY, labDir='SE',
     tileMap,
     playerNodes,
     playerPaths,
@@ -95,7 +95,7 @@ export function planetScene(gameState, {
                     button.onclick = ()=>{transition = false; player.moveTo(node)}
                     break 
                 case 'lab':
-                    sprites.push(new ImageObject({originX:labX, originY:labY, id:'labSE'}))
+                    sprites.push(new ImageObject({originX:labX, originY:labY, id:'lab'+labDir}))
                     button.originX = labX+130,
                     button.originY = labY+200,
                     button.width = 250
@@ -106,7 +106,7 @@ export function planetScene(gameState, {
                     break
             }
         }else if (nodeNameSplit[0] == 'planetmap'){
-            sprites.push(new ImageObject({originX:shipX, originY:shipY, id:'shipSE'}))
+            sprites.push(new ImageObject({originX:shipX, originY:shipY, id:'ship'+shipDir}))
             button.originX = shipX+100,
             button.originY = shipY+200,
             button.width = 250

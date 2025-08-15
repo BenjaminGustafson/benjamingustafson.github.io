@@ -5,34 +5,38 @@ import { GameObject } from '../GameObjects/GameObject.js'
 import { unlockScenes, planetScene, dialogueScene } from './Planet.js'
 import * as Experiment from './Experiment.js'
 
-const tileMap = new TileMap({yTileOffset:-8})
+const tileMap = new TileMap({yTileOffset:-3,xTileOffset:-7, xImgOffset:0, yImgOffset:0})
 
 // [x,y,  dx,dy] where dx dy is the direction to face when stopped at node
 // SW 0,1 NW -1,0 NE 0,-1 SE 1,0
 const nodes = {
-    'planetMap': [8,9,  0,1],
-    'quadratic.puzzle.1': [8,7,  0,-1],
-    'quadratic.puzzle.2': [11,4, 0,-1],
-    'quadratic.puzzle.3': [14,2, 1,0],
-    'quadratic.puzzle.4': [12,0, 0,-1],
-    'quadratic.puzzle.5': [3,-5, -1,0],
-    'quadratic.puzzle.6': [2,-7, 0,-1],
-    'quadratic.puzzle.7': [0,-5, -1,0],
-    'quadratic.puzzle.8': [0,-2, -1,0],
-    'quadratic.lab': [-2,1, -1,0],
+    'planetMap': [14,8,  0,1],
+    'quadratic.puzzle.1': [13,8,  0,-1],
+    'quadratic.puzzle.2': [11,8, 0,-1],
+    'quadratic.puzzle.3': [7,1, -1,0],
+    'quadratic.puzzle.4': [7,-2, -1,0],
+    'quadratic.puzzle.5': [10,-3, 0,-1],
+    'quadratic.puzzle.6': [13,1, -1,0],
+    'quadratic.puzzle.7': [16,3, 0,-1],
+    'quadratic.puzzle.8': [18,4, 0,-1],
+    'quadratic.puzzle.9': [22,0, -1,0],
+    'quadratic.puzzle.10': [17,-4, -1,0],
+    'quadratic.lab': [14,-6, 0,-1],
 }
 
 const paths = 
 [
     {start: 'planetMap', end: 'quadratic.puzzle.1'},
-    {start: 'quadratic.puzzle.1', end: 'quadratic.puzzle.2', steps: [[10,7],[10,4]] },
-    {start: 'quadratic.puzzle.2', end: 'quadratic.puzzle.3', steps: [[14,4]] },
-    {start: 'quadratic.puzzle.3', end: 'quadratic.puzzle.4', steps: [[14,0]] },
-    {start: 'quadratic.puzzle.4', end:  'quadratic.puzzle.5', steps: [[9,0],[9,-4], [3,-4]] },
-    {start: 'quadratic.puzzle.5', end: 'quadratic.puzzle.6', steps: [[3,-7]] },
-    {start: 'quadratic.puzzle.6', end: 'quadratic.puzzle.7', steps: [[1,-7],[1,-6],[0,-6]] },
-    {start: 'quadratic.puzzle.7', end: 'quadratic.puzzle.8', steps: [] },
-    {start: 'quadratic.puzzle.8', end: 'quadratic.lab', steps: [[0,0],[-1,0],[-1,1]]},
+    {start: 'quadratic.puzzle.1', end: 'quadratic.puzzle.2', steps: [] },
+    {start: 'quadratic.puzzle.2', end: 'quadratic.puzzle.3', steps: [[10,8],[10,7],[9,7],[9,2],[7,2]] },
+    {start: 'quadratic.puzzle.3', end: 'quadratic.puzzle.4', steps: [] },
+    {start: 'quadratic.puzzle.4', end:  'quadratic.puzzle.5', steps: [[7,-3]] },
+    {start: 'quadratic.puzzle.5', end: 'quadratic.puzzle.6', steps: [[12,-3],[12,-1],[13,-1]] },
+    {start: 'quadratic.puzzle.6', end: 'quadratic.puzzle.7', steps: [[13,3],[14,3],[14,4],[16,4]] },
+    {start: 'quadratic.puzzle.7', end: 'quadratic.puzzle.8', steps: [[17,3],[17,4]] },
+    {start: 'quadratic.puzzle.8', end: 'quadratic.puzzle.9', steps: [[22,4]] },
+    {start: 'quadratic.puzzle.9', end: 'quadratic.puzzle.10', steps: [[22,-2],[21,-2],[21,-3],[17,-3]] },
+    {start: 'quadratic.puzzle.10', end: 'quadratic.lab', steps: [[17,-5],[16,-5],[16,-6]]},
 ]
 
 
@@ -105,7 +109,7 @@ const experimentData =  {
 }
 
 export function loadScene(gameState, sceneName, message = {}){
-    gameState.stored.planet = 'Quadratic'
+    gameState.stored.planet = 'quadratic'
 
     const sceneNameSplit = sceneName.toLowerCase().split('.')
 
@@ -177,8 +181,8 @@ export function loadScene(gameState, sceneName, message = {}){
 function quadraticPlanet(gameState,message){
     planetScene(gameState, {
         planetName:'quadratic',
-        shipX:200, shipY: 600,
-        labX: 180, labY:130,
+        shipX:20, shipY: 450,
+        labX: 1150, labY:-150, labDir:'SW',
         tileMap:tileMap,
         playerNodes:nodes,
         playerPaths:paths,
@@ -188,3 +192,6 @@ function quadraticPlanet(gameState,message){
     })
 }
 
+function placeHolderLevel(gameState){
+
+}

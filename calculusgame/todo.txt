@@ -2,21 +2,13 @@
 - Quad puzzles, quad lab, ... this is beyond the demo. Just have arriving at quad planet be the end of the demo
 - Dev tools to skip levels
 
-- Experiment better celebration
+
+- Improve rule scene, celebration on complete, tells you that quadratic is unlocked
+
 - Navigation should have an intermediate scene, to show the current engine speed
     Then you don't need the progress bar in the nav scene
 - Experiment scene better backgrounds
 
---------------------
-Essential:
-- Chain rule map
-- Chain rule puzzles
-- English dialogue
-- Improve rule scene, celebration on complete, tells you that quadratic is unlocked
-- Lab auto-measure for chain rule
-
-Post demo?:
-- Map and puzzles for quad, power, exp, sin, sum, prod, chain 
 
 
 
