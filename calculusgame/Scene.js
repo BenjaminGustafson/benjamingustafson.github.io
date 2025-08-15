@@ -12,6 +12,40 @@ export const CANVAS_WIDTH = 1600
 export const CANVAS_HEIGHT = 900
 export const PLANETS = ['linear', 'quadratic']
 
+export function loadSceneWithTransition(gameState, sceneName, transition, message = {}){
+    const transitionTime = 1000
+    const startTime = Date.now() 
+    gameState.objects.forEach(o => o.noInput = true)
+    
+    const mask = {
+        x: transition.x,
+        y: transition.y,
+        t:0,
+        update: function(ctx) {
+            ctx.save()
+            ctx.beginPath()
+            ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height)
+            var t = Math.max(0,Math.min(1,this.t)) 
+            //t = t * t * t * (t * (6 * t - 15) + 10)
+            t = 2 / ((t-1) * (t-1) * (t-1) * (t-1) + 1) - 1
+            ctx.arc(this.x, this.y, 1600*(1-t), 0, Math.PI * 2)
+            Color.setFill(ctx, Color.black)
+            ctx.fill('evenodd')
+            ctx.restore()
+        }
+    }
+
+    gameState.objects.push(mask)
+
+    gameState.update = () => {        
+        const elapsed = Date.now() - startTime
+        mask.t = elapsed/transitionTime
+        if (elapsed > transitionTime){
+            loadScene(gameState, sceneName, message)
+        }
+    }
+}
+
 /**
  * 
  * The main function for serving up scenes.
@@ -44,7 +78,7 @@ export function loadScene(gameState, sceneName, message = {}) {
         break
 
         // Linear Planet (see Linear.js)
-        case 'linear': Linear.loadScene(gameState, sceneName)
+        case 'linear': Linear.loadScene(gameState, sceneName, message)
             break
 
         // Quadratic Planet

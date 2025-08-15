@@ -1,7 +1,6 @@
 import {Color, Shapes} from '../util/index.js'
-import {Player, Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox, DialogueBox} from '../GameObjects/index.js'
+import {PuzzleComputer, Player, Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox, DialogueBox} from '../GameObjects/index.js'
 import * as Scene from '../Scene.js'
-
 
 export function planetScene(gameState, {
     planetName,
@@ -12,93 +11,135 @@ export function planetScene(gameState, {
     playerNodes,
     playerPaths,
     bgImg, fgImg,
+    message
 }){
     const gss = gameState.stored
-
+    var transition = true
 
     // Player
     if (!playerNodes[gss.playerLocation]){
         gss.playerLocation = 'planetMap'
     }
 
+    if (!gss.completedScenes[gss.planet + '.puzzle.1']){
+        gss.completedScenes[gss.planet + '.puzzle.1'] = 'in progress'
+    }
+    console.log(gss.completedScenes[gss.planet + 'puzzle.1'], gss.planet + 'puzzle.1')
+
     const player = new Player({nodes:playerNodes, paths:playerPaths, currentNode:gss.playerLocation, tileMap:tileMap})     
 
-    // Puzzles 
-    var buttons = []
-    const locations = [
-        [700,600],[1088,603],[1388,707],[1416,505],
-        [961,170],[1271,42],[753,28],[585,67]
-    ] 
-    // TODO make buttons invisible over computers 
-    for (let i = 0; i < locations.length; i++) {
-        const sceneName = planetName + ".puzzle." + (i+1)
+    const sprites = []
+    const buttons = []
+
+    for (let node in playerNodes){
+        const nodeNameSplit = node.toLowerCase().split('.')
+        const pos = playerNodes[node]
+        const canvasPos = tileMap.isometricToCanvas(pos[0]+pos[2], pos[1]+pos[3])  
+
         const button = new Button({
-            originX:locations[i][0], originY:locations[i][1],
-            width:50, height:50, fontSize: 20,
-            onclick:(() => {
-                gameState.stored.levelIndex = i;
-                player.moveTo(sceneName)
-            }),
-            label: 1 + "." + (i + 1),
-            bgColor: Color.black,
+            originX:0,
+            originY:0,
+            onclick : () => player.moveTo(node),
+            bgColor: `rgba(100,0,100,0.1)`,
+            color: `rgba(100,0,100,0.1)`
         })
-        switch (gameState.stored.completedScenes[sceneName]){
-            case 'complete':
-                button.bgColor = Color.blue
-                break
-            case 'in progress':
-                button.active = true
-                break
-            default:
-                if (i != 0)
-                    button.active = false
-                break
-        }
+        button.visible = false
         buttons.push(button)
+        
+        if (nodeNameSplit.length >= 2){
+            switch(nodeNameSplit[1]){
+                case 'puzzle':
+                    button.originX = canvasPos.x + 230
+                    button.originY = canvasPos.y + 250
+                    button.width = 50
+                    button.height = 70
+                    
+                    const computer = new PuzzleComputer({x:canvasPos.x, y:canvasPos.y, text:nodeNameSplit[2]})
+                    var id = 'computer'
+                    // NW -> SE
+                    if (pos[2] == -1 && pos[3] == 0){
+                        computer.dir = 'SE'
+                    }
+                    // NE -> SW
+                    else if (pos[2] == 0 && pos[3] == -1){
+                        computer.dir = 'SW'
+                    }else{
+                        console.warn('unsupported computer direction', pos[2], pos[3])
+                        continue
+                    }
+
+                    switch (gss.completedScenes[node]){
+                        case 'complete':
+                            computer.color = Color.adjustLightness(Color.blue, -50)
+                            break
+                        case 'in progress':
+                            computer.color = Color.adjustLightness(Color.magenta, -50)
+                            break
+                        default:
+                                button.active = false
+                            break
+                    }
+                    sprites.push(computer)
+                    break
+                case 'dialogue':
+                    var id = 'alienSE'
+                    // NE -> SW
+                    if (pos[2] == 0 && pos[3] == -1){
+                        id = 'alienSW'
+                    }
+                    sprites.push(new ImageObject({originX:canvasPos.x, originY:canvasPos.y, id:id}))
+                    button.originX = canvasPos.x + 230
+                    button.originY = canvasPos.y + 250
+                    button.width = 50
+                    button.height = 70
+                    button.onclick = ()=>{transition = false; player.moveTo(node)}
+                    break 
+                case 'lab':
+                    sprites.push(new ImageObject({originX:labX, originY:labY, id:'labSE'}))
+                    button.originX = labX+130,
+                    button.originY = labY+200,
+                    button.width = 250
+                    button.height = 150
+                    break
+                default:
+                    console.warn('unknown node', node)
+                    break
+            }
+        }else if (nodeNameSplit[0] == 'planetmap'){
+            sprites.push(new ImageObject({originX:shipX, originY:shipY, id:'shipSE'}))
+            button.originX = shipX+100,
+            button.originY = shipY+200,
+            button.width = 250
+            button.height = 150
+        }else {
+            console.warn('unknown node', node)
+        }
     }
-
-    
-    // Dialogue
-    const dialogueButton = new Button({originX:1200, originY:300, width:50, height:50, fontSize: 20,
-        onclick:(() => {
-            player.moveTo('linear.dialogue.1')
-        }),
-        label: "!",
-    })
-
-
-    // Ship
-    const shipButton = new Button({
-        originX:shipX,
-        originY:shipY,
-        width:100, height:60,
-        onclick:(() => { player.moveTo('planetMap') }),
-        label:"Ship",
-    })
-
-    // Lab
-    const experimentButton = new Button({
-        originX:180, originY:130,
-        width:100, height:60, 
-        onclick:(() => { player.moveTo(planetName+".lab") }),
-        label: "Lab"
-    })
 
     // Update and objects
     gameState.update = () => {
         if (player.state == 'arrived'){
             gss.playerLocation = player.currentNode
-            Scene.loadScene(gameState,player.currentNode)
+            if (transition){
+                Scene.loadSceneWithTransition(gameState,player.currentNode, {x:player.cx,y:player.cy})
+            }else {
+                Scene.loadScene(gameState,player.currentNode)
+            }
         }
     }
 
     gameState.objects = [
-        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, bgImg),
+        new ImageObject({originX:0, originY:0, id:bgImg}),
+        ...sprites,
         player,
-        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, fgImg),
-        experimentButton, shipButton, dialogueButton,
+        new ImageObject({originX:0, originY:0, id:fgImg}),
+        // experimentButton, shipButton, dialogueButton,
     ].concat(buttons)
     
+    if (message.goTo){
+        player.moveTo(message.goTo)
+    }
+
 }
 
 /**
@@ -136,3 +177,5 @@ export function unlockScenes (scenes, gss){
         if (gss.completedScenes[p] != 'complete') gss.completedScenes[p] = 'in progress'
     })
 }
+
+

@@ -1,14 +1,11 @@
-
 - Nav bugfixes - distance resets
 - Quad puzzles, quad lab, ... this is beyond the demo. Just have arriving at quad planet be the end of the demo
 - Dev tools to skip levels
 
-- Post puzzle solve, next arrow that walks you to the next puzzle
-- Scene transitions from map to puzzle. Same for ship and lab
+- Experiment better celebration
 - Navigation should have an intermediate scene, to show the current engine speed
     Then you don't need the progress bar in the nav scene
-- Element highlights
-- Experiment scene fix
+- Experiment scene better backgrounds
 
 --------------------
 Essential:

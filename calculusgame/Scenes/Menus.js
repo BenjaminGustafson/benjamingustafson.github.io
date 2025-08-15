@@ -13,22 +13,70 @@ import * as Scene from '../Scene.js'
  * @param nextScene - the scene name of the saved scene to continue from
  */
 export function startMenu(gameState, nextScene){
-    const startButton = new Button({originX:200, originY:300, width:200, height:50, lineWidth:5,
-        onclick:(() => Scene.loadScene(gameState,"linear")), label:"Start"})
+    
 
-    if (nextScene != null && nextScene != "startMenu"){
-        startButton.onclick = (() => Scene.loadScene(gameState,nextScene))
+    var popUp = false
+    const startButton = new Button({originX:200, originY:300, width:200, height:50, lineWidth:5,
+        onclick:(() => {
+            if (document.fullscreenElement){
+                Scene.loadScene(gameState,nextScene)
+            }else{
+                popUp = true
+            }
+        }),
+        label:"Start"
+    })
+
+    if (nextScene == null){
+        nextScene = 'linear'
+    }else{
         startButton.label = "Continue"
     }
+    
     const about_button = new Button({originX:200, originY:380, width:200, height:50, lineWidth: 5,
         onclick:(() => window.location.replace("about.html")), label:"About"})
-    gameState.objects = [
-        new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "menuImg"),
+    
+    
+    // Fullscreen request popup
+    
+    const confirmButton = new Button({originX:650, originY: 400, width:300, height: 50,
+        onclick: ()=>{
+            document.documentElement.requestFullscreen()
+            Scene.loadScene(gameState,nextScene)
+        },
+        label:"Go fullscreen"})
+    const cancelButton = new Button({originX:625, originY: 500, width:350, height: 50,
+        onclick: () => Scene.loadScene(gameState,nextScene),
+        label:"Continue in window"}) 
+    
+    const popUpBox = {
+        update: function(ctx, audio, mouse){
+            Color.setColor(ctx, Color.darkBlack)
+            Shapes.Rectangle({ctx:ctx, originX: 500, originY:200, width: 600, height:400,inset:true, shadow:8})
+            Color.setColor(ctx, Color.white)
+            ctx.font = "40px monospace"
+            ctx.textBaseline = 'alphabetic'
+            ctx.textAlign = 'center'
+            ctx.fillText(`Playing in fullscreen`,800,300)
+            ctx.fillText(`is recommended.`,800,350)
+        } 
+    }
+
+
+    const baseObjs = [
+        new ImageObject({originX:0, originY:0, width:Scene.CANVAS_WIDTH, height:Scene.CANVAS_HEIGHT, id:"menuImg"}),
         //new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetFg"),
         new TextBox({originX:200, originY:150, content: "Calculus I", font : "60px monospace", color : Color.white}),
         new TextBox({originX:200, originY:200, content: "A puzzle game", font : "30px monospace", color : Color.white}),
         startButton, about_button
     ]
+
+    gameState.update = () => {
+        gameState.objects = baseObjs
+        if (popUp){
+            gameState.objects = baseObjs.concat([popUpBox, confirmButton, cancelButton])
+        }
+    }
 }
 
 

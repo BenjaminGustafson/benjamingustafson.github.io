@@ -21,7 +21,7 @@ import { MathBlock } from './GameObjects/MathBlock.js'
  * 
  */
 
-// Build "dev" c key clears local storage, s key sets solved
+// Build "dev" has special keyboard commands
 // "play" release version
 const build = "dev"
 
@@ -119,6 +119,7 @@ function setup() {
 
                 if (build != 'dev') {
                     savedScene = gameState.stored.sceneName
+                    if (savedScene == 'startMenu') savedScene = null
                     gameState.stored.sceneName = 'startMenu' // always start at menu
                 }
             }
@@ -173,6 +174,7 @@ function setup() {
             switch (event.key) {
                 case 'c':
                     localStorage.clear()
+                    gameState.stored = null
                     break
                 case 's':
                     gameState.stored.completedScenes[gameState.stored.sceneName] = 'complete'

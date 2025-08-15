@@ -104,14 +104,14 @@ const experimentData =  {
     }
 }
 
-export function loadScene(gameState, sceneName){
+export function loadScene(gameState, sceneName, message = {}){
     gameState.stored.planet = 'Quadratic'
 
     const sceneNameSplit = sceneName.toLowerCase().split('.')
 
     // Main scene
     if (sceneNameSplit.length == 1) {
-        quadraticPlanet(gameState)
+        quadraticPlanet(gameState, message)
         return
     }
 
@@ -174,7 +174,7 @@ export function loadScene(gameState, sceneName){
     }
 }
 
-function quadraticPlanet(gameState){
+function quadraticPlanet(gameState,message){
     planetScene(gameState, {
         planetName:'quadratic',
         shipX:200, shipY: 600,
@@ -184,6 +184,7 @@ function quadraticPlanet(gameState){
         playerPaths:paths,
         bgImg: 'riverPlanetBg',
         fgImg: 'riverPlanetFg',
+        message
     })
 }
 

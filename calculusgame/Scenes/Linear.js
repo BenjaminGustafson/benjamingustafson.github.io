@@ -5,7 +5,7 @@ import { GameObject } from '../GameObjects/GameObject.js'
 import { unlockScenes, planetScene, dialogueScene } from './Planet.js'
 import * as Experiment from './Experiment.js'
 
-const tileMap = new TileMap({yTileOffset:-8})
+const tileMap = new TileMap({yTileOffset:-8, xImgOffset:-140, yImgOffset:192})
 
 // [x,y,  dx,dy] where dx dy is the direction to face when stopped at node
 // SW 0,1 NW -1,0 NE 0,-1 SE 1,0
@@ -13,13 +13,14 @@ const nodes = {
     'planetMap': [8,9,  0,1],
     'linear.puzzle.1': [8,7,  0,-1],
     'linear.puzzle.2': [11,4, 0,-1],
-    'linear.puzzle.3': [14,2, 1,0],
+    'linear.puzzle.3': [14,2, -1,0],
     'linear.puzzle.4': [12,0, 0,-1],
     'linear.dialogue.1': [9,-2, -1,0],
-    'linear.puzzle.5': [3,-5, -1,0],
-    'linear.puzzle.6': [2,-7, 0,-1],
-    'linear.puzzle.7': [0,-5, -1,0],
-    'linear.puzzle.8': [0,-2, -1,0],
+    'linear.puzzle.5': [3,-5, 0,-1],
+    'linear.puzzle.6': [1,-4, 0,-1],
+    'linear.puzzle.7': [0,-3, -1,0],
+    'linear.puzzle.8': [0,-1, -1,0],
+    'linear.dialogue.2': [-1,0, -1,0],
     'linear.lab': [-2,1, -1,0],
 }
 
@@ -31,10 +32,11 @@ const paths =
     {start: 'linear.puzzle.3', end: 'linear.puzzle.4', steps: [[14,0]] },
     {start: 'linear.puzzle.4', end:  'linear.dialogue.1', steps: [[9,0]] },
     {start: 'linear.dialogue.1', end:  'linear.puzzle.5', steps: [[9,-4], [3,-4]] },
-    {start: 'linear.puzzle.5', end: 'linear.puzzle.6', steps: [[3,-7]] },
-    {start: 'linear.puzzle.6', end: 'linear.puzzle.7', steps: [[1,-7],[1,-6],[0,-6]] },
+    {start: 'linear.puzzle.5', end: 'linear.puzzle.6', steps: [[2,-5], [2,-4]] },
+    {start: 'linear.puzzle.6', end: 'linear.puzzle.7', steps: [[1,-3],] },
     {start: 'linear.puzzle.7', end: 'linear.puzzle.8', steps: [] },
-    {start: 'linear.puzzle.8', end: 'linear.lab', steps: [[0,0],[-1,0],[-1,1]]},
+    {start: 'linear.puzzle.8', end: 'linear.dialogue.2', steps: [[0,0]]},
+    {start: 'linear.dialogue.2', end: 'linear.lab', steps: [[-1,1]]},
 ]
 
 
@@ -106,14 +108,14 @@ const experimentData =  {
     }
 }
 
-export function loadScene(gameState, sceneName){
+export function loadScene(gameState, sceneName, message = {}){
     gameState.stored.planet = 'linear'
 
     const sceneNameSplit = sceneName.toLowerCase().split('.')
 
     // Main scene
     if (sceneNameSplit.length == 1) {
-        linearPlanet(gameState)
+        linearPlanet(gameState, message)
         return
     }
 
@@ -176,16 +178,17 @@ export function loadScene(gameState, sceneName){
     }
 }
 
-function linearPlanet(gameState){
+function linearPlanet(gameState, message = {}){
     planetScene(gameState, {
         planetName:'linear',
-        shipX:200, shipY: 600,
-        labX: 180, labY:130,
+        shipX:50, shipY: 450,
+        labX: 70, labY:-150,
         tileMap:tileMap,
         playerNodes:nodes,
         playerPaths:paths,
         bgImg: 'linearPlanetBg',
         fgImg: 'linearPlanetFg',
+        message
     })
 }
 
@@ -208,13 +211,19 @@ function linearPuzzle1 (gameState, {nextScenes}){
     const tracer = new IntegralTracer({grid: gridLeft, sliders: [slider], targets:[target]})
     const backButton = new Button({originX:50, originY: 50, width:100, height: 100,
         onclick: ()=>Scene.loadScene(gameState,"linear"), label:"↑"})
+
+    const nextButton = new Button({originX:200, originY: 50, width:100, height: 100,
+        onclick: ()=>Scene.loadScene(gameState,"linear",{goTo:nextScenes[0]}), label:"→"})
+    nextButton.active = false
     
     unlockScenes(nextScenes, gss)
     // Objects and update
-    gameState.objects = [gridLeft, gridRight, slider, target, tracer, backButton]
+    gameState.objects = [gridLeft, gridRight, slider, target, tracer, backButton, nextButton]
     gameState.update = () => {
         if (tracer.solved){
             gameState.stored.completedScenes[gameState.stored.sceneName] = 'complete'
+            nextButton.active = true
+            nextButton.bgColor = Color.blue
         }
     }
     

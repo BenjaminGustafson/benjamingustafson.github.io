@@ -16,7 +16,7 @@ export class DialogueBox extends GameObject{
         this.stopped = true
         this.textIndex = -1
         this.time = 0
-        this.portraitImage = new ImageObject(0, 550, 300,300, portraitId)
+        this.portraitImage = new ImageObject({originX:0, originY:550, width:300,height:300, id:portraitId})
         this.letterIndex = 0
 
         this.start()

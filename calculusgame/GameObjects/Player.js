@@ -30,6 +30,9 @@ export class Player extends GameObject {
         this.stepCount = 0
         this.stepTime = 50
 
+        this.cx = 0
+        this.cy = 0
+
         this.adjacencyTable = this.createAdjacencyTable(nodes, paths)
     }
 
@@ -148,6 +151,8 @@ export class Player extends GameObject {
         const lerpX = this.state == 'moving' ? t*nx + (1-t)*x : x
         const lerpY = this.state == 'moving' ? t*ny + (1-t)*y : y 
         const jumpY = lerpY - 50 * (-t*t + t) 
+        this.cx = lerpX + 256
+        this.cy = jumpY + 256
         if (this.dx == 1){
             ctx.drawImage(this.imgSE, lerpX, jumpY)
         }else if (this.dx == -1){
