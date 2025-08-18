@@ -23,7 +23,7 @@ import { MathBlock } from './GameObjects/MathBlock.js'
 
 // Build "dev" for developement
 // "play" release version
-const build = "dev"
+const build = "play"
 
 var keysPressed = {}
 
