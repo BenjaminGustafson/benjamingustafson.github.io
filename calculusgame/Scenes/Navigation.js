@@ -3,8 +3,30 @@ import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, Ma
 import { loadScene, CANVAS_HEIGHT } from '../Scene.js'
 
 /**
+ * NAVIGATION
+ * 
+ * When the player travels to a new planet, they must pass a series of navigation levels.
+ * These levels are styled as navigating through asteroids.
+ * 
+ * The player gains mastery of a puzzle type by answering correctly and loses mastery
+ * on an incorrect answer.
+ * 
+ *  
+ * 
+ * After a planet has been reached, the player can teleport to it at any time.
+ * The player can also bring up practice puzzles from completed planets.
+ * 
+ * 
+ * 
+ */
+
+
+/**
  * 
  * The randomly generated navigation levels
+ * 
+ * 
+ * 
  * 
  */
 export function navScene(gameState) {
@@ -95,7 +117,7 @@ export function navScene(gameState) {
 
 
     const tracer = new IntegralTracer({grid: gridLeft, blockField: blockField,
-         targets:targets, originGridY: fun(gridLeft.gridXMin), pixelsPerSec:50, autoCalculate:false,
+         targets:targets, originGridY: fun(gridLeft.gridXMin), pixelsPerSec:100, autoCalculate:false,
         precision:0.0001})
 
     const shipIcon = document.getElementById("shipicon_img");
@@ -314,7 +336,7 @@ export function navScene(gameState) {
     const travelDistance = 100 // how far is travelled at a time
     var startDistance = 0 // Distance at start of travel animation
     const planetDistance = 500 // Distance from start to destination
-    const travelTime = 1 // Seconds of travel animation
+    const travelTime = 0.8 // Seconds of travel animation
     
     // DEBUG
     // progressBar.dist = 100
@@ -406,10 +428,11 @@ export function navScene(gameState) {
                 if (tracer.state == tracer.STOPPED_AT_END) {
                     // Correct answer
                     if (tracer.solved) {
+                        updateNavigationProgress(gameState, gss.currentNavPuzzleType, 1)
                         changeToState('Solved')
                     // Incorrect answer
                     } else {
-
+                        updateNavigationProgress(gameState, gss.currentNavPuzzleType, 0)
                         gameState.stored.strikes += 1
                         if (gameState.stored.strikes == 3) {
                             changeToState('Strikeout')
@@ -624,7 +647,11 @@ function newRNGPuzzle (gameState){
  * @param {number} wasCorrect 0 if incorrect, 1 if correct
  */
 function updateNavigationProgress(gameState, puzzleType, wasCorrect){
-    gameState.stored.numPuzzles[puzzleType] ++
+    if (gameState.stored.navPuzzleAttempts[puzzleType] == null)
+        gameState.stored.navPuzzleAttempts[puzzleType] = 0
+    gameState.stored.navPuzzleAttempts[puzzleType] ++
     const alpha = 0.3
-    gameState.stored.puzzleMastery[puzzleType] = alpha * wasCorrect + (1-alpha) * gameState.stored.puzzleMastery[puzzleType]
+    gameState.stored.navPuzzleMastery[puzzleType] = alpha * wasCorrect + (1-alpha) * gameState.stored.navPuzzleMastery[puzzleType]
 }
+
+

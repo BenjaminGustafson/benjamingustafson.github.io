@@ -4,6 +4,7 @@ import * as Scene from '../Scene.js'
 import { GameObject } from '../GameObjects/GameObject.js'
 import { unlockScenes, planetScene, dialogueScene } from './Planet.js'
 import * as Experiment from './Experiment.js'
+import * as Planet from './Planet.js'
 
 const tileMap = new TileMap({yTileOffset:-8, xImgOffset:-140, yImgOffset:192})
 
@@ -209,24 +210,15 @@ function linearPuzzle1 (gameState, {nextScenes}){
 
     const target = new Target({grid: gridLeft, gridX:1, gridY:1, size:20})
     const tracer = new IntegralTracer({grid: gridLeft, sliders: [slider], targets:[target]})
-    const backButton = new Button({originX:50, originY: 50, width:100, height: 100,
-        onclick: ()=>Scene.loadScene(gameState,"linear"), label:"↑"})
 
-    const nextButton = new Button({originX:200, originY: 50, width:100, height: 100,
-        onclick: ()=>Scene.loadScene(gameState,"linear",{goTo:nextScenes[0]}), label:"→"})
-    nextButton.active = false
+    const backButton = Planet.backButton(gameState)
+    const nextButton = Planet.nextButton(gameState, nextScenes)
     
-    unlockScenes(nextScenes, gss)
+    Planet.unlockScenes(nextScenes, gss)
+
     // Objects and update
     gameState.objects = [gridLeft, gridRight, slider, target, tracer, backButton, nextButton]
-    gameState.update = () => {
-        if (tracer.solved){
-            gameState.stored.completedScenes[gameState.stored.sceneName] = 'complete'
-            nextButton.active = true
-            nextButton.bgColor = Color.blue
-        }
-    }
-    
+    Planet.winCon(gameState, ()=>tracer.solved, nextButton)
 }
 
 // A 2x2 puzzle
@@ -246,15 +238,12 @@ function linearPuzzle2 (gameState, {nextScenes}){
         new Target({grid: gridLeft, gridX:1, gridY:2, size:20})
     ]
     const tracer =  new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets})
-    const backButton = new Button({originX:50, originY: 50, width:100, height: 100, 
-        onclick: ()=>Scene.loadScene(gameState,"linear"), label:"↑"})
+
+    const backButton = Planet.backButton(gameState)
+    const nextButton = Planet.nextButton(gameState, nextScenes)
         
-    gameState.objects = [gridLeft, gridRight, tracer, backButton].concat(sliders).concat(targets)
-    gameState.update = () => {
-        if (tracer.solved){
-            gameState.stored.completedScenes[gameState.stored.sceneName] = 'complete'
-        }
-    }
+    gameState.objects = [gridLeft, gridRight, tracer, backButton, nextButton].concat(sliders).concat(targets)
+    Planet.winCon(gameState, ()=>tracer.solved, nextButton)
     unlockScenes(nextScenes, gss)
 }
 
@@ -273,28 +262,29 @@ function simpleDiscLevel(gameState, {
     nextScenes
 }) {
     const gss = gameState.stored
-    const backButton = new Button({originX:50, originY: 50, width:100, height: 100, onclick: ()=>Scene.loadScene(gameState,exitTo), label:"↑"})
+    const backButton = Planet.backButton(gameState)
+    const nextButton = Planet.nextButton(gameState, nextScenes)
+
     const gridLeft = new Grid({canvasX:300, canvasY:250, canvasWidth:400, canvasHeight:400, 
         gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:false, arrows:true})
     const gridRight = new Grid({canvasX:900, canvasY:250, canvasWidth:400, canvasHeight:400, 
         gridXMin:-2, gridYMin:-2, gridXMax:2, gridYMax:2, labels:false, arrows:true})
+    
     const spacing = gridLeft.gridWidth/targetVals.length
     var sliders = []
     for (let i = gridRight.gridXMin; i < gridRight.gridXMax; i+=spacing) {
         sliders.push(new Slider({grid:gridRight, gridPos:i,increment:0.1,circleRadius:sliderSize}))
     }
+    
     var targets = []
     for (let i = 0; i < targetVals.length; i++) {
         targets.push(new Target({grid: gridLeft, gridX:gridLeft.gridXMin+(i+1)*spacing, gridY:targetVals[i], size:targetSize}))
     }
+    
     const tracer = new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets, gridY:tracerStart})
-    const objs = [gridLeft, gridRight, tracer, backButton].concat(targets).concat(sliders)
-    gameState.objects = objs
-    gameState.update = () => {
-        if (tracer.solved){
-            gameState.stored.completedScenes[gameState.stored.sceneName] = 'complete'
-        }
-    }
+    
+    gameState.objects = [gridLeft, gridRight, tracer, backButton, nextButton].concat(targets).concat(sliders)
+    Planet.winCon(gameState, ()=>tracer.solved, nextButton)
     unlockScenes(nextScenes, gss)
 }
 

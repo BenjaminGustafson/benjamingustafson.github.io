@@ -122,8 +122,15 @@ export function planetMap (gameState){
     function travelTo(planet){
         // Do not travel if already at planet
         if (gss.planet == planet){
-            Scene.loadScene(gameState, gss.planet)
+            Scene.loadScene(gameState, planet)
+            return
         }
+        // Teleport if planet has been visited 
+        if (gss.planetProgress[planet] == 'visited' || gss.planetProgress[planet] == 'complete'){
+            Scene.loadScene(gameState, planet)
+            return
+        }
+        gss.navDistance = 0
         gss.nextPlanet = planet
         popUp = true
     }
@@ -153,11 +160,14 @@ export function planetMap (gameState){
             case 'complete':
                 planetButtons[planet].color = Color.blue
                 break
-            case 'in progress':
+            case 'visited':
+            case 'unvisited':
                 break
-            default:
             case 'locked':
                 planetButtons[planet].active = false
+                break
+            default:
+                planetButtons[planet].hidden = true
                 break
         }
     }

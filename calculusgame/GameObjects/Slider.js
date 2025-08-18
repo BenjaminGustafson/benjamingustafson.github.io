@@ -32,7 +32,7 @@ export class Slider{
     }){
         Object.assign(this, {
             canvasLength, sliderLength, minValue, maxValue, startValue, increment, circleRadius,
-            vertical, showLines, showAxis, circleColor, lineWidth  
+            vertical, showLines, showAxis, circleColor, lineWidth, gridPos  
         })
 
         if (canvasX != null && canvasY != null){

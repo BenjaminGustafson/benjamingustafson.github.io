@@ -1,6 +1,7 @@
 export * from './Experiment.js'
-export *from './Navigation.js'
+export * from './Navigation.js'
 export * from './Linear.js'
 export * from './Menus.js'
 export * from './Planet.js'
 export * from './Quadratic.js'
+export * from './Exponential.js'

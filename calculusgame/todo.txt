@@ -1,41 +1,51 @@
-- Nav bugfixes - distance resets
-- Quad puzzles, quad lab, ... this is beyond the demo. Just have arriving at quad planet be the end of the demo
-- Dev tools to skip levels
 
+TODO in order of importance
+
+- Quad puzzles
+
+- Quad lab
 
 - Improve rule scene, celebration on complete, tells you that quadratic is unlocked
 
-- Navigation should have an intermediate scene, to show the current engine speed
-    Then you don't need the progress bar in the nav scene
+- Item get (for unlocking mathblocks and engines?)
+
+- Navigation has an intermediate scene, to show the current engine speed
+    Then you don't need the progress bar in the nav scene.
+    But you also need the engine item upgrade from the lab.
+
 - Experiment scene better backgrounds
 
+- Zoomable graphs
 
+- Slider icons
+- Planet icons
+- Journal. Could just list derivative rules.
 
-
-Optional
-- Item get
-- Journal update
-- Screen transitions - medium, easy to wipe to black and then wipe in scene, harder to wipe scene to scene. Zoom out from landing pad.
 - Improve planet map. has progress, has lines
 - Drawing puzzles - easy
-- Mathblock destructive - medium
+- Mathblock destructive - hard
 - Sandbox mode: set f(x) and f'(x) - easy
-- Map elements highlight when moused over, rather than having buttons. Could put stuff behind computer screen, either numbers or just plain color
-    I like numbering the levels. Put a rectangular or oval light ray type highlight, largest would be in progress, no highlight for locked, and blue for complete? 
-    would be best if it moves - to draw the eye 
 - UI element borders - easy
 - Curated nav puzzles - to avoid the wild ones
-- Alien language for math symbols
-- Render maps for shadows - might have weird interactions with the path
+- Map elements highlight when moused over
+- Square graphs even with not square scale
+- Sliders +/- 1 buttons
 
-Experiment improvemnets:
-- Square graphs
+---------------------------------
+Experiment Design:
 - Sliders show current value
-- 
+- Lets you play with parameters
+
+Navigation improvements:
+
 
 UI Improvements:
-- Exit after puzzles solved
 - Mathblocks shrink when max size is reached
+
+
+
+Linear:
+
 
 Maps:
 Conifer forest
@@ -58,8 +68,10 @@ BUGS / Issues:
      Make the targets tall enough to connect from previous to next...
      If it is just sine that has this issue, it should be solveable since -1 < sine < 1
 
-- Mouse inputs on last frame of scene carry over into new scene. Solution: freeze mouse input for a bit on scene change.
-    Can implement this with scene transitions
+- Timer slider jumps to next whole number by rounding rather than floor, which is good for mouse interaction, but bad for playing the slider
+    Solution: update the time slider only when the time value hits a new int
+
+
 
 Other UI elements list:
 
@@ -82,7 +94,3 @@ Quality of life improvements:
 Accessibility:
 - Keyboard controls
 - Mobile ?
-
-
-Aspect ratio:
-Black bars are fine for now, 

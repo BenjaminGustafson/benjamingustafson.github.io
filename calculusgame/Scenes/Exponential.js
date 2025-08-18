@@ -11,32 +11,32 @@ const tileMap = new TileMap({yTileOffset:-3,xTileOffset:-7, xImgOffset:0, yImgOf
 // SW 0,1 NW -1,0 NE 0,-1 SE 1,0
 const nodes = {
     'planetMap': [14,8,  0,1],
-    'quadratic.puzzle.1': [13,8,  0,-1],
-    'quadratic.puzzle.2': [11,8, 0,-1],
-    'quadratic.puzzle.3': [7,1, -1,0],
-    'quadratic.puzzle.4': [7,-2, -1,0],
-    'quadratic.puzzle.5': [10,-3, 0,-1],
-    'quadratic.puzzle.6': [13,1, -1,0],
-    'quadratic.puzzle.7': [16,3, 0,-1],
-    'quadratic.puzzle.8': [18,4, 0,-1],
-    'quadratic.puzzle.9': [22,0, -1,0],
-    'quadratic.puzzle.10': [17,-4, -1,0],
-    'quadratic.lab': [14,-6, 0,-1],
+    'exponential.puzzle.1': [13,8,  0,-1],
+    'exponential.puzzle.2': [11,8, 0,-1],
+    'exponential.puzzle.3': [7,1, -1,0],
+    'exponential.puzzle.4': [7,-2, -1,0],
+    'exponential.puzzle.5': [10,-3, 0,-1],
+    'exponential.puzzle.6': [13,1, -1,0],
+    'exponential.puzzle.7': [16,3, 0,-1],
+    'exponential.puzzle.8': [18,4, 0,-1],
+    'exponential.puzzle.9': [22,0, -1,0],
+    'exponential.puzzle.10': [17,-4, -1,0],
+    'exponential.lab': [14,-6, 0,-1],
 }
 
 const paths = 
 [
-    {start: 'planetMap', end: 'quadratic.puzzle.1'},
-    {start: 'quadratic.puzzle.1', end: 'quadratic.puzzle.2', steps: [] },
-    {start: 'quadratic.puzzle.2', end: 'quadratic.puzzle.3', steps: [[10,8],[10,7],[9,7],[9,2],[7,2]] },
-    {start: 'quadratic.puzzle.3', end: 'quadratic.puzzle.4', steps: [] },
-    {start: 'quadratic.puzzle.4', end:  'quadratic.puzzle.5', steps: [[7,-3]] },
-    {start: 'quadratic.puzzle.5', end: 'quadratic.puzzle.6', steps: [[12,-3],[12,-1],[13,-1]] },
-    {start: 'quadratic.puzzle.6', end: 'quadratic.puzzle.7', steps: [[13,3],[14,3],[14,4],[16,4]] },
-    {start: 'quadratic.puzzle.7', end: 'quadratic.puzzle.8', steps: [[17,3],[17,4]] },
-    {start: 'quadratic.puzzle.8', end: 'quadratic.puzzle.9', steps: [[22,4]] },
-    {start: 'quadratic.puzzle.9', end: 'quadratic.puzzle.10', steps: [[22,-2],[21,-2],[21,-3],[17,-3]] },
-    {start: 'quadratic.puzzle.10', end: 'quadratic.lab', steps: [[17,-5],[16,-5],[16,-6]]},
+    {start: 'planetMap', end: 'exponential.puzzle.1'},
+    {start: 'exponential.puzzle.1', end: 'exponential.puzzle.2', steps: [] },
+    {start: 'exponential.puzzle.2', end: 'exponential.puzzle.3', steps: [[10,8],[10,7],[9,7],[9,2],[7,2]] },
+    {start: 'exponential.puzzle.3', end: 'exponential.puzzle.4', steps: [] },
+    {start: 'exponential.puzzle.4', end:  'exponential.puzzle.5', steps: [[7,-3]] },
+    {start: 'exponential.puzzle.5', end: 'exponential.puzzle.6', steps: [[12,-3],[12,-1],[13,-1]] },
+    {start: 'exponential.puzzle.6', end: 'exponential.puzzle.7', steps: [[13,3],[14,3],[14,4],[16,4]] },
+    {start: 'exponential.puzzle.7', end: 'exponential.puzzle.8', steps: [[17,3],[17,4]] },
+    {start: 'exponential.puzzle.8', end: 'exponential.puzzle.9', steps: [[22,4]] },
+    {start: 'exponential.puzzle.9', end: 'exponential.puzzle.10', steps: [[22,-2],[21,-2],[21,-3],[17,-3]] },
+    {start: 'exponential.puzzle.10', end: 'exponential.lab', steps: [[17,-5],[16,-5],[16,-6]]},
 ]
 
 
@@ -109,13 +109,13 @@ const experimentData =  {
 }
 
 export function loadScene(gameState, sceneName, message = {}){
-    gameState.stored.planet = 'quadratic'
+    gameState.stored.planet = 'exponential'
 
     const sceneNameSplit = sceneName.toLowerCase().split('.')
 
     // Main scene
     if (sceneNameSplit.length == 1) {
-        quadraticPlanet(gameState, message)
+        exponentialPlanet(gameState, message)
         return
     }
 
@@ -124,40 +124,40 @@ export function loadScene(gameState, sceneName, message = {}){
         case "puzzle": 
             switch(sceneNameSplit[2]){
                 case '1':
-                    quadDiscLevel(gameState, {numSliders:4, nextScenes:["quadratic.puzzle.2"], ddx: x=>x, tracerStart:2})
+                    quadDiscLevel(gameState, {numSliders:4, nextScenes:["exponential.puzzle.2"], ddx: x=>x, tracerStart:2})
                     break
                 case '2':
-                    quadDiscLevel(gameState, {numSliders:8, nextScenes:["quadratic.puzzle.3"], ddx: x=>x, tracerStart:2})
+                    quadDiscLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.3"], ddx: x=>x, tracerStart:2})
                     break
                 case '3':
-                    quadDiscLevel(gameState, {numSliders:20, withMathBlock:true, nextScenes:["quadratic.puzzle.4"], ddx: x=>x, tracerStart:2})
+                    quadDiscLevel(gameState, {numSliders:20, withMathBlock:true, nextScenes:["exponential.puzzle.4"], ddx: x=>x, tracerStart:2})
                     break
                 case '4':
-                    quadDiscLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10, withMathBlock:true, nextScenes:["quadratic.puzzle.5"]})
+                    quadDiscLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10, withMathBlock:true, nextScenes:["exponential.puzzle.5"]})
                     break
                 case '5':
-                    quadDiscLevel(gameState, {numSliders:8, nextScenes:["quadratic.puzzle.6"], ddx: x=> -x, tracerStart:-2})
+                    quadDiscLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.6"], ddx: x=> -x, tracerStart:-2})
                     break
                 case '6':
                     quadDiscLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10,
-                        withMathBlock:true, nextScenes:["quadratic.puzzle.7"], ddx: x=> -x, tracerStart:-2})
+                        withMathBlock:true, nextScenes:["exponential.puzzle.7"], ddx: x=> -x, tracerStart:-2})
                     break
                 case '7':
                     quadDiscLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10,
-                        withMathBlock:true, nextScenes:["quadratic.puzzle.8"], ddx: x=> -0.5*x, tracerStart:0})
+                        withMathBlock:true, nextScenes:["exponential.puzzle.8"], ddx: x=> -0.5*x, tracerStart:0})
                     break
                 case '8':
                     quadDiscLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10,
-                        withMathBlock:true, nextScenes:["quadratic.lab"], func: x=>0.1*x*x})
+                        withMathBlock:true, nextScenes:["exponential.lab"], func: x=>0.1*x*x})
                     break
             }
         break
 
         case 'dialogue':
-            quadraticPlanet(gameState)
+            exponentialPlanet(gameState)
             switch(sceneNameSplit[2]){
                 case '1':
-                    dialogueScene(gameState, {exitTo:"quadratic", nextScenes:["quadratic.puzzle.5"], text: [    
+                    dialogueScene(gameState, {exitTo:"exponential", nextScenes:["exponential.puzzle.5"], text: [    
                         "⯘Ⳃⱙⰺⳡ ⰺⳝ⯨⯃⯎ ⱤⳆⰸ⯃ ⳙ⯹ⱡ ⯷ⳞⳤⱭⰶ.",
                         "ⳏⳐⰷ⯁Ⱨⰴ ⯢ⱋⳒⰳⳙ ⯚⯜⯍ ⳙⰿⱆ ⳨⯟ⳑ⳪⳰ ⰴⱢⳈⳡ ⱍ⳧Ⳑⰿ.",
                         "ⳟ⯔ ⳓ⯥ⱄⰳ ⳉⳂⳙ⯎ ⱤⳆⰸ⯃ Ɀⰳⱅⰸⳝ ⯢ⳔⳂⳚ ⱇⱏⰴⳂ ⰳⳤⱑ⯅ⰴ!"
@@ -180,17 +180,17 @@ export function loadScene(gameState, sceneName, message = {}){
     }
 }
 
-function quadraticPlanet(gameState,message){
+function exponentialPlanet(gameState,message){
     console.log('Quadratic function')
     Planet.planetScene(gameState, {
-        planetName:'quadratic',
+        planetName:'exponential',
         shipX:20, shipY: 450,
         labX: 1150, labY:-150, labDir:'SW',
         tileMap:tileMap,
         playerNodes:nodes,
         playerPaths:paths,
-        bgImg: 'riverPlanetBg',
-        fgImg: 'riverPlanetFg',
+        bgImg: 'placeholderBg',
+        fgImg: 'placeholderFg',
         message
     })
 }

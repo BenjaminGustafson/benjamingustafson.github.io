@@ -73,11 +73,11 @@ export class IntegralTracer {
         /**
          * Tracer has 3 states:
          */
-        this.STOPPED_AT_BEGGINING = 0
+        this.STOPPED_AT_BEGINNING = 0
         this.TRACING = 1
         this.STOPPED_AT_END = 2
         this.AT_END = 3
-        this.state = this.STOPPED_AT_BEGGINING
+        this.state = this.STOPPED_AT_BEGINNING
 
         /**
          * The most recent value traced. 
@@ -162,7 +162,7 @@ export class IntegralTracer {
      * Should be called internally whenever the input changes.
      */
     reset(){
-        this.state = this.STOPPED_AT_BEGGINING
+        this.state = this.STOPPED_AT_BEGINNING
         this.pixelIndex = 0
         this.tracerIndex = 0
         this.solved = false
@@ -175,7 +175,7 @@ export class IntegralTracer {
      * Start tracing.
      */
     start(){
-        if (this.state != this.STOPPED_AT_BEGGINING){
+        if (this.state != this.STOPPED_AT_BEGINNING){
             this.reset()
         }
         this.state = this.TRACING
@@ -209,11 +209,11 @@ export class IntegralTracer {
                 }
             }
             // If no sliders are grabbed, start tracing
-            if (this.state == this.STOPPED_AT_BEGGINING)
+            if (this.state == this.STOPPED_AT_BEGINNING)
                 this.start()
         }
 
-        if (this.state == this.STOPPED_AT_BEGGINING) return
+        if (this.state == this.STOPPED_AT_BEGINNING) return
 
 
         Color.setColor(ctx, this.solved ? this.solvedColor : this.unsolvedColor)

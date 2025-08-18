@@ -21,7 +21,7 @@ import { MathBlock } from './GameObjects/MathBlock.js'
  * 
  */
 
-// Build "dev" has special keyboard commands
+// Build "dev" for developement
 // "play" release version
 const build = "dev"
 
@@ -32,6 +32,9 @@ function setup() {
     console.log ('version 8-6-2025')
     // Game is drawn on this canvas
     var canvas = document.getElementById('myCanvas');
+
+
+
 
     // Load audio
     const audioManager = new AudioManager();
@@ -94,9 +97,9 @@ function setup() {
         }
 
         for (const planet in PLANETS){
-            gameState.stored.planetProgress[planet] = 'locked'
+            gameState.stored.planetProgress[PLANETS[planet]] = 'locked'
         }
-        gameState.stored.planetProgress['linear'] = 'in progress'        
+        gameState.stored.planetProgress['linear'] = 'visited'        
     }
 
     // Try to load stored data
@@ -172,34 +175,202 @@ function setup() {
         keysPressed[event.key] = true
         if (build == "dev") {
             switch (event.key) {
-                case 'c':
-                    localStorage.clear()
-                    gameState.stored = null
-                    break
-                case 's':
-                    gameState.stored.completedScenes[gameState.stored.sceneName] = 'complete'
-                    break
-                case '0':
-                    gameState.stored.navDistance = 0
-                    break
-                case 'ArrowRight':
-                    gameState.stored.navDistance += 100
-                    break
-                case 'ArrowLeft':
-                    gameState.stored.navDistance = Math.floor(gameState.stored.totalDistance) - 1
-                    break
-                case 'f':
-                    gameState.stored.currentNavFunction = null 
-                    break
                 case 'm':
                     console.log(Math.round(mouse.x) + ',' + Math.round(mouse.y))
-                    break
-                case 'q':
                     break
             }
         }
     });
 
+    // ----------------- Scene changer text field ---------------------
+    if (build == 'dev'){
+        // Container to toggle
+        const ui = document.createElement("div");
+        ui.style.position = "absolute";
+        ui.style.left = "0";
+        ui.style.top = "0";
+        document.body.appendChild(ui);
+
+        // Label + input for scene name
+        const label = document.createElement("label");
+        label.innerText = "sceneName:";
+        label.style.position = "absolute";
+        label.style.left = "10px";
+        label.style.top = "40px";
+        label.style.fontFamily = "sans-serif";
+        label.style.fontSize = "12px";
+        label.style.color = "white";
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.style.position = "absolute";
+        input.style.left = "90px";
+        input.style.top  = "35px";
+        input.style.width  = "160px";
+        input.style.height = "20px";
+
+        // Refresh button
+        const refresh = document.createElement("button");
+        refresh.innerText = "Refresh";
+        refresh.style.position = "absolute";
+        refresh.style.left = "10px";
+        refresh.style.top  = "10px";
+
+        // Buttons row
+        const clearBtn = document.createElement("button");
+        clearBtn.innerText = "Full reset";
+        clearBtn.style.position = "absolute";
+        clearBtn.style.left = "100px";
+        clearBtn.style.top  = "10px";
+        clearBtn.style.width  = "80px";
+
+        const completeAllBtn = document.createElement("button");
+        completeAllBtn.innerText = "Complete all";
+        completeAllBtn.style.position = "absolute";
+        completeAllBtn.style.left = "10px";
+        completeAllBtn.style.top  = "65px";
+        completeAllBtn.style.width  = "100px";
+
+        const plusBtn = document.createElement("button");
+        ui.appendChild(plusBtn);
+        plusBtn.innerText = "+100";
+        plusBtn.style.position = "absolute";
+        plusBtn.style.left = "120px";
+        plusBtn.style.top  = "65px";
+        plusBtn.style.width  = "40px";
+        plusBtn.addEventListener("click", () => {
+            gameState.stored.navDistance += 100
+        });
+
+        const minusBtn = document.createElement("button");
+        ui.appendChild(minusBtn);
+        minusBtn.innerText = "-100";
+        minusBtn.style.position = "absolute";
+        minusBtn.style.left = "170px";
+        minusBtn.style.top  = "65px";
+        minusBtn.style.width  = "40px";
+        minusBtn.addEventListener("click", () => {
+            gameState.stored.navDistance -= 100
+        });
+
+
+        // Completion input
+        const compLabel = document.createElement("label");
+        compLabel.innerText = "completion:";
+        compLabel.style.position = "absolute";
+        compLabel.style.left = "10px";
+        compLabel.style.top  = "95px";
+        compLabel.style.fontFamily = "sans-serif";
+        compLabel.style.fontSize = "12px";
+        compLabel.style.color = "white";
+
+        const compInput = document.createElement("input");
+        compInput.type = "text";
+        compInput.style.position = "absolute";
+        compInput.style.left = "90px";
+        compInput.style.top  = "90px";
+        compInput.style.width  = "160px";
+        compInput.style.height = "20px";
+
+        // Stored printout
+        const storedDisplay = document.createElement("div");
+        storedDisplay.style.position = "absolute";
+        storedDisplay.style.left = "10px";
+        storedDisplay.style.top = "120px";
+        storedDisplay.style.fontFamily = "monospace";
+        storedDisplay.style.fontSize = "12px";
+        storedDisplay.style.color = "white";
+        storedDisplay.style.whiteSpace = "pre";
+
+        function updateStoredDisplay() {
+            storedDisplay.textContent = JSON.stringify(gameState.stored, null, 2);
+        }
+
+        function syncInputsFromState() {
+            if (!gameState.stored) return;
+            input.value = gameState.stored.sceneName ?? "";
+            const scene = gameState.stored.sceneName;
+            const cs = (gameState.stored.completedScenes ?? (gameState.stored.completedScenes = {}));
+            compInput.value = cs?.[scene] ?? "";
+        }
+
+        refresh.addEventListener("click", () => {
+            syncInputsFromState();
+            updateStoredDisplay();
+        });
+
+        clearBtn.addEventListener("click", () => {
+            localStorage.clear();
+            gameState.stored = null;
+            location.reload();
+        });
+
+        
+
+        completeAllBtn.addEventListener("click", () => {
+            if (!gameState.stored) return;
+            if (!gameState.stored.completedScenes) gameState.stored.completedScenes = {};
+            for (const k of Object.keys(gameState.stored.completedScenes)) {
+                gameState.stored.completedScenes[k] = "complete";
+            }
+            for (const k of ['linear.lab.rule', 'linear.lab']) {
+                gameState.stored.completedScenes[k] = "complete";
+            }
+            updateStoredDisplay();
+        });
+
+        input.addEventListener("keydown", e => {
+            if (e.key === "Enter"){
+                const text = input.value;
+                loadScene(gameState, text);
+                syncInputsFromState();
+                updateStoredDisplay();
+            }
+        });
+
+        compInput.addEventListener("keydown", e => {
+            if (e.key === "Enter"){
+                if (!gameState.stored) return;
+                const scene = gameState.stored.sceneName;
+                if (!gameState.stored.completedScenes) gameState.stored.completedScenes = {};
+                gameState.stored.completedScenes[scene] = compInput.value;
+                updateStoredDisplay();
+            }
+        });
+
+        // Append to container
+        ui.appendChild(refresh);
+        ui.appendChild(label);
+        ui.appendChild(input);
+        ui.appendChild(clearBtn);
+        ui.appendChild(completeAllBtn);
+        ui.appendChild(compLabel);
+        ui.appendChild(compInput);
+        ui.appendChild(storedDisplay);
+
+        const fpsLabel = document.createElement("label");
+        fpsLabel.id = 'fpsLabel'
+        fpsLabel.style.position = "absolute";
+        fpsLabel.style.left = "200px";
+        fpsLabel.style.top = "10px";
+        fpsLabel.style.fontFamily = "sans-serif";
+        fpsLabel.style.fontSize = "12px";
+        fpsLabel.style.color = "white";
+        ui.appendChild(fpsLabel)
+
+        syncInputsFromState();
+        updateStoredDisplay();
+
+        ui.style.display = "none"
+
+        // Toggle UI with backtick
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "`" || e.code === "Backquote") {
+                ui.style.display = (ui.style.display === "none") ? "" : "none";
+            }
+        });
+
+    }
 
     // ------------------------------------- Main update loop --------------------------------------------------------
     let frameCount = 0
@@ -209,7 +380,10 @@ function setup() {
         // Save progress every 200 frames
         frameCount++
         if (frameCount >= 200) {
-            console.log(1000/ (Date.now() - prevTime) * 200, 'fps')
+            if (build == 'dev'){
+                const fpsLabel = document.getElementById('fpsLabel')
+                fpsLabel.innerText = (1000/ (Date.now() - prevTime) * 200).toFixed(1) + ' fps'
+            }
             prevTime = Date.now()
             localStorage.setItem('storedState', JSON.stringify(gameState.stored));
             frameCount = 0

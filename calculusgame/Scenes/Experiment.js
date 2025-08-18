@@ -356,7 +356,7 @@ export function experimentTrial(gameState, {
                     errorText.content = 'v(' + check.x + ') should be ' + solutionDdx(check.x).toFixed(2) + ' not ' + funTracer.fun(check.x).toFixed(2)
                 }
             }else if (step == 'solved'){ // SOLVED
-                loadScene(gameState,exitTo)
+                loadScene(gameState,gameState.planet + '.lab')
             }
         }),
          label:"Continue"})
@@ -506,8 +506,8 @@ export function ruleGuess(gameState, {planetUnlock}){
             if (correct){
                 checkResult.content = 'Correct!'
                 gss.completedScenes[gss.sceneName] = 'complete'
-                if (gss.planetProgress[planetUnlock] != 'complete')
-                    gss.planetProgress[[planetUnlock]] = 'in progress'
+                if (gss.planetProgress[planetUnlock] == null || gss.planetProgress[planetUnlock] == 'locked')
+                    gss.planetProgress[[planetUnlock]] = 'unvisited'
 
                 // Unlock TODO: have a popup the first time this happens
                 if (gss.navPuzzleMastery[gss.planet] == null){

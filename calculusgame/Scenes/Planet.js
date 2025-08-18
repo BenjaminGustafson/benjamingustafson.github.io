@@ -16,6 +16,10 @@ export function planetScene(gameState, {
     const gss = gameState.stored
     var transition = true
 
+    if (gss.planetProgress[gss.planet] == 'unvisited'){
+        gss.planetProgress[gss.planet] = 'visited'
+    }
+
     // Player
     if (!playerNodes[gss.playerLocation]){
         gss.playerLocation = 'planetMap'
@@ -93,6 +97,15 @@ export function planetScene(gameState, {
                     button.width = 50
                     button.height = 70
                     button.onclick = ()=>{transition = false; player.moveTo(node)}
+                    switch (gss.completedScenes[node]){
+                        case 'complete':
+                            break
+                        case 'in progress':
+                            break
+                        default:
+                                button.active = false
+                            break
+                    }
                     break 
                 case 'lab':
                     sprites.push(new ImageObject({originX:labX, originY:labY, id:'lab'+labDir}))
@@ -100,6 +113,15 @@ export function planetScene(gameState, {
                     button.originY = labY+200,
                     button.width = 250
                     button.height = 150
+                    switch (gss.completedScenes[node]){
+                        case 'complete':
+                            break
+                        case 'in progress':
+                            break
+                        default:
+                                button.active = false
+                            break
+                    }
                     break
                 default:
                     console.warn('unknown node', node)
@@ -120,10 +142,10 @@ export function planetScene(gameState, {
     gameState.update = () => {
         if (player.state == 'arrived'){
             gss.playerLocation = player.currentNode
-            if (transition){
-                Scene.loadSceneWithTransition(gameState,player.currentNode, {x:player.cx,y:player.cy})
-            }else {
+            if (gss.playerLocation.split('.')[1] == 'dialogue'){
                 Scene.loadScene(gameState,player.currentNode)
+            }else {
+                Scene.loadSceneWithTransition(gameState,player.currentNode, {x:player.cx,y:player.cy})
             }
         }
     }
@@ -178,4 +200,30 @@ export function unlockScenes (scenes, gss){
     })
 }
 
+export function backButton (gameState){
+    return new Button({originX:50, originY: 50, width:100, height: 100,
+        onclick: ()=>Scene.loadScene(gameState,gameState.stored.planet),
+        label:"↑"
+    })
+}
 
+export function nextButton (gameState, nextScenes){
+    const button = new Button({originX:200, originY: 50, width:100, height: 100,
+        onclick: ()=>Scene.loadScene(gameState, gameState.stored.planet, {goTo:nextScenes[0]}), label:"→"})
+    button.active = false
+    return button
+}
+
+export function winCon(gameState, condition, nextButton){
+    const oldUpdate = gameState.update
+    gameState.update = () => {
+        oldUpdate()
+        if (condition()){
+            gameState.stored.completedScenes[gameState.stored.sceneName] = 'complete'
+            if (nextButton != null){
+                nextButton.active = true
+                nextButton.bgColor = Color.blue
+            }
+        }
+    }
+}
