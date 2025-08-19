@@ -22,8 +22,18 @@ const nodes = {
     'linear.puzzle.7': [0,-3, -1,0],
     'linear.puzzle.8': [0,-1, -1,0],
     'linear.dialogue.2': [-1,0, -1,0],
+    'linear.puzzle.9': [0,-3, -1,0],
+    'linear.puzzle.10': [0,-1, -1,0],
+    'linear.dialogue.3': [-1,0, -1,0],
     'linear.lab': [-2,1, -1,0],
 }
+
+const alienDialogue = [
+    "⯘Ⳃⱙⰺⳡ ⰺⳝ⯨⯃⯎ ⱤⳆⰸ⯃ ⳙ⯹ⱡ ⯷ⳞⳤⱭⰶ.",
+    "ⳏⳐⰷ⯁Ⱨⰴ ⯢ⱋⳒⰳⳙ ⯚⯜⯍ ⳙⰿⱆ ⳨⯟ⳑ⳪⳰ ⰴⱢⳈⳡ ⱍ⳧Ⳑⰿ.",
+    "ⳟ⯔ ⳓ⯥ⱄⰳ ⳉⳂⳙ⯎ ⱤⳆⰸ⯃ Ɀⰳⱅⰸⳝ ⯢ⳔⳂⳚ ⱇⱏⰴⳂ ⰳⳤⱑ⯅ⰴ!"
+]
+
 
 const paths = 
 [
@@ -147,7 +157,7 @@ export function loadScene(gameState, sceneName, message = {}){
                     break
                 case '8':
                     simpleDiscLevel(gameState, {targetVals:[0.25, 0.5, 0.75, 1, 1.25, 1, 0.75, 0.5,
-                        0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1],  targetSize:15,  sliderSize:12, nextScenes:["linear.lab"]})
+                        0.25, 0, 0.5, 1, 0.5, 0, 0.5, 1],  targetSize:15,  sliderSize:12, nextScenes:["linear.dialogue.2"]})
                     break
             }
         break
@@ -157,9 +167,17 @@ export function loadScene(gameState, sceneName, message = {}){
             switch(sceneNameSplit[2]){
                 case '1':
                     dialogueScene(gameState, {exitTo:"linear", nextScenes:["linear.puzzle.5"], text: [    
-                        "⯘Ⳃⱙⰺⳡ ⰺⳝ⯨⯃⯎ ⱤⳆⰸ⯃ ⳙ⯹ⱡ ⯷ⳞⳤⱭⰶ.",
-                        "ⳏⳐⰷ⯁Ⱨⰴ ⯢ⱋⳒⰳⳙ ⯚⯜⯍ ⳙⰿⱆ ⳨⯟ⳑ⳪⳰ ⰴⱢⳈⳡ ⱍ⳧Ⳑⰿ.",
-                        "ⳟ⯔ ⳓ⯥ⱄⰳ ⳉⳂⳙ⯎ ⱤⳆⰸ⯃ Ɀⰳⱅⰸⳝ ⯢ⳔⳂⳚ ⱇⱏⰴⳂ ⰳⳤⱑ⯅ⰴ!"
+                        'I\'m trying to figure out how these computers work.', 
+                        'I think that value of the graph on the right becomes the slope of the graph on the left.',
+                    ],
+                    onComplete:(gameState)=>{
+                        Planet.itemUnlock(gameState, {itemImage:'shipSide', itemName: 'Number Block'})
+                    }})
+                break
+                case '2':
+                    dialogueScene(gameState, {exitTo:"linear", nextScenes:["linear.lab"], text: [  
+                        'You should go into the lab and run a few trials.',
+                        'When you think you\'ve found a pattern you can guess the rule.',
                     ]})
                 break
             }

@@ -14,23 +14,22 @@ export class IntegralTracer {
     /**
      * 
      * @param {object} config 
-     * @param {} sliderSpacing - The distance between the sliders in grid coordinates
+     * @param {} this.spacing - The distance between the sliders in grid coordinates
      */
     constructor({
         grid, originGridX, originGridY,
         sliders = [],
         blockField,
-        tracer,
         inputTracer,
         pixelsPerSec = 400, 
         precision = 0.001,
         targets = [],
         lineWidth = 5,
-        autoCalculate = true,
+        spacing,
     }){
         Object.assign(this, {
-            grid, originGridX, originGridY, sliders, blockField, tracer, 
-            pixelsPerSec, targets, lineWidth, precision, autoCalculate
+            grid, originGridX, originGridY, sliders, blockField,
+            pixelsPerSec, targets, lineWidth, precision, spacing
         })
         if (originGridX == null){
             this.originGridX = this.grid.gridXMin
@@ -44,6 +43,9 @@ export class IntegralTracer {
         if (this.sliders.length > 0){
             this.sliders = sliders
             this.type = 'sliders'
+            if (this.spacing == null){
+                this.spacing = this.grid.gridWidth / this.sliders.length
+            }
         }else if (blockField != null){
             this.type = 'mathBlock'
             this.blockField = blockField
@@ -114,9 +116,7 @@ export class IntegralTracer {
     inputGridY(gx){
         switch (this.type){
             case 'sliders':
-                // Assuming sliders start from the left of the grid and are equally spaced
-                const sliderSpacing = this.grid.gridWidth / this.sliders.length
-                const sliderIndex = Math.floor((gx - this.grid.gridXMin)/sliderSpacing)
+                const sliderIndex = Math.floor((gx - this.grid.gridXMin)/this.spacing)
                 if (sliderIndex < 0 || sliderIndex >= this.sliders.length) return 0
                 return this.sliders[sliderIndex].value
             case 'mathBlock':

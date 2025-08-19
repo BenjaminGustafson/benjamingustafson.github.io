@@ -17,7 +17,30 @@ export class DialogueBox extends GameObject{
         this.textIndex = -1
         this.time = 0
         this.portraitImage = new ImageObject({originX:0, originY:550, width:300,height:300, id:portraitId})
+        this.lineIndex = 0
         this.letterIndex = 0
+
+        this.lines = []
+
+        for (let i = 0; i < text.length; i++){
+            var textLines = []
+            const words = text[i].split(' ')
+            var charCount = 0
+            var lineNum = 0
+            var line = ''
+            for (let j = 0; j < words.length; j++){
+                charCount += words[j].length + 1
+                if (charCount > 50){
+                    textLines.push(line)
+                    lineNum ++
+                    line = ''
+                    charCount = 0
+                }
+                line += words[j] + ' '
+            }
+            textLines.push(line)
+            this.lines.push(textLines)
+        }
 
         this.start()
     }
@@ -44,26 +67,39 @@ export class DialogueBox extends GameObject{
         Shapes.Rectangle({ctx:ctx, originX: 50, originY: 600, width:1500, height:200, inset: true, shadow:8})
         
         Color.setColor(ctx,Color.white)
-        const string = this.text[this.textIndex]
-        if (!this.stopped){
-            const elapsedTime = Date.now() - this.time
-            this.letterIndex = Math.floor(elapsedTime / this.msPerLetter)
-            if (this.letterIndex >= string.length){
-                this.letterIndex = string.length
-                this.stopped = true
-            } 
-            if (string[this.letterIndex] != ' '){
-                audioManager.play('bong_001', 6 - Math.random()*12,0.5)
-            }
-        }else{
-            this.letterIndex = string.length
-        }
-        const substring = string.substring(0, this.letterIndex)
+        //const line = this.lines[this.textIndex][this.lineIndex]
+
+        // if (!this.stopped){
+        //     const elapsedTime = Date.now() - this.time
+        //     this.letterIndex = Math.floor(elapsedTime / this.msPerLetter)
+        //     if (this.letterIndex >= line.length){
+        //         this.letterIndex = this.time = Date.now()
+        //         this.lineIndex ++
+        //         if(this.lineIndex >= this.lines[this.textIndex].length-1){
+        //             this.stopped = true
+        //             this.lineIndex = this.lines[this.textIndex].length-1
+        //         } 
+        //     }
+        //     if (line[this.letterIndex] != ' '){
+        //         audioManager.play('bong_001', 6 - Math.random()*12,0.5)
+        //     }
+        // }else{
+        //     this.letterIndex = line.length
+        // }
+
+        // console.log(this.textIndex, this.lineIndex, this.letterIndex)
+
         ctx.font = '40px monospace'
         ctx.textAlign = 'left'
         ctx.textBaseline = 'top'
-        ctx.fillText(substring, 300, 650)
 
+        for (let i = 0; i < this.lines[this.textIndex].length; i++){
+            ctx.fillText(this.lines[this.textIndex][i], 300, 650 + i * 50)
+        }
+        this.stopped = true
+        //ctx.fillText(this.lines[this.textIndex][this.lineIndex].substring(0,this.letterIndex), 300, 650 + this.lineIndex * 50)
+
+        
         if (mouse.down && this.stopped){
             this.next()
         }else if (mouse.down && !this.stopped){

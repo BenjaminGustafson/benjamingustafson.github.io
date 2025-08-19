@@ -10,6 +10,7 @@ export class Target{
         grid,gridX,gridY,
         size=15,
     }){
+        this.grid = grid
         this.size = size
         if (canvasX != null && canvasY != null){
             this.setPosition(canvasX,canvasY)
@@ -35,6 +36,10 @@ export class Target{
         this.right = this.x+this.size/2
         this.top = this.y-this.size/2
         this.bottom = this.y+this.size/2
+    }
+
+    setGridYPosition(y){
+        this.setPosition(this.x, this.grid.gridToCanvasBoundedY(y).y)
     }
 
     update(ctx, audioManager, mouse){

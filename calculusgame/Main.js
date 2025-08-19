@@ -23,7 +23,7 @@ import { MathBlock } from './GameObjects/MathBlock.js'
 
 // Build "dev" for developement
 // "play" release version
-const build = "play"
+const build = "dev"
 
 var keysPressed = {}
 
@@ -94,6 +94,8 @@ function setup() {
             navPuzzleMastery: {}, // list of mastery scores, indexed by puzzle type. {'linear1': 0.9}. null if puzzle not unlocked yet
             navPuzzleAttempts: {}, // number of attempted puzzles, indexed by puzzle type
             mathBlocksUnlocked: [{type:MathBlock.CONSTANT}],// the MathBlocks currently available, excluding variables
+
+            itemsUnlocked: {},
         }
 
         for (const planet in PLANETS){
@@ -314,7 +316,12 @@ function setup() {
                 gameState.stored.completedScenes[k] = "complete";
             }
             for (const k of ['linear.lab.rule', 'linear.lab']) {
-                gameState.stored.completedScenes[k] = "complete";
+                gameState.stored.completedScenes[k] = "in progress";
+            }
+            for (let i = 1; i <= 10; i ++){
+                gameState.stored.completedScenes['linear.puzzle.' + i] = "in progress"
+                gameState.stored.completedScenes['linear.dialogue.' + i] = "in progress"
+                gameState.stored.completedScenes['linear.trial.' + i] = "in progress"
             }
             updateStoredDisplay();
         });

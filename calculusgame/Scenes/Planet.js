@@ -171,7 +171,7 @@ export function planetScene(gameState, {
  * @param {*} gameState 
  * @param {*} param1 
  */
-export function dialogueScene(gameState, {nextScenes = [], exitTo, portraitId = 'glorpPortrait', text = ""}){
+export function dialogueScene(gameState, {nextScenes = [], exitTo, portraitId = 'glorpPortrait', text = "", onComplete=  ()=>{}}){
     const gss = gameState.stored
     gameState.objects.forEach(obj => obj.noInput = true)
 
@@ -184,6 +184,7 @@ export function dialogueScene(gameState, {nextScenes = [], exitTo, portraitId = 
         onComplete: function(){
             gss.completedScenes[gameState.stored.sceneName] = 'complete'
             Scene.loadScene(gameState, exitTo)
+            onComplete(gameState)
         }
     })
     
@@ -192,6 +193,42 @@ export function dialogueScene(gameState, {nextScenes = [], exitTo, portraitId = 
         exitButton
     ])
     unlockScenes(nextScenes, gss)
+}
+
+export function itemUnlock(gameState, {itemImage, itemName, onComplete = () => {}}){
+    const gss = gameState.stored
+    //if (gss.itemsUnlocked[itemName]) return
+
+    gss.itemsUnlocked[itemName] = true
+    gameState.objects.forEach(obj => obj.noInput = true)
+
+    const popup = {
+        textBox: new TextBox({originX:800, originY: 300, content: 'You unlocked the ' + itemName + '!', align: 'center', color: Color.white,
+             font:'30px monospace'}),
+        playedAudio: false,
+        image: new ImageObject({originX:700, originY: 400, id:itemImage}),
+        startTime : Date.now(),
+        update: function(ctx, audio, mouse){
+            if (!this.playedAudio){
+                this.playedAudio = true
+                audio.play('confirmation_001')
+            }
+            Color.setColor(ctx, Color.black)
+            Shapes.Rectangle({ctx: ctx, originX: 400, originY:200, width:800, height: 400, inset:true, shadow:8})
+            this.textBox.update(ctx)
+            this.image.update(ctx)
+            if (Date.now() - this.startTime > 500){
+                mouse.cursor = 'pointer'
+                if (mouse.down) {
+                    this.hidden = true
+                    gameState.objects.forEach(obj => obj.noInput = false)
+                    onComplete(gameState)
+                }
+            }
+            
+        }
+    }
+    gameState.objects.push(popup)
 }
 
 export function unlockScenes (scenes, gss){
