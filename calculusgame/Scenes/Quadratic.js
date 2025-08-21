@@ -181,7 +181,6 @@ export function loadScene(gameState, sceneName, message = {}){
 }
 
 function quadraticPlanet(gameState,message){
-    console.log('Quadratic function')
     Planet.planetScene(gameState, {
         planetName:'quadratic',
         shipX:20, shipY: 450,

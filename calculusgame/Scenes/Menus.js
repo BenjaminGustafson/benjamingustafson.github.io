@@ -27,14 +27,25 @@ export function startMenu(gameState, nextScene){
         label:"Start"
     })
 
+    const clearButton = new Button({originX:200, originY:460, width:200, height:50, lineWidth: 5,
+        onclick:(() => { 
+            localStorage.clear();
+            gameState.stored = null;
+            location.reload();
+        }), label:"Clear Save"})
+    clearButton.hidden = true
+
     if (nextScene == null){
         nextScene = 'linear'
-    }else{
+    } else {
+        clearButton.hidden = false
         startButton.label = "Continue"
     }
     
     const about_button = new Button({originX:200, originY:380, width:200, height:50, lineWidth: 5,
         onclick:(() => window.location.replace("about.html")), label:"About"})
+
+    
     
     
     // Fullscreen request popup
@@ -68,7 +79,7 @@ export function startMenu(gameState, nextScene){
         //new ImageObject(0, 0, Scene.CANVAS_WIDTH, Scene.CANVAS_HEIGHT, "linearPlanetFg"),
         new TextBox({originX:200, originY:150, content: "Calculus I", font : "60px monospace", color : Color.white}),
         new TextBox({originX:200, originY:200, content: "A puzzle game", font : "30px monospace", color : Color.white}),
-        startButton, about_button
+        startButton, about_button, clearButton
     ]
 
     gameState.update = () => {

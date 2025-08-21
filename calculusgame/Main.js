@@ -29,12 +29,8 @@ var keysPressed = {}
 
 // Setup - called on page load 
 function setup() {
-    console.log ('version 8-6-2025')
     // Game is drawn on this canvas
     var canvas = document.getElementById('myCanvas');
-
-
-
 
     // Load audio
     const audioManager = new AudioManager();
@@ -386,7 +382,7 @@ function setup() {
 
         // Save progress every 200 frames
         frameCount++
-        if (frameCount >= 200) {
+        if (frameCount >= 200 && gameState.stored.sceneName != 'startMenu') {
             if (build == 'dev'){
                 const fpsLabel = document.getElementById('fpsLabel')
                 fpsLabel.innerText = (1000/ (Date.now() - prevTime) * 200).toFixed(1) + ' fps'

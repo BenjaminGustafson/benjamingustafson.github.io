@@ -72,7 +72,6 @@ export class Player extends GameObject {
         while (queue.length > 0) {
             const nodePath = queue.shift()
             const node = nodePath[nodePath.length - 1]
-            console.log(node, nodePath)
             if (node == goal) {
                 var coordPath = []
                 for (let i = 0; i < nodePath.length -1; i++){
@@ -99,7 +98,6 @@ export class Player extends GameObject {
         }
         this.targetNode = node
         this.currentPath = this.bfsPath(this.adjacencyTable, this.currentNode, node)
-        console.log('moveTo', this.currentNode, this.targetNode, this.currentPath)
         this.pathIndex = 0
         this.stepTime = Math.max(50,Math.min(200,1000/this.currentPath.length)) // not precise, but good enough
         const nextTarget = this.currentPath[this.pathIndex]

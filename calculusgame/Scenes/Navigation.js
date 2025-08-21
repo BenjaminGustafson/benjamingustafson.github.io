@@ -400,7 +400,6 @@ export function navScene(gameState) {
     changeToState('Travel')
 
     gameState.update = () => {
-        console.log('state', state)
         switch (state) {
             case 'Travel':{
                 const deltaTime = (Date.now() - startTime)/1000
@@ -452,8 +451,6 @@ export function navScene(gameState) {
         }
     }
     //gss.currentNavFunction = MathBlock.dehydrate(mathBlockFun)
-    console.log(gss.currentNavFunction)
-    console.log(JSON.stringify(gss.currentNavFunction)); 
 }
 
 
@@ -536,7 +533,6 @@ function newRNGPuzzle (gameState){
             break
         }
     }
-    console.log('Puzzle chosen', sum, randNum, puzzleType, puzzleMastery)
     gss.currentNavPuzzleType = puzzleType
 
     var mathBlockFun = null
@@ -621,12 +617,10 @@ function newRNGPuzzle (gameState){
     // Extra space below
     if (maxOnInterval >= 10 && minOnInterval >= -10){
         mathBlockFun.translateY += -10 - Math.floor(minOnInterval)
-        console.log('adjust', minOnInterval, -10 - Math.floor(minOnInterval))
     }
     // Extra space above
     else if (maxOnInterval <= 10 && minOnInterval <= -10){
         mathBlockFun.translateY += 10 - Math.ceil(maxOnInterval)
-        console.log('adjust', maxOnInterval, 10 - Math.ceil(maxOnInterval))
     }
 
     mathBlockFun.x = 100
