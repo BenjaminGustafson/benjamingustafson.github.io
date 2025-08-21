@@ -19,6 +19,8 @@ export class Grid{
      * grid- is used as a prefix to refer to the coordinate system of the grid itself. 
      * canvas- is used as a prefix to refer to the coordinate system of the canvas.
      * 
+     * TODO: a better name would be canvasOriginX, etc.
+     * 
      * @param {Object} config - Configuration object.
      * @param {number} config.canvasX - x-coordinate of the top-left corner on the canvas.
      * @param {number} config.canvasY - y-coordinate of the top-left corner on the canvas.
@@ -116,8 +118,22 @@ export class Grid{
         return {y: y, out:out}
     }
 
+    canvasToGridYBounded(cy){
+        var y = this.canvasToGridY(cy)
+        if (y > this.gridYMax)
+            y = this.gridYMax
+        if (y < this.gridYMin)
+            y = this.gridYMin
+        return y
+    }
+
+
     isInBoundsCanvasY(cy){
         return cy >= this.canvasY && cy <= this.canvasY + this.canvasHeight
+    }
+
+    isInBoundsCanvasX(cx){
+        return cx >= this.canvasX && cx <= this.canvasX + this.canvasWidth + 1
     }
 
     canvasToGridX(cx){
@@ -128,6 +144,9 @@ export class Grid{
         return (cy - this.canvasY) / - this.yScale + this.gridYMax
     }
 
+    /**
+     * Prefer the pattern with separate x and y
+     */
     canvasToGrid(cx, cy){
         return {x: this.canvasToGridX(cx), y:this.canvasToGridY(cy)}
     }

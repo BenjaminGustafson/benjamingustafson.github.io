@@ -1,5 +1,5 @@
 import {Color, Shapes} from '../util/index.js'
-import {TileMap, Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox, DialogueBox} from '../GameObjects/index.js'
+import {TileMap, Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox, DialogueBox, DrawFunction} from '../GameObjects/index.js'
 import * as Scene from '../Scene.js'
 import { GameObject } from '../GameObjects/GameObject.js'
 import * as Planet from './Planet.js'
@@ -147,8 +147,7 @@ export function loadScene(gameState, sceneName, message = {}){
                     exponentialLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.6"], ddx: x=> -x, tracerStart:-2})
                     break
                 case '6':
-                    exponentialLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10,
-                        withMathBlock:true, nextScenes:["exponential.puzzle.7"], ddx: x=> -x, tracerStart:-2})
+                    drawFunctionLevel(gameState, {})
                     break
                 case '7':
                     exponentialLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10,
@@ -202,6 +201,45 @@ function exponentialPlanet(gameState,message){
         message,
         
     })
+}
+
+
+function drawFunctionLevel (gameState, {
+     tracerStart=1,
+    targetSize = 20, sliderSize = 15,
+    nextScenes = [], 
+}){
+    const gss = gameState.stored
+    const backButton = Planet.backButton(gameState)
+    const nextButton = Planet.nextButton(gameState, nextScenes)
+
+    console.log('DRAW FUNCTION LEVEL')
+
+    const gridLeft = new Grid({canvasX: 300, canvasY:350, canvasWidth:400, canvasHeight:400, 
+        gridXMin:-5, gridYMin:-5, gridXMax:5, gridYMax:5, labels:false, arrows:true})
+    const gridRight = new Grid({canvasX: 900, canvasY:350, canvasWidth:400, canvasHeight:400, 
+        gridXMin:-5, gridYMin:-5, gridXMax:5, gridYMax:5, labels:false, arrows:true})
+    
+    const drawFunction = new DrawFunction ({grid: gridRight})
+
+
+    const numTargets = 10
+    const spacing = gridLeft.gridWidth / numTargets
+    var targets = []
+    for (let i = 0; i < numTargets; i++) {
+        const x = gridLeft.gridXMin+(i)*spacing
+        targets.push(new Target({grid: gridLeft, gridX:x, gridY:0, size:targetSize}))
+    }
+    
+    
+    const tracer = new IntegralTracer({grid: gridLeft, drawFunction:drawFunction, targets:targets,
+    })
+    
+
+    gameState.objects = [gridLeft, gridRight, backButton, nextButton, drawFunction, tracer].concat(targets)    
+
+    //Planet.winCon(gameState, ()=>tracer.solved, nextButton)
+    Planet.unlockScenes(nextScenes, gss)
 }
 
 function exponentialLevel (gameState, {

@@ -1,5 +1,6 @@
 import {Color, Shapes} from '../util/index.js'
 import { MathBlock } from './MathBlock.js'
+import { ImageObject } from './ImageObject.js'
 /**
  * 
  * The manager handles how mathblocks attach to each other.
@@ -56,6 +57,12 @@ export class MathBlockManager {
 
 
         this.createToolbar(blocks, toolBarX, toolBarY)
+
+
+        this.scaleIcon = new ImageObject({id:'scaleIcon', originX:scaleYSlider.canvasX - 15,
+            originY:scaleYSlider.canvasY+scaleYSlider.canvasLength + 20, width: 30, height:40})
+        this.translateIcon = new ImageObject({id:'translateIcon', originX:translateYSlider.canvasX - 10,
+            originY:translateYSlider.canvasY+translateYSlider.canvasLength + 20, width: 20, height:40})
 
     }
 
@@ -280,6 +287,9 @@ export class MathBlockManager {
         for (let i = 0; i < this.funTracers.length; i++){
             this.funTracers[i].fun = this.blockFields[i].outputFunction()   
         }
+
+        this.scaleIcon.update(ctx)
+        this.translateIcon.update(ctx)
        
     }
 

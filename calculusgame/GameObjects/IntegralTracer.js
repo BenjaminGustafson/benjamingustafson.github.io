@@ -21,6 +21,7 @@ export class IntegralTracer {
         sliders = [],
         blockField,
         inputTracer,
+        drawFunction,
         pixelsPerSec = 400, 
         precision = 0.001,
         targets = [],
@@ -52,8 +53,11 @@ export class IntegralTracer {
         }else if (inputTracer != null){
             this.type = 'tracer'
             this.inputTracer = inputTracer
-        }else{
-            throw new Error('Must provide sliders or blockField or tracer')
+        }else if (drawFunction != null){
+            this.type = 'drawFunction'
+            this.drawFunction = drawFunction
+        }else {
+            throw new Error('Must provide an input method: sliders, blockField, tracer, drawFunction')
         }
 
         // Dynamic vars
@@ -129,6 +133,9 @@ export class IntegralTracer {
                 const tracerIndex = Math.round(this.inputTracer.grid.gridToCanvasX(gx) - this.inputTracer.grid.canvasX)
                 if (tracerIndex < 0 || tracerIndex >= this.inputTracer.gridYs.length) return 0
                 return this.inputTracer.gridYs[tracerIndex]
+            case 'drawFunction':
+                return this.drawFunction.outputFunction(gx)
+                break 
         }
     }
 
@@ -185,6 +192,8 @@ export class IntegralTracer {
 
     update(ctx, audioManager, mouse){
 
+        //console.log(this.state, this.currentX, this.pixelIndex, this.currentValue)
+
         this.currentX = this.grid.canvasToGridX(this.originCanvasX + this.pixelIndex)
         if (this.gridYs[this.pixelIndex] != null){
             this.currentValue = this.gridYs[this.pixelIndex]
@@ -209,6 +218,13 @@ export class IntegralTracer {
                 }
             }
             // If no sliders are grabbed, start tracing
+            if (this.state == this.STOPPED_AT_BEGINNING)
+                this.start()
+        }else if (this.type == 'drawFunction'){
+            if (this.drawFunction.state == 'draw'){
+                this.reset()
+                return
+            }
             if (this.state == this.STOPPED_AT_BEGINNING)
                 this.start()
         }

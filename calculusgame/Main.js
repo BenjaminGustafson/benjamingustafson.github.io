@@ -23,7 +23,7 @@ import { MathBlock } from './GameObjects/MathBlock.js'
 
 // Build "dev" for developement
 // "play" release version
-const build = "dev"
+const build = "play"
 
 var keysPressed = {}
 
@@ -396,7 +396,7 @@ function setup() {
             frameCount = 0
         }
 
-        gameState.update()
+        gameState.update(audioManager)
 
         var ctx = canvas.getContext('2d');
 

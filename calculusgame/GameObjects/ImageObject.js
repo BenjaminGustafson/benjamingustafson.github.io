@@ -74,6 +74,7 @@ export class ImageObject{
     }
 
     update(ctx, audioManager, mouse){
+        if (this.hidden) return
         ctx.save()
         ctx.translate(this.originX + this.width/2, this.originY+this.height/2)
         if (this.flip){

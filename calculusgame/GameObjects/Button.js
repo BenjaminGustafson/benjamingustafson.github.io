@@ -57,7 +57,7 @@ export class Button extends GameObject{
             if (mouse.down){
                 mouse.down = false // don't allow clicking multiple things
                 audioManager.play('click_003')
-                this.onclick()
+                this.onclick(audioManager)
             }else{
                 this.onhover(ctx, audioManager, mouse)
             }

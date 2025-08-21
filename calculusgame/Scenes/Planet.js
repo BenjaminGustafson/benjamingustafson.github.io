@@ -195,18 +195,17 @@ export function dialogueScene(gameState, {nextScenes = [], exitTo, portraitId = 
     unlockScenes(nextScenes, gss)
 }
 
-export function itemUnlock(gameState, {itemImage, itemName, onComplete = () => {}}){
+export function unlockPopup(gameState, {itemImage, topText, onComplete = () => {}, bottomText=''}){
     const gss = gameState.stored
-    //if (gss.itemsUnlocked[itemName]) return
-
-    gss.itemsUnlocked[itemName] = true
     gameState.objects.forEach(obj => obj.noInput = true)
 
     const popup = {
-        textBox: new TextBox({originX:800, originY: 300, content: 'You unlocked the ' + itemName + '!', align: 'center', color: Color.white,
+        textBox: new TextBox({originX:800, originY: 300, content: topText, align: 'center', color: Color.white,
              font:'30px monospace'}),
+        bottomTextBox: new TextBox({originX:800, originY: 550, content: bottomText, align: 'center', color: Color.white,
+        font:'20px monospace'}),
         playedAudio: false,
-        image: new ImageObject({originX:700, originY: 400, id:itemImage}),
+        image: new ImageObject({originX:700, originY: 350, id:itemImage}),
         startTime : Date.now(),
         update: function(ctx, audio, mouse){
             if (!this.playedAudio){
@@ -216,6 +215,7 @@ export function itemUnlock(gameState, {itemImage, itemName, onComplete = () => {
             Color.setColor(ctx, Color.black)
             Shapes.Rectangle({ctx: ctx, originX: 400, originY:200, width:800, height: 400, inset:true, shadow:8})
             this.textBox.update(ctx)
+            this.bottomTextBox.update(ctx)
             this.image.update(ctx)
             if (Date.now() - this.startTime > 500){
                 mouse.cursor = 'pointer'

@@ -1,7 +1,7 @@
 import {Color, Shapes} from '../util/index.js'
 import {Grid, FunctionTracer, Button, ImageObject, IntegralTracer, MathBlock, MathBlockManager, MathBlockField, Slider, Target, TargetAdder, TextBox} from '../GameObjects/index.js'
 import { loadScene } from '../Scene.js'
-
+import * as Planet from './Planet.js'
 
 export function experimentTrial(gameState, {
     solutionFun, solutionDdx,
@@ -170,7 +170,8 @@ export function experimentTrial(gameState, {
             ctx.textBaseline = 'top'
             ctx.fillText('Step 1: Measure the turtle\'s position over time.', 150,50)
             ctx.fillText("Click on the graph to add measurements.", 150,80)
-            if (gss.sceneName == 'linearTrial1')  ctx.fillText("Hint: Measure t=0,2,4,6,8.", 150,110)
+            ctx.fillText(`Make at least ${numMeasurement} measurements, and then click continue.`, 150,110)
+            if (gss.sceneName == 'linear.trial.1')  ctx.fillText("Hint: Measure t=0,2,4,6,8.", 150,140)
             ctx.translate(25,700)
             ctx.rotate(-Math.PI/2)
             ctx.fillText("Position p(t)", 0,0)
@@ -185,7 +186,7 @@ export function experimentTrial(gameState, {
             ctx.font = '20px monospace'
             ctx.textAlign = 'start'
             ctx.textBaseline = 'top'
-            ctx.fillText('Step 2: Measure the turle\'s velocity, v(t).', 150,50)
+            ctx.fillText('Step 2: Compute the turle\'s velocity, v(t).', 150,50)
             ctx.fillText("Use the sliders to set the velocity.", 150,80)
             ctx.translate(25,700)
             ctx.rotate(-Math.PI/2)
@@ -298,13 +299,13 @@ export function experimentTrial(gameState, {
         return {res:true}
     }
 
-    const errorText = new TextBox({originX:880, originY:140, align: 'right'})
+    const errorText = new TextBox({originX:950, originY:160, align: 'right'})
 
     var step = 'measureF'
     const minCorrectTargets = numMeasurement
     const SKIP_CHECKS = false // debug option
     const continueButton = new Button({originX:840, originY:50, width:100, height:60, fontSize:16,
-        onclick:(() => {
+        onclick:((audio) => {
             if (step == 'measureF'){
                 const numCorrect = checkTargets()
                 if (numCorrect >= minCorrectTargets || SKIP_CHECKS){
@@ -314,6 +315,7 @@ export function experimentTrial(gameState, {
                     tracer.targets = adder.targets
                     errorText.content = ''
                     step = 'measureDdx'
+                    audio.play('confirmation_001')
                 }else{
                     errorText.content = numCorrect + '/' + minCorrectTargets + ' correct measurements'
                 }
@@ -328,6 +330,7 @@ export function experimentTrial(gameState, {
             }else if (step == 'fitF'){
                 const check = checkFunctionsEqual(solutionFun, funTracer.fun)
                 if (check.res || SKIP_CHECKS){
+                    audio.play('confirmation_001')
                     sySlider.setSize(syDdxMax, syDdxLen)
                     tySlider.setSize(tyDdxMax, tyDdxLen)
                     gridLeft.setYBounds(-2,2)
@@ -347,6 +350,7 @@ export function experimentTrial(gameState, {
             }else if (step == 'fitDdx'){
                 const check = checkFunctionsEqual(solutionDdx, funTracer.fun)
                 if (check.res || SKIP_CHECKS){
+                    audio.play('confirmation_001')
                     funTracer.fun = solutionDdx
                     errorText.content = ''
                     step = 'solved'
@@ -356,7 +360,7 @@ export function experimentTrial(gameState, {
                     errorText.content = 'v(' + check.x + ') should be ' + solutionDdx(check.x).toFixed(2) + ' not ' + funTracer.fun(check.x).toFixed(2)
                 }
             }else if (step == 'solved'){ // SOLVED
-                loadScene(gameState,gameState.planet + '.lab')
+                loadScene(gameState,gss.planet + '.lab')
             }
         }),
          label:"Continue"})
@@ -435,12 +439,14 @@ export function experimentMenu(gameState, {experimentData}){
             Shapes.Line(ctx,750,50,750,850)
             Shapes.Line(ctx,150,760,1500,760)
             ctx.textBaseline = 'top'
+            var i = 0
             for (let exp in experimentData){
                 const expName = gss.planet + ".trial." + exp
                 if (gss.completedScenes[expName]){
                     ctx.fillText(experimentData[exp].solutionFunString,400,150+i*60)
                     ctx.fillText(experimentData[exp].solutionDdxString,800,150+i*60)
                 }
+                i++
             }
             ctx.fillText("f(x) = ax+b",400,780)
             ctx.fillText("f'(x) = " + (gss.completedScenes[gss.planet+".trials.rule"] ? 'a' : ''),800,780)
@@ -455,6 +461,9 @@ export function experimentMenu(gameState, {experimentData}){
 
 export function ruleGuess(gameState, {planetUnlock}){
     const gss = gameState.stored
+    var state = 'no attempt' // 'incorrect' 'correct' 'solved'
+    const backButton = Planet.backButton(gameState)
+    const nextButton = Planet.nextButton(gameState, ['planetMap'])
     const blocks = [
         new MathBlock({type:MathBlock.VARIABLE, token:"x"}),
         new MathBlock({type:MathBlock.VARIABLE, token:"a"}),
@@ -464,15 +473,15 @@ export function ruleGuess(gameState, {planetUnlock}){
         blocks.push(new MathBlock({type: b.type, token: b.token}))
     }
 
-    const sySlider = new Slider({canvasX: 1200, canvasY: 150, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
-    const tySlider = new Slider({canvasX: 1300, canvasY: 150, maxValue:5, sliderLength:10, showAxis:true})
-    const mbField = new MathBlockField({minX:700, minY:150, maxX:1100, maxY:300})
+    const sySlider = new Slider({canvasX: 1200, canvasY: 200, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
+    const tySlider = new Slider({canvasX: 1300, canvasY: 200, maxValue:5, sliderLength:10, showAxis:true})
+    const mbField = new MathBlockField({minX:700, minY:200, maxX:1100, maxY:300})
     const mbm = new MathBlockManager({blocks : blocks, toolBarX: 1400, toolBarY:150, outputType:"none",
         scaleYSlider: sySlider, translateYSlider:tySlider,
         blockFields: [ mbField ],
     })
 
-    const targetBlock = new MathBlock({type: MathBlock.BIN_OP, token:"+", originX: 200, originY: 150})
+    const targetBlock = new MathBlock({type: MathBlock.BIN_OP, token:"+", originX: 200, originY: 200})
     const multBlock = new MathBlock({type: MathBlock.BIN_OP, token:"*"})
     multBlock.setChild(0, new MathBlock({type: MathBlock.VARIABLE, token:"a"})) 
     multBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"x"})) 
@@ -505,6 +514,7 @@ export function ruleGuess(gameState, {planetUnlock}){
             }
             if (correct){
                 checkResult.content = 'Correct!'
+                state = 'correct'
                 gss.completedScenes[gss.sceneName] = 'complete'
                 if (gss.planetProgress[planetUnlock] == null || gss.planetProgress[planetUnlock] == 'locked')
                     gss.planetProgress[[planetUnlock]] = 'unvisited'
@@ -514,20 +524,29 @@ export function ruleGuess(gameState, {planetUnlock}){
                     gss.navPuzzleMastery[gss.planet] = 0
                 }
             }else{
+                state = 'incorrect'
                 checkResult.content = 'Incorrect'
             }
         }
      })
 
     gameState.objects = [
-        new TextBox({originX: 50, originY:200, content:'f(x) =', font:'40px monospace'}),
-        new TextBox({originX: 500, originY:200, content:'f\'(x) =', font:'40px monospace'}),
-        new Button({originX:50, originY:50, width:50, height:50,
+        new TextBox({originX: 50, originY:200, baseline:'top', content:'f(x) =', font:'40px monospace'}),
+        new TextBox({originX: 500, originY:200, baseline:'top', content:'f\'(x) =', font:'40px monospace'}),
+        new Button({originX:50, originY:50, width:100, height:100,
             onclick:(() => loadScene(gameState,"linear.lab")),
             label:"↑", lineWidth:5}),
+        nextButton,
         sySlider, tySlider, mbm, targetBlock,
         checkButton, checkResult
     ]
-    gameState.update = () => { }
 
+    gameState.update = (audio) => {
+        if (state == 'correct'){
+            Planet.unlockPopup(gameState, {itemImage:'shipSide', topText:'You solved the Linear Rule!', bottomText:'You can now travel to Quadratic Planet.'})
+            state = 'solved'
+        } 
+    }
+
+    Planet.winCon(gameState, ()=>state == 'solved', nextButton)
 }

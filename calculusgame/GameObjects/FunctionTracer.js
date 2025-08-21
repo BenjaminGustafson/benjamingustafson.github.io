@@ -15,13 +15,15 @@ export class FunctionTracer {
         color= Color.red,
         targets = [],
         xStep = 2,
-        lineWidth = 10
+        lineWidth = 10,
+        solvable = false,
     }){
         Object.assign(this, {grid, fun, color, targets,
-            xStep, lineWidth
+            xStep, lineWidth, solvable
         })
 
         this.display = true
+        this.solved = false
     }
     
 
@@ -32,6 +34,9 @@ export class FunctionTracer {
 
         this.targets.forEach(t => t.hit = false)
         Color.setColor(ctx, this.color)
+        if (this.solved){
+            Color.setColor(ctx, Color.blue)
+        }
         ctx.lineWidth = this.lineWidth;
         ctx.beginPath();
         
@@ -63,6 +68,14 @@ export class FunctionTracer {
         }
         ctx.stroke();       
         
+        var targetsHit = true
+        this.targets.forEach(t => {if (!t.hit) targetsHit = false })
+        if (!this.solved && targetsHit){
+            this.solved = true 
+            audioManager.play('confirmation_001')
+        }else if (this.solved && !targetsHit){
+            this.solved = false
+        }
     }
 
 }
