@@ -365,7 +365,7 @@ function mathBlockTutorials(gameState, {
         targets.push(new Target({grid: grid, gridX:grid.gridXMin+(i+1)*spacing, gridY:targetVals[i], size:targetSize}))
     }
      
-    const functionTracer = new FunctionTracer({grid: grid, targets: targets})
+    const functionTracer = new FunctionTracer({grid: grid, targets: targets, solvable:true})
 
     const blocks = [
         new MathBlock({type:MathBlock.CONSTANT}),

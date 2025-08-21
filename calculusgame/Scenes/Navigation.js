@@ -141,8 +141,8 @@ export function navScene(gameState) {
             ctx.font = '20px monospace'
             ctx.textAlign = 'center'
             ctx.textBaseline = 'top'
-            ctx.fillText(`${prevPlanet.name} Planet`, this.originX, originY-60)
-            ctx.fillText(`${nextPlanet.name} Planet`, this.originX+this.length, originY-60)
+            ctx.fillText(`${prevPlanet[0].toUpperCase() + prevPlanet.slice(1)} Planet`, this.originX, originY-60)
+            ctx.fillText(`${nextPlanet[0].toUpperCase() + nextPlanet.slice(1)} Planet`, this.originX+this.length, originY-60)
             ctx.fillText(`${this.dist.toFixed(0)} u traveled`, this.originX+this.length/2, originY-60)
             ctx.fillText('0 u', this.originX, originY+25)
             ctx.fillText(`${planetDistance} u`, this.originX+this.length, originY+25)
