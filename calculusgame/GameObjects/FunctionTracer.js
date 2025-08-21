@@ -68,14 +68,16 @@ export class FunctionTracer {
         }
         ctx.stroke();       
         
-        var targetsHit = true
-        this.targets.forEach(t => {if (!t.hit) targetsHit = false })
-        if (!this.solved && targetsHit){
-            this.solved = true 
-            audioManager.play('confirmation_001')
-        }else if (this.solved && !targetsHit){
-            this.solved = false
+        if (this.solvable){
+            var targetsHit = true
+            this.targets.forEach(t => {if (!t.hit) targetsHit = false })
+                if (!this.solved && targetsHit){
+                    this.solved = true 
+                    audioManager.play('confirmation_001')
+                }else if (this.solved && !targetsHit){
+                    this.solved = false
+                }
+            }
         }
-    }
 
 }
