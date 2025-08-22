@@ -172,7 +172,7 @@ export function loadScene(gameState, sceneName, message = {}){
                     mathBlockTutorials(gameState, {targetVals:[1,1,1,1,1,1,1,1], nextScenes:["linear.puzzle.10"]})
                     break
                 case '10':
-                    mathBlockTutorials(gameState, {targetVals:[-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5], nextScenes:["linear.puzzle.11"]})
+                    mathBlockTutorials(gameState, {targetVals:[-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5], nextScenes:["linear.dialogue.3"]})
                     break
                 case '11':
                     mathBlockTutorials(gameState, {targetVals:[1.5,1,0.5,0,-0.5,-1,-1.5,-2], withLinear:true, nextScenes:["linear.puzzle.12"]})
@@ -196,20 +196,21 @@ export function loadScene(gameState, sceneName, message = {}){
                 break
                 case '2':
                     dialogueScene(gameState, {exitTo:"linear", nextScenes:["linear.puzzle.5"], text: [
-                        'I found something on the ground.',
-                        'Here, you can have it.',
+                        'These next puzzles are a little different.',
+                        'You\'ll need one of these...',
                     ],
                     onComplete:(gameState)=>{
-                        Planet.unlockPopup(gameState, {itemImage:'constantBlock', topText: 'You got a Strange Block!', bottomText:'What does it do?'})
+                        Planet.unlockPopup(gameState, {itemImage:'constantBlock', topText: 'You got a Number Block!', bottomText:''})
                     }})
                 break
                 case '3':
-                    dialogueScene(gameState, {exitTo:"linear", nextScenes:["linear.puzzle.5"], text: [
-                        'Oh, are you collecting those block things?',
-                        'Here\s another one.'
+                    dialogueScene(gameState, {exitTo:"linear", nextScenes:["linear.puzzle.11"], text: [
+                        'That building up ahead is the lab.',
+                        'You\'ll need to go in there if you want to travel to the next planet.',
+                        'But first, take this...'
                     ],
                     onComplete:(gameState)=>{
-                        Planet.unlockPopup(gameState, {itemImage:'linearBlock', topText: 'You got a New Block!', bottomText:'It has an x on it.'})
+                        Planet.unlockPopup(gameState, {itemImage:'linearBlock', topText: 'You got a Variable Block!', bottomText:''})
                     }})
                 break
                 case '4':
@@ -222,12 +223,26 @@ export function loadScene(gameState, sceneName, message = {}){
             break
 
         case "lab":
-            Experiment.experimentMenu(gameState, {experimentData: experimentData})
+            Experiment.experimentMenu(gameState, {experimentData: experimentData, ruleFunString:'ax+b', ruleDdxString:'a'})
             break
         
         case "trial":
             if (sceneNameSplit[2] == 'rule') {
-                Experiment.ruleGuess(gameState, {planetUnlock:'quadratic'})
+                const targetBlock = new MathBlock({type: MathBlock.BIN_OP, token:"+", originX: 200, originY: 200})
+                const multBlock = new MathBlock({type: MathBlock.BIN_OP, token:"*"})
+                multBlock.setChild(0, new MathBlock({type: MathBlock.VARIABLE, token:"a"})) 
+                multBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"x"})) 
+                targetBlock.setChild(0, multBlock) 
+                targetBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"b"}))
+                const blocks = [
+                    new MathBlock({type:MathBlock.CONSTANT}),
+                    new MathBlock({type:MathBlock.VARIABLE, token:"a"}),
+                    new MathBlock({type:MathBlock.VARIABLE, token:"b"}),
+                    new MathBlock({type:MathBlock.VARIABLE, token:"x"}),
+                ]
+                Experiment.ruleGuess(gameState, {planetUnlock:'quadratic', targetBlock:targetBlock, blocks: blocks,
+                    correctDdx:(x,a,b) => a,
+                })
             } else {
                 Experiment.experimentTrial(gameState, experimentData[sceneNameSplit[2]])
             } 

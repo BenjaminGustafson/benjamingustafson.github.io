@@ -205,6 +205,7 @@ export function experimentTrial(gameState, {
             ctx.textBaseline = 'top'
             ctx.fillText('Step 3: Guess the turtle\'s position function, p(t).', 150,50)
             ctx.fillText("Use the blocks to set the function.", 150,80)
+            ctx.fillText("Click continue when you think you have it.", 150,110)
             ctx.translate(25,700)
             ctx.rotate(-Math.PI/2)
             ctx.fillText("Position p(t)", 0,0)
@@ -222,6 +223,7 @@ export function experimentTrial(gameState, {
             ctx.textBaseline = 'top'
             ctx.fillText('Step 4: Guess the turtle\'s velocity function, v(t).', 150,50)
             ctx.fillText("Use the blocks to set the function.", 150,80)
+            ctx.fillText("Click continue when you think you have it.", 150,110)
             ctx.translate(25,700)
             ctx.rotate(-Math.PI/2)
             ctx.fillText("Velocity v(t)", 0,0)
@@ -393,13 +395,14 @@ export function experimentTrial(gameState, {
 }
 
 
+
 /**
  * 
  * 
  * @param {*} gameState 
  * @param {*} exitTo 
  */
-export function experimentMenu(gameState, {experimentData}){
+export function experimentMenu(gameState, {experimentData, ruleFunString, ruleDdxString}){
     const gss = gameState.stored
 
     const backButton = new Button({originX:50, originY:50, width:50, height:50,
@@ -448,8 +451,8 @@ export function experimentMenu(gameState, {experimentData}){
                 }
                 i++
             }
-            ctx.fillText("f(x) = ax+b",400,780)
-            ctx.fillText("f'(x) = " + (gss.completedScenes[gss.planet+".trials.rule"] ? 'a' : ''),800,780)
+            ctx.fillText("f(x) = "+ruleFunString,400,780)
+            ctx.fillText("f'(x) = " + (gss.completedScenes[gss.planet+".trial.rule"] ? ruleDdxString : ''),800,780)
 
         }
     }
@@ -459,20 +462,12 @@ export function experimentMenu(gameState, {experimentData}){
     gameState.objects = gameState.objects.concat(trialButtons)
 }
 
-export function ruleGuess(gameState, {planetUnlock}){
+export function ruleGuess(gameState, {planetUnlock, blocks, targetBlock, correctDdx}){
     const gss = gameState.stored
     var state = 'no attempt' // 'incorrect' 'correct' 'solved'
     const backButton = Planet.backButton(gameState)
     const nextButton = Planet.nextButton(gameState, ['planetMap'])
-    const blocks = [
-        new MathBlock({type:MathBlock.VARIABLE, token:"x"}),
-        new MathBlock({type:MathBlock.VARIABLE, token:"a"}),
-        new MathBlock({type:MathBlock.VARIABLE, token:"b"}),
-    ]
-    for (let b of gss.mathBlocksUnlocked){
-        blocks.push(new MathBlock({type: b.type, token: b.token}))
-    }
-
+    
     const sySlider = new Slider({canvasX: 1200, canvasY: 200, maxValue:5, sliderLength:10, startValue: 1, showAxis:true})
     const tySlider = new Slider({canvasX: 1300, canvasY: 200, maxValue:5, sliderLength:10, showAxis:true})
     const mbField = new MathBlockField({minX:700, minY:200, maxX:1100, maxY:300})
@@ -481,14 +476,7 @@ export function ruleGuess(gameState, {planetUnlock}){
         blockFields: [ mbField ],
     })
 
-    const targetBlock = new MathBlock({type: MathBlock.BIN_OP, token:"+", originX: 200, originY: 200})
-    const multBlock = new MathBlock({type: MathBlock.BIN_OP, token:"*"})
-    multBlock.setChild(0, new MathBlock({type: MathBlock.VARIABLE, token:"a"})) 
-    multBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"x"})) 
-    targetBlock.setChild(0, multBlock) 
-    targetBlock.setChild(1, new MathBlock({type: MathBlock.VARIABLE, token:"b"}))
-
-    const correctDdx = (x,a,b) => a
+    
     const checkResult = new TextBox({originX: 100, originY: 550, font:'30px monospace', align:'left', baseline:'top'})
     const checkButton = new Button({originX: 100, originY:400, width: 200, height: 100, label:"Check",
         onclick: () => {
@@ -499,15 +487,15 @@ export function ruleGuess(gameState, {planetUnlock}){
                 
             // What is an appropriate number of checks here? Somewhere from 100 to 10000
             var correct = true
-            for(let a = -10; a <= 10; a += 5){
+            outerLoop: for(let a = -10; a <= 10; a += 5){
             for (let b = -10; b <= 10; b += 5){
-                const fun = mbField.rootBlock.toFunction({a:a, b:b})
+                const fun = mbField.rootBlock.toFunction({'a':a, 'b':b})
             for (let x = -10; x <= 10; x++){
                 const y1 = fun(x)
                 const y2 = correctDdx(x,a,b)
                 if (Math.abs(y1 - y2) > 0.00001){
                     correct = false
-                    break
+                    //break outerLoop
                 }
             }
             }
@@ -534,7 +522,7 @@ export function ruleGuess(gameState, {planetUnlock}){
         new TextBox({originX: 50, originY:200, baseline:'top', content:'f(x) =', font:'40px monospace'}),
         new TextBox({originX: 500, originY:200, baseline:'top', content:'f\'(x) =', font:'40px monospace'}),
         new Button({originX:50, originY:50, width:100, height:100,
-            onclick:(() => loadScene(gameState,"linear.lab")),
+            onclick:(() => loadScene(gameState,gss.planet+".lab")),
             label:"↑", lineWidth:5}),
         nextButton,
         sySlider, tySlider, mbm, targetBlock,

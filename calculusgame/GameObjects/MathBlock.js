@@ -406,41 +406,41 @@ export class MathBlock {
                 }
                 return (x => this.translateY + this.scaleY*x)
             case MathBlock.POWER:
-                if (this.children[0] != null && this.children[0].toFunction() != null){
-                    return (x => (this.translateY + this.scaleY*(this.children[0].toFunction()(x))**this.token))
+                if (this.children[0] != null && this.children[0].toFunction(constants) != null){
+                    return (x => (this.translateY + this.scaleY*(this.children[0].toFunction(constants)(x))**this.token))
                 }else{
                     return null
                 }
             case MathBlock.EXPONENT:{
-                if (this.children[0] != null && this.children[0].toFunction() != null){
-                    return (x => (this.translateY + this.scaleY*Math.pow(Math.E,(this.children[0].toFunction()(x)))))
+                if (this.children[0] != null && this.children[0].toFunction(constants) != null){
+                    return (x => (this.translateY + this.scaleY*Math.pow(Math.E,(this.children[0].toFunction(constants)(x)))))
                 }else{
                     return null
                 }
             }
             case MathBlock.FUNCTION:
-                if (this.children[0] == null || this.children[0].toFunction() == null){
+                if (this.children[0] == null || this.children[0].toFunction(constants) == null){
                     return null
                 }
                 switch (this.token){
                     case "sin":
-                        return (x => this.translateY + this.scaleY*Math.sin(this.children[0].toFunction()(x)))
+                        return (x => this.translateY + this.scaleY*Math.sin(this.children[0].toFunction(constants)(x)))
                     case "cos":
-                        return (x => this.translateY + this.scaleY*Math.cos(this.children[0].toFunction()(x)))
+                        return (x => this.translateY + this.scaleY*Math.cos(this.children[0].toFunction(constants)(x)))
                     default:
                         return null
                 }
             case MathBlock.BIN_OP:
-                if (this.children[0] == null || this.children[0].toFunction() == null || this.children[1] == null || this.children[1].toFunction() == null){
+                if (this.children[0] == null || this.children[0].toFunction(constants) == null || this.children[1] == null || this.children[1].toFunction(constants) == null){
                     return null
                 }
                 switch (this.token){
                     case "+":
-                        return x =>  this.translateY + this.scaleY*(this.children[0].toFunction()(x) + this.children[1].toFunction()(x))
+                        return x =>  this.translateY + this.scaleY*(this.children[0].toFunction(constants)(x) + this.children[1].toFunction(constants)(x))
                     case "*":
-                        return x =>  this.translateY + this.scaleY*(this.children[0].toFunction()(x) * this.children[1].toFunction()(x))
+                        return x =>  this.translateY + this.scaleY*(this.children[0].toFunction(constants)(x) * this.children[1].toFunction(constants)(x))
                     case "/":
-                        return x =>  this.translateY + this.scaleY*(this.children[0].toFunction()(x) / this.children[1].toFunction()(x))
+                        return x =>  this.translateY + this.scaleY*(this.children[0].toFunction(constants)(x) / this.children[1].toFunction(constants)(x))
                     default:
                         return null
                 }

@@ -1,40 +1,41 @@
 
 TODO in order of importance
 
-- Quad puzzles
+- Have to have parentheses for mathblocks. Will cause to many issues otherwise
 
-- Quad lab
+- Quad lab visual (dropping a ball or apple)
+- Quad dialogue
+- Quad mathblock tutorial
 
-- Improve rule scene, celebration on complete, tells you that quadratic is unlocked
+Post demo
 
-- Item get (for unlocking mathblocks and engines?)
+- Linear bonus: draw. Unlocked after lab is visited (not necessarily solved).
+    Add a couple of linear drawing and a couple of nonlinear
 
-- Navigation has an intermediate scene, to show the current engine speed
-    Then you don't need the progress bar in the nav scene.
-    But you also need the engine item upgrade from the lab.
+- Exponential, Sine, Power, Sum, Product, Chain content
 
-- Experiment scene better backgrounds
-
-- Zoomable graphs
-
-- Slider icons
+- Better graph zoom
 - Planet icons
 - Journal. Could just list derivative rules.
+- Experiment scene better backgrounds
 
 - Improve planet map. has progress, has lines
-- Drawing puzzles - easy
 - Mathblock destructive - hard
 - Sandbox mode: set f(x) and f'(x) - easy
+- Navigation has some sort of warning about asteroid field.
 - UI element borders - easy
 - Curated nav puzzles - to avoid the wild ones
 - Map elements highlight when moused over
 - Square graphs even with not square scale
 - Sliders +/- 1 buttons
+- Redo linear map? not a priority, finish all content first
 
 ---------------------------------
 Experiment Design:
 - Sliders show current value
-- Lets you play with parameters
+- Lets you play with parameters, vs parameters already chosen. Not a huge difference, but
+- Could use an integral tracer on the derivative function guess, but theres not enough space
+
 
 Navigation improvements:
 
