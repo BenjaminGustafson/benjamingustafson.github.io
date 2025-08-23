@@ -108,6 +108,14 @@ const experimentData =  {
     }
 }
 
+function demoEnd(gameState){
+    gameState.objects = [
+       new TextBox({originX:800, originY:450, content: 'You have reached the end of the demo.',
+        align:'center', color:Color.white, font:'40px monospace'}),
+        new Button({originX: 700, originY:600, width:250, height: 100, label:'Back to game', onclick: ()=>Scene.loadScene(gameState, 'quadratic')})
+    ]
+}
+
 export function loadScene(gameState, sceneName, message = {}){
     gameState.stored.planet = 'exponential'
 
@@ -115,7 +123,8 @@ export function loadScene(gameState, sceneName, message = {}){
 
     // Main scene
     if (sceneNameSplit.length == 1) {
-        exponentialPlanet(gameState, message)
+        demoEnd(gameState)
+        //exponentialPlanet(gameState, message)
         return
     }
 
@@ -128,7 +137,7 @@ export function loadScene(gameState, sceneName, message = {}){
                     break
                 case '2':
                     exponentialLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.3"],  gridXMax:4,gridYMax:30,
-                        sliderSize: 15, targetSize:20, lastTarget:25, increment:0.5}
+                        sliderSize: 15, targetSize:20, lastTarget:22, increment:0.5}
                     )
                     break
                 case '3':

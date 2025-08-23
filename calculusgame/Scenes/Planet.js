@@ -170,7 +170,7 @@ export function planetScene(gameState, {
  * @param {*} gameState 
  * @param {*} param1 
  */
-export function dialogueScene(gameState, {nextScenes = [], exitTo, portraitId = 'glorpPortrait', text = "", onComplete=  ()=>{}}){
+export function dialogueScene(gameState, {nextScenes = [], portraitId = 'glorpPortrait', text = "", onComplete=  ()=>{}}){
     const gss = gameState.stored
     gameState.objects.forEach(obj => obj.noInput = true)
 
@@ -182,7 +182,7 @@ export function dialogueScene(gameState, {nextScenes = [], exitTo, portraitId = 
         text: text,
         onComplete: function(){
             gss.completedScenes[gameState.stored.sceneName] = 'complete'
-            Scene.loadScene(gameState, exitTo)
+            Scene.loadScene(gameState, gss.planet)
             onComplete(gameState)
         }
     })

@@ -531,10 +531,15 @@ export function ruleGuess(gameState, {planetUnlock, blocks, targetBlock, correct
 
     gameState.update = (audio) => {
         if (state == 'correct'){
-            Planet.unlockPopup(gameState, {itemImage:'shipSide', topText:'You solved the Linear Rule!', bottomText:'You can now travel to Quadratic Planet.'})
+            Planet.unlockPopup(gameState, {itemImage:'shipSide', topText:`You solved the ${capFirst(gss.planet)} Rule!`, bottomText:`You can now travel to ${capFirst(planetUnlock)} Planet.`})
             state = 'solved'
         } 
     }
 
     Planet.winCon(gameState, ()=>state == 'solved', nextButton)
+}
+
+function capFirst(str) {
+    if (!str) return "";
+    return str[0].toUpperCase() + str.slice(1);
 }

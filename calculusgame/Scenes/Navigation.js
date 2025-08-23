@@ -72,11 +72,11 @@ export function navScene(gameState) {
     })
     //const gridRight = new Grid(padLeft+gridDim+100, gridY, gridDim, gridDim, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
     const tySlider = new Slider({
-        canvasX: 1100, canvasY:gridY, canvasLength:400,
+        canvasX: 1200, canvasY:gridY, canvasLength:400,
         sliderLength: 10, maxValue: 5, showAxis: true, lineWidth:3
     })
     const sySlider = new Slider({
-        canvasX: 1200, canvasY: gridY, canvasLength: 400,
+        canvasX: 1100, canvasY: gridY, canvasLength: 400,
         sliderLength: 10, maxValue: 5, startValue: 1,showAxis: true, lineWidth:3
     })
     const funRight = new FunctionTracer({grid:gridRight, lineWidth:5, xStep:0.1})
