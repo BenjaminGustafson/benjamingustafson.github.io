@@ -87,8 +87,9 @@ export class Slider{
         this.hidden = false
         this.grabbed = false
         this.grabPos = 0
-        this.value = startValue
-        this.mouseValue = this.value
+        //this.value = startValue
+        //this.mouseValue = this.value
+        this.setValue(startValue)
         this.prevTime = 0
 
         this.baseCircleColor = this.circleColor

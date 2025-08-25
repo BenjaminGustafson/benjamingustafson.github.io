@@ -76,6 +76,7 @@ export class Grid{
         this.gridYMax = yMax
         this.gridHeight = yMax - yMin
         this.yScale = this.canvasHeight / this.gridHeight
+        this.xAxis = this.gridYMax
     }
     
     gridToCanvasX(gx){

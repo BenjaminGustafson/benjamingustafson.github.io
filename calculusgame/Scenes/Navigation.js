@@ -83,18 +83,23 @@ export function navScene(gameState) {
 
     const funLeft = new FunctionTracer({grid:gridLeft, fun:fun, lineWidth:5, xStep:0.1, color:Color.magenta})
 
-    const mathBlocks = [
-        new MathBlock({type:MathBlock.CONSTANT}),
-        new MathBlock({type:MathBlock.VARIABLE, token:'x'}),
-        new MathBlock({type:MathBlock.POWER, token:'2'}),
-        new MathBlock({type:MathBlock.POWER, token:'3'}),
-        new MathBlock({type:MathBlock.EXPONENT}),
-        new MathBlock({type:MathBlock.FUNCTION, token:'sin'}),
-        new MathBlock({type:MathBlock.FUNCTION, token:'cos'}),
-        new MathBlock({type:MathBlock.BIN_OP, token:'+'}),
-        new MathBlock({type:MathBlock.BIN_OP, token:'*'}),
-        new MathBlock({type:MathBlock.BIN_OP, token:'/'}),
-    ]
+    // const mathBlocks = [
+    //     new MathBlock({type:MathBlock.CONSTANT}),
+    //     new MathBlock({type:MathBlock.VARIABLE, token:'x'}),
+    //     new MathBlock({type:MathBlock.POWER, token:'2'}),
+    //     new MathBlock({type:MathBlock.POWER, token:'3'}),
+    //     new MathBlock({type:MathBlock.EXPONENT}),
+    //     new MathBlock({type:MathBlock.FUNCTION, token:'sin'}),
+    //     new MathBlock({type:MathBlock.FUNCTION, token:'cos'}),
+    //     new MathBlock({type:MathBlock.BIN_OP, token:'+'}),
+    //     new MathBlock({type:MathBlock.BIN_OP, token:'*'}),
+    //     new MathBlock({type:MathBlock.BIN_OP, token:'/'}),
+    // ]
+    const mathBlocks = [new MathBlock({type:MathBlock.VARIABLE, token:'x'})]
+    for (let b of gss.mathBlocksUnlocked){
+        mathBlocks.push(new MathBlock({type: b.type, token: b.token}))
+    }
+
 
     const blockField = new MathBlockField({minX: 600, minY:250, maxX: 1200, maxY:350})
     const mngr = new MathBlockManager({

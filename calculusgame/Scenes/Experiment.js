@@ -61,7 +61,7 @@ export function experimentTrial(gameState, {
     // TURTLE
     const maxTime = 10
     var time = 0
-    var playing = false
+    var playing = true
     var startTime = Date.now()
     var startValue = 0
     const maxDist = 400

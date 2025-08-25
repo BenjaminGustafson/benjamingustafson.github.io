@@ -89,7 +89,7 @@ const experimentData =  {
     },
     '3':{
         solutionFun: x=>1+1.5*x,
-        solutionDdx: x=>-0.5,
+        solutionDdx: x=>1.5,
         solutionFunString:"1.5t + 1",
         solutionDdxString:"1.5",
         syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
@@ -195,7 +195,7 @@ export function loadScene(gameState, sceneName, message = {}){
                     ]})
                 break
                 case '2':
-                    dialogueScene(gameState, {exitTo:"linear", nextScenes:["linear.puzzle.5"], text: [
+                    dialogueScene(gameState, {exitTo:"linear", nextScenes:["linear.puzzle.9"], text: [
                         'These next puzzles are a little different.',
                         'You\'ll need one of these...',
                     ],

@@ -241,8 +241,8 @@ export class MathBlockManager {
                     // Set new highlighted block
                     this.highlighted = this.grabbed
                     this.highlighted.isHighlighted = true
-
-
+                    
+                    
                     // Set sliders to highlighted block
                     if (this.highlighted.type != MathBlock.CONSTANT){
                         this.scaleYSlider.setValue(this.highlighted.scaleY)

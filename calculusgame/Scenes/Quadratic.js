@@ -170,11 +170,11 @@ export function loadScene(gameState, sceneName, message = {}){
                     quadDiscLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10, withMathBlock:true, nextScenes:["quadratic.dialogue.1"]})
                     break
                 case '5':
-                    quadDiscLevel(gameState, {numSliders:8, nextScenes:["quadratic.puzzle.6"], ddx: x=> -x, tracerStart:-2})
+                    quadDiscLevel(gameState, {numSliders:8, nextScenes:["quadratic.puzzle.6"], ddx: x=> -x, tracerStart:-1})
                     break
                 case '6':
                     quadDiscLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10,
-                        withMathBlock:true, nextScenes:["quadratic.puzzle.7"], ddx: x=> -x, tracerStart:-2})
+                        withMathBlock:true, nextScenes:["quadratic.puzzle.7"], ddx: x=> -x, tracerStart:-1})
                     break
                 case '7':
                     quadDiscLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10,
@@ -219,7 +219,7 @@ export function loadScene(gameState, sceneName, message = {}){
                 break
                 case '3':
                     Planet.dialogueScene(gameState, {nextScenes:["quadratic.lab"], text: [  
-                        '',
+                        'Have you ever noticed that things speed up as they fall?',
                         '',
                     ]})
                 break
@@ -419,23 +419,18 @@ function quadExperimentTrial(gameState, {
 
     // TURTLE
     var time = 0
-    var playing = false
+    var playing = true
     var startTime = Date.now()
     var startValue = 0
-    const maxDist = 400
-    const turtle = {
-        originX:1100,
-        originY:700,
+    const maxDist = 500
+    const apple = {
+        originX:1300,
+        originY:800,
         update: function(ctx){
-            const width = 100
-            Color.setColor(ctx,Color.green)
-            const x = this.originX - width + (Math.max(0,solutionFun(time)) * maxDist / 10)
-            ctx.font = "100px monospace"
-            ctx.translate(x,this.originY)
-            ctx.scale(-1,1)
-            ctx.textAlign = 'right'
-            ctx.fillText("🐢", 0, 0)
-            ctx.resetTransform()
+            const y = this.originY - (Math.max(0,solutionFun(time)) * maxDist / 10)
+            ctx.font = "50px monospace"
+            ctx.textAlign = 'center'
+            ctx.fillText("🍎", this.originX, y)
         }
     }
 
@@ -467,25 +462,27 @@ function quadExperimentTrial(gameState, {
 
     const numberLine = {
         update: function(ctx){
-            const originX = turtle.originX 
-            const originY = turtle.originY+20
+            const originX = 1070 
+            const originY = apple.originY
             const length = maxDist
             const numTicks = 10
             const lineWidth = 5
             const tickLength = 10
             Color.setColor(ctx, Color.white)
-            Shapes.RoundedLine(ctx, originX, originY, originX + length, originY, lineWidth)
+            Shapes.RoundedLine(ctx, originX, originY, originX, originY - length, lineWidth)
 
             ctx.font = '24px monospace'
             ctx.textAlign = 'left'
             ctx.textBaseline = 'top'
-            ctx.fillText('p(t) = ' + Math.max(0,solutionFun(time)).toFixed(1), turtle.originX, turtle.originY -100)
+            ctx.fillText('p(t) = ' + Math.max(0,solutionFun(time)).toFixed(1), 1050, 220)
             
             ctx.font = '20px monospace'
             for (let i = 0; i < numTicks + 1; i++) {
-                const tickX = originX + length / numTicks * i
-                ctx.fillText(i, tickX, originY + tickLength + 5)
-                Shapes.RoundedLine(ctx, tickX, originY - tickLength, tickX, originY + tickLength, lineWidth)
+                const tickY = originY - length / numTicks * i
+                ctx.textBaseline = 'middle'
+                ctx.textAlign = 'right'
+                ctx.fillText(i, originX-30, tickY)
+                Shapes.RoundedLine(ctx, originX - tickLength, tickY, originX + tickLength, tickY, lineWidth)
             }
         }
     }
@@ -508,7 +505,7 @@ function quadExperimentTrial(gameState, {
             ctx.font = '20px monospace'
             ctx.textAlign = 'start'
             ctx.textBaseline = 'top'
-            ctx.fillText('Step 1: Measure the turtle\'s position over time.', 150,50)
+            ctx.fillText('Step 1: Measure the apple\'s position over time.', 150,50)
             ctx.fillText("Click on the graph to add measurements.", 150,80)
             ctx.fillText(`Make at least ${numMeasurement} measurements, and then click continue.`, 150,110)
             ctx.translate(25,700)
@@ -542,7 +539,7 @@ function quadExperimentTrial(gameState, {
             ctx.font = '20px monospace'
             ctx.textAlign = 'start'
             ctx.textBaseline = 'top'
-            ctx.fillText('Step 3: Guess the turtle\'s position function, p(t).', 150,50)
+            ctx.fillText('Step 3: Guess the apple\'s position function, p(t).', 150,50)
             ctx.fillText("Use the blocks to set the function.", 150,80)
             ctx.fillText("Click continue when you think you have it.", 150,110)
             ctx.translate(25,700)
@@ -560,7 +557,7 @@ function quadExperimentTrial(gameState, {
             ctx.font = '20px monospace'
             ctx.textAlign = 'start'
             ctx.textBaseline = 'top'
-            ctx.fillText('Step 4: Guess the turtle\'s velocity function, v(t).', 150,50)
+            ctx.fillText('Step 4: Guess the apple\'s velocity function, v(t).', 150,50)
             ctx.fillText("Use the blocks to set the function.", 150,80)
             ctx.fillText("Click continue when you think you have it.", 150,110)
             ctx.translate(25,700)
@@ -694,7 +691,7 @@ function quadExperimentTrial(gameState, {
         }),
          label:"Continue"})
 
-    const mainObjs = [backButton, gridLeft, continueButton, errorText, bgImage, tSlider, timeLabel, turtle, numberLine, playPauseButton,]
+    const mainObjs = [backButton, gridLeft, continueButton, errorText, bgImage, tSlider, timeLabel, apple, numberLine, playPauseButton,]
     const measureFObjs = [text1, adder, ]
     const meaureDdxObjs = [mDdxText, gridRight, tracer].concat(sliders)
     const fitFObjs = [sySlider, tySlider, text2, funTracer, mngr]
