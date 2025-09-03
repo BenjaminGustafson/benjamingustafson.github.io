@@ -136,12 +136,13 @@ export function loadScene(gameState, sceneName, message = {}){
                     break
                 case '2':
                     exponentialLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.3"],  gridXMax:2,gridYMax:8,
-                        sliderSize: 15, targetSize:20, lastTarget:6, increment:0.5}
+                        sliderSize: 15, targetSize:20, lastTarget:6, increment:0.1}
                     )
                     break
                 case '3':
                     exponentialLevel(gameState, {numSliders:16, nextScenes:["exponential.puzzle.4"], withMathBlock:true,
-                        gridXMax:4,gridYMax:60,
+                        gridXMax:4,gridYMax:40,
+                        lastTarget: 38,
                         sliderSize: 15, targetSize:15, increment: 0.5
                     })
                     break
