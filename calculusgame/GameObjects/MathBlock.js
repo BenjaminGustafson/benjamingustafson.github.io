@@ -90,7 +90,7 @@ export class MathBlock {
          * Attach squares are objects of the form {x,y,w,h}.
          */
         this.attachSquares = new Array(this.num_children)
-        this.token = token
+        this.token = token 
         this.lineColor = Color.white
         this.bgColor = Color.darkBlack
         this.isHighlighted = false
@@ -134,8 +134,6 @@ export class MathBlock {
 
     static dehydrate(mathBlock){
         const children = []
-        console.log('!!!!!!!!!!!!!')
-        console.log('DEHYDRATING', mathBlock.depth)
         mathBlock.children.forEach(c => children.push(MathBlock.dehydrate(c)))
         return {
             'type':mathBlock.type,
@@ -323,7 +321,7 @@ export class MathBlock {
             }
                 break
             case MathBlock.EXPONENT:{
-                this.content = [{type:'string', string:this.prefix + 'e^'},{type:'child', childIndex:0},{type:'string', string:this.suffix}]
+                this.content = [{type:'string', string:this.prefix + this.token+ '^'},{type:'child', childIndex:0},{type:'string', string:this.suffix}]
             }
                 break
             case MathBlock.BIN_OP:{
@@ -413,7 +411,8 @@ export class MathBlock {
                 }
             case MathBlock.EXPONENT:{
                 if (this.children[0] != null && this.children[0].toFunction(constants) != null){
-                    return (x => (this.translateY + this.scaleY*Math.pow(Math.E,(this.children[0].toFunction(constants)(x)))))
+                    const base = this.token == 'e' ? Math.E : Number(this.token)
+                    return (x => (this.translateY + this.scaleY*Math.pow(base,(this.children[0].toFunction(constants)(x)))))
                 }else{
                     return null
                 }

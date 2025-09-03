@@ -123,8 +123,7 @@ export function loadScene(gameState, sceneName, message = {}){
 
     // Main scene
     if (sceneNameSplit.length == 1) {
-        demoEnd(gameState)
-        //exponentialPlanet(gameState, message)
+        exponentialPlanet(gameState, message)
         return
     }
 
@@ -136,8 +135,8 @@ export function loadScene(gameState, sceneName, message = {}){
                     exponentialLevel(gameState, {numSliders:4, nextScenes:["exponential.puzzle.2"], gridXMax:4,gridYMax:16, lastTarget:16})
                     break
                 case '2':
-                    exponentialLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.3"],  gridXMax:4,gridYMax:30,
-                        sliderSize: 15, targetSize:20, lastTarget:22, increment:0.5}
+                    exponentialLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.3"],  gridXMax:2,gridYMax:8,
+                        sliderSize: 15, targetSize:20, lastTarget:6, increment:0.5}
                     )
                     break
                 case '3':
@@ -265,9 +264,9 @@ function exponentialLevel (gameState, {
     const nextButton = Planet.nextButton(gameState, nextScenes)
 
     const gridLeft = new Grid({canvasX:withMathBlock ? 150 : 300, canvasY:350, canvasWidth:400, canvasHeight:400, 
-        gridXMin:0, gridYMin:0, gridXMax:gridXMax, gridYMax:gridYMax, labels:false, arrows:true})
+        gridXMin:0, gridYMin:0, gridXMax:gridXMax, gridYMax:gridYMax, labels:true, arrows:false, autoCellSize: true})
     const gridRight = new Grid({canvasX:withMathBlock ? 700 : 900, canvasY:350, canvasWidth:400, canvasHeight:400, 
-        gridXMin:0, gridYMin:0, gridXMax:gridXMax, gridYMax:gridYMax, labels:false, arrows:true})
+        gridXMin:0, gridYMin:0, gridXMax:gridXMax, gridYMax:gridYMax, labels:true, arrows:false, autoCellSize: true})
     
     const spacing = gridLeft.gridWidth/numSliders
     var sliders = []
@@ -312,15 +311,16 @@ function exponentialLevel (gameState, {
 
     if (withMathBlock){
 
-        const sySlider = new Slider({canvasX: 1200, canvasY: 350, maxValue:2, sliderLength:4, startValue: 1, showAxis:true})
-        const tySlider = new Slider({canvasX: 1300, canvasY: 350, maxValue:2, sliderLength:4, showAxis:true})
+        const sySlider = new Slider({canvasX: 1180, canvasY: 350, maxValue:2, sliderLength:4, startValue: 1, showAxis:true})
+        const tySlider = new Slider({canvasX: 1260, canvasY: 350, maxValue:2, sliderLength:4, showAxis:true})
+        const nSlider = new Slider({canvasX: 1340, canvasY: 350, maxValue:5, sliderLength:5, showAxis:true})
         const mbField = new MathBlockField({minX:700, minY:100, maxX:1100, maxY:300, outputSliders:sliders})
         const mbm = new MathBlockManager({blocks : blocks, toolBarX: 1400, toolBarY:150, outputType:"sliders",
-            scaleYSlider: sySlider, translateYSlider:tySlider,
+            scaleYSlider: sySlider, translateYSlider:tySlider, numSlider:nSlider,
             blockFields: [ mbField ],
 
         })
-        gameState.objects = gameState.objects.concat([mbm, sySlider, tySlider])
+        gameState.objects = gameState.objects.concat([mbm, sySlider, tySlider, nSlider])
         const update = gameState.update
         gameState.update = ()=>{
             update()

@@ -220,7 +220,6 @@ export function loadScene(gameState, sceneName, message = {}){
                 case '3':
                     Planet.dialogueScene(gameState, {nextScenes:["quadratic.lab"], text: [  
                         'Have you ever noticed that things speed up as they fall?',
-                        '',
                     ]})
                 break
             }
