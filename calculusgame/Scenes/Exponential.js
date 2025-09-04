@@ -134,37 +134,63 @@ export function loadScene(gameState, sceneName, message = {}){
                 case '1':
                     exponentialLevel(gameState, {numSliders:4, nextScenes:["exponential.puzzle.2"], gridXMax:4,gridYMax:16, lastTarget:16})
                     break
+                // case '2':
+                //     exponentialLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.3"],  gridXMax:4,gridYMax:30,
+                //         sliderSize: 15, targetSize:16, lastTarget:27, increment:0.5}
+                //     )
+                //     break
                 case '2':
-                    exponentialLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.3"],  gridXMax:2,gridYMax:8,
-                        sliderSize: 15, targetSize:20, lastTarget:6, increment:0.1}
-                    )
+                    exponentialLevel(gameState, {numSliders:4, nextScenes:["exponential.puzzle.3"], withMathBlock:true,
+                        gridXMax:4,gridYMax:16,
+                        lastTarget:16,
+                        increment: 0.2,
+                        oneSlider:true,
+                    })
                     break
                 case '3':
-                    exponentialLevel(gameState, {numSliders:16, nextScenes:["exponential.puzzle.4"], withMathBlock:true,
-                        gridXMax:4,gridYMax:40,
-                        lastTarget: 38,
-                        sliderSize: 15, targetSize:15, increment: 0.5
+                    exponentialLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.4"], withMathBlock:true,
+                        gridXMax:4,gridYMax:30,
+                        lastTarget:27,
+                        sliderSize: 12, targetSize:16, increment: 0.2,
+                        oneSlider:true,
                     })
                     break
                 case '4':
-                    exponentialLevel(gameState, {numSliders:100, nextScenes:["exponential.puzzle.5"], withMathBlock:true,
-                        gridXMax:4,gridYMax:60,
-                        sliderSize: 15, targetSize:15, increment: 0.5
-                    })                    
+                    exponentialLevel(gameState, {numSliders:16, nextScenes:["exponential.puzzle.5"], withMathBlock:true,
+                        gridXMax:4,gridYMax:40,
+                        lastTarget:38,
+                        sliderSize: 10, targetSize:15, increment: 0.2,
+                        oneSlider:true,
+                    })
                     break
                 case '5':
-                    exponentialLevel(gameState, {numSliders:8, nextScenes:["exponential.puzzle.6"], ddx: x=> -x, tracerStart:-2})
+                    exponentialLevel(gameState, {numSliders:200, nextScenes:["exponential.puzzle.6"], withMathBlock:true,
+                        gridXMax:4,gridYMax:60,
+                        lastTarget:53,
+                        sliderSize: 5, targetSize:10, increment: 0.1,
+                        oneSlider:true,
+                    })
                     break
                 case '6':
-                    drawFunctionLevel(gameState, {})
+                    exponentialLevel(gameState, {numSliders:5, nextScenes:["exponential.puzzle.7"],
+                        gridXMax:1,gridYMax:3,
+                        increment: 0.1,
+                    })
                     break
                 case '7':
-                    exponentialLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10,
-                        withMathBlock:true, nextScenes:["exponential.puzzle.8"], ddx: x=> -0.5*x, tracerStart:0})
+                    exponentialLevel(gameState, {numSliders:200, nextScenes:["exponential.puzzle.8"],
+                        gridXMax:1,gridYMax:3,
+                        sliderSize: 5, targetSize:4, increment: 0.01,
+                        withMathBlock:true, oneSlider:true,
+                    })
                     break
                 case '8':
-                    exponentialLevel(gameState, {numSliders:200, sliderSize:10, targetSize:10,
-                        withMathBlock:true, nextScenes:["exponential.lab"], func: x=>0.1*x*x})
+                    exponentialLevel(gameState, {numSliders:400, nextScenes:["exponential.puzzle.8"],
+                        gridXMax:1,gridYMax:3,
+                        sliderSize: 5, targetSize:5, increment: 0.01,
+                        withMathBlock:true, oneSlider:true,
+                        nSliderMin:2,nSliderMax:3,nSliderIncrement:0.01,
+                    })
                     break
             }
         break
@@ -258,7 +284,9 @@ function exponentialLevel (gameState, {
     targetSize = 20, sliderSize = 15,
     nextScenes, 
     gridXMax=4,gridYMax=16, increment=1,
-    lastTarget=54,
+    lastTarget,
+    oneSlider = false,
+    nSliderMin=0,nSliderMax=5,nSliderIncrement=0.1,
 }){
     const gss = gameState.stored
     const backButton = Planet.backButton(gameState)
@@ -287,7 +315,8 @@ function exponentialLevel (gameState, {
         const x = gridLeft.gridXMin+(i)*spacing
         targets.push(new Target({grid: gridLeft, gridX:x, gridY:0, size:targetSize}))
     }
-    targets.push(new Target({grid: gridLeft, gridX:gridLeft.gridXMax, gridY:lastTarget, size:targetSize}))
+    if (lastTarget != null)
+        targets.push(new Target({grid: gridLeft, gridX:gridLeft.gridXMax, gridY:lastTarget, size:targetSize}))
     
     
     const tracer = new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets, originGridY:tracerStart, 
@@ -296,8 +325,7 @@ function exponentialLevel (gameState, {
     
     const blocks = [
         new MathBlock({type:MathBlock.VARIABLE, token:"x"}),
-        new MathBlock({type:MathBlock.CONSTANT}),
-        new MathBlock({type:MathBlock.EXPONENT, token:'e'}),
+        new MathBlock({type:MathBlock.EXPONENT, token:'n'}),
     ]
     // for (let b of gss.mathBlocksUnlocked){
     //     blocks.push(new MathBlock({type: b.type, token: b.token}))
@@ -312,16 +340,24 @@ function exponentialLevel (gameState, {
 
     if (withMathBlock){
 
+        sliders.forEach(s => s.clickable = false)
+
         const sySlider = new Slider({canvasX: 1180, canvasY: 350, maxValue:2, sliderLength:4, startValue: 1, showAxis:true})
         const tySlider = new Slider({canvasX: 1260, canvasY: 350, maxValue:2, sliderLength:4, showAxis:true})
-        const nSlider = new Slider({canvasX: 1340, canvasY: 350, maxValue:5, sliderLength:5, showAxis:true})
+        const nSlider = new Slider({canvasX: 1340, canvasY: 350, maxValue:nSliderMax, sliderLength:nSliderMax-nSliderMin, increment:nSliderIncrement, showAxis:true})
         const mbField = new MathBlockField({minX:700, minY:100, maxX:1100, maxY:300, outputSliders:sliders})
+        if (oneSlider){
+            sySlider.hidden = true
+            tySlider.hidden = true
+            nSlider.canvasX = 1200
+        }
         const mbm = new MathBlockManager({blocks : blocks, toolBarX: 1400, toolBarY:150, outputType:"sliders",
             scaleYSlider: sySlider, translateYSlider:tySlider, numSlider:nSlider,
             blockFields: [ mbField ],
 
         })
         gameState.objects = gameState.objects.concat([mbm, sySlider, tySlider, nSlider])
+        
         const update = gameState.update
         gameState.update = ()=>{
             update()

@@ -274,7 +274,7 @@ export class MathBlockManager {
             this.translateYSlider.active = true
             this.highlighted.translateY = this.translateYSlider.value
             this.highlighted.scaleY = this.scaleYSlider.value
-            if (this.highlighted.type == MathBlock.EXPONENT && this.numSlider != null) this.highlighted.token = this.numSlider.value.toFixed(1)
+            if (this.highlighted.type == MathBlock.EXPONENT && this.numSlider != null) this.highlighted.token = Number(this.numSlider.value.toFixed(6))
         }else{
             this.scaleYSlider.active = false
             this.translateYSlider.active = false
@@ -294,8 +294,9 @@ export class MathBlockManager {
             this.funTracers[i].fun = this.blockFields[i].outputFunction()   
         }
 
-        this.scaleIcon.update(ctx)
-        this.translateIcon.update(ctx)
+
+        if (!this.scaleYSlider.hidden) this.scaleIcon.update(ctx)
+        if (!this.translateYSlider.hidden) this.translateIcon.update(ctx)
         if (this.numIcon != null) this.numIcon.update(ctx)
        
     }

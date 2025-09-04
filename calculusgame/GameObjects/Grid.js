@@ -248,7 +248,7 @@ export class Grid{
         var i = 0 // line count
         var gx = this.gridXMin 
         while (gx < this.gridXMax){
-            gx = this.gridXMin + i*this.cellSizeX
+            gx = Number((this.gridXMin + i*this.cellSizeX).toFixed(5))
             const cx = this.xScale*i*this.cellSizeX// canvas x (relative)
             var lineWidth = this.lineWidthMax  
             var endCap = 'none'

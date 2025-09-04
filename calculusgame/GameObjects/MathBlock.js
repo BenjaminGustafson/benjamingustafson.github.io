@@ -278,8 +278,8 @@ export class MathBlock {
     }
 
     setContent(){
-        const ty =  this.translateY.toFixed(1)
-        const sy =  this.scaleY.toFixed(1)
+        const ty =  Number(this.translateY.toFixed(6))
+        const sy =  Number(this.scaleY.toFixed(6))
 
         this.prefix = ""
         this.suffix = ""
@@ -321,7 +321,7 @@ export class MathBlock {
             }
                 break
             case MathBlock.EXPONENT:{
-                this.content = [{type:'string', string:this.prefix + this.token+ '^'},{type:'child', childIndex:0},{type:'string', string:this.suffix}]
+                this.content = [{type:'string', string:this.prefix + this.token + '^'},{type:'child', childIndex:0},{type:'string', string:this.suffix}]
             }
                 break
             case MathBlock.BIN_OP:{

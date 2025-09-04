@@ -27,7 +27,7 @@ export class Slider{
         vertical = true,
         showLines = true, 
         showAxis = false,
-        circleColor = new Color(255,20,0),//Color.red,
+        circleColor = new Color(255,20,0),//,
         lineWidth = 5
     }){
         Object.assign(this, {
@@ -84,6 +84,7 @@ export class Slider{
 
         // Dynamic vars
         this.active = true
+        this.clickable = true // turn off mouse input while keeping slider active
         this.hidden = false
         this.grabbed = false
         this.grabPos = 0
@@ -192,7 +193,7 @@ export class Slider{
             return
         }
 
-        if (this.active){
+        if (this.active && this.clickable){
             this.mouseInput(audioManager, mouse)
         }
 
@@ -251,13 +252,14 @@ export class Slider{
         }
 
         // Draw slider handle (circle)
+        if (!this.clickable) this.circleColor = Color.red
         Color.setColor(ctx, this.active ? this.circleColor : Color.gray)
         Shapes.Circle({
             ctx:ctx,
             centerX: this.vertical ? this.canvasX : this.circlePos,
             centerY: this.vertical ? this.circlePos : this.canvasY,
             radius:this.circleRadius,
-            inset:true,
+            inset: this.clickable,
             shadow:this.grabbed, 
         })
 
