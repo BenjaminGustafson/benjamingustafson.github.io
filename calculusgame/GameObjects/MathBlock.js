@@ -289,7 +289,7 @@ export class MathBlock {
             if (sy == -1){
                 this.prefix = "-"
             }else{
-                this.prefix = sy
+                this.prefix = sy.toString()
             }
             if (sy == 0){
                 this.prefix = "0"
@@ -299,13 +299,13 @@ export class MathBlock {
             if (ty < 0 ){
                 this.suffix = ty.toString()
             }else{
-                this.suffix = "+" + ty
+                this.suffix = "+" + ty.toString()
             }
         }
 
         switch (this.type){
             case MathBlock.CONSTANT:{
-                    this.content = [{type:'string', string:ty}]
+                    this.content = [{type:'string', string:ty.toString()}]
                 }
                 break
             case MathBlock.VARIABLE:

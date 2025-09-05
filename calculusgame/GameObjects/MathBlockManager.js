@@ -274,7 +274,9 @@ export class MathBlockManager {
             this.translateYSlider.active = true
             this.highlighted.translateY = this.translateYSlider.value
             this.highlighted.scaleY = this.scaleYSlider.value
-            if (this.highlighted.type == MathBlock.EXPONENT && this.numSlider != null) this.highlighted.token = Number(this.numSlider.value.toFixed(6))
+            if (this.numSlider != null && (this.highlighted.type == MathBlock.EXPONENT || this.highlighted.type == MathBlock.POWER) ) {
+                this.highlighted.token = Number(this.numSlider.value.toFixed(6))
+            }
         }else{
             this.scaleYSlider.active = false
             this.translateYSlider.active = false

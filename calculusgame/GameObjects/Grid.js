@@ -229,7 +229,7 @@ export class Grid{
             if (gy == 0){
                 if (this.arrows) endCap = 'arrow'
                 if (this.labels) ctx.fillText(gy,  - 20, cy)
-            } else if (i%this.majorLinesY == 0){
+            } else if (gy%(this.majorLinesY*this.cellSizeY) == 0){
                 lineWidth = this.lineWidthMax/2 // 0.5*(this.lineWidthMin + this.lineWidthMax)  
                 if (this.labels) ctx.fillText(gy,  - 20, cy)
             }else {
@@ -259,7 +259,7 @@ export class Grid{
             if (gx == 0){
                 if (this.arrows) endCap = 'arrow'
                 if (this.labels) ctx.fillText(gx, cx, this.canvasHeight + 20)
-            } else if (i%this.majorLinesX == 0){
+            } else if (gx%(this.majorLinesX*this.cellSizeX) == 0){
                 lineWidth = this.lineWidthMax/2 // 0.5*(this.lineWidthMin + this.lineWidthMax)  
                 if (this.labels) ctx.fillText(gx, cx, this.canvasHeight + 20)
             }else {

@@ -403,7 +403,7 @@ function mathBlockTutorials(gameState, {
 
 
     gameState.update = ()=>{
-
+        functionTracer.solvable = !sySlider.grabbed && !tySlider.grabbed
     }
 
     gameState.objects = [grid, functionTracer, backButton, nextButton, mbm, sySlider, tySlider].concat(targets)

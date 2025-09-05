@@ -8,6 +8,7 @@ import * as Exponential from './Scenes/Exponential.js'
 import * as Navigation from './Scenes/Navigation.js'
 import * as Sine from './Scenes/Sine.js'
 import * as Power from './Scenes/Power.js'
+import * as Sum from './Scenes/Power.js'
 
 
 export const CANVAS_WIDTH = 1600
