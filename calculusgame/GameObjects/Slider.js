@@ -200,7 +200,7 @@ export class Slider{
         if (this.mouseValue != this.value){
             const dir = (this.mouseValue > this.value ? 1 : -1)
             this.setValueInternal(this.value + dir*this.increment)
-            audioManager.play('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6, 0.8)
+            audioManager.play('click_001', {pitch:((this.value-this.minValue) / this.sliderLength-0.5)*6, volume:0.8})
             // if (this.value%1 == 0){// == this.minValue || this.value == this.maxValue){
             //     console.log('A')
             //     audioManager.play('click4', ((this.value-this.minValue) / this.sliderLength)*3-3)

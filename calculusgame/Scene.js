@@ -8,7 +8,7 @@ import * as Exponential from './Scenes/Exponential.js'
 import * as Navigation from './Scenes/Navigation.js'
 import * as Sine from './Scenes/Sine.js'
 import * as Power from './Scenes/Power.js'
-import * as Sum from './Scenes/Power.js'
+import * as Sum from './Scenes/Sum.js'
 
 
 export const CANVAS_WIDTH = 1600
@@ -99,7 +99,7 @@ export function loadScene(gameState, sceneName, message = {}) {
             break
         case "power": Power.loadScene(gameState, sceneName, message)
             break
-        case "sum": Exponential.loadScene(gameState, sceneName, message)
+        case "sum": Sum.loadScene(gameState, sceneName, message)
             break
         case "product": Exponential.loadScene(gameState, sceneName, message)
             break

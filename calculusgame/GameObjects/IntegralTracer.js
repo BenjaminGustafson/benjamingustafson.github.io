@@ -26,11 +26,15 @@ export class IntegralTracer {
         precision = 0.001,
         targets = [],
         lineWidth = 5,
+        unsolvedColor = Color.red,
         spacing,
+        type,
+        sliders2 = [],
+        audioChannel = 0,
     }){
         Object.assign(this, {
             grid, originGridX, originGridY, sliders, blockField,
-            pixelsPerSec, targets, lineWidth, precision, spacing
+            pixelsPerSec, targets, lineWidth, precision, spacing, type, sliders2, unsolvedColor, audioChannel
         })
         if (originGridX == null){
             this.originGridX = this.grid.gridXMin
@@ -41,7 +45,14 @@ export class IntegralTracer {
         this.originCanvasX = this.grid.gridToCanvasX(this.originGridX)
         this.originCanvasY = this.grid.gridToCanvasY(this.originGridY)
 
-        if (this.sliders.length > 0){
+        if (this.type == 'sumOfSliders'){
+            if (this.sliders.length != this.sliders2.length){
+                console.warn('Mismatched number of sliders')
+            }
+            if (this.spacing == null){
+                this.spacing = this.grid.gridWidth / this.sliders.length
+            }
+        }else if (this.sliders.length > 0){
             this.sliders = sliders
             this.type = 'sliders'
             if (this.spacing == null){
@@ -102,7 +113,7 @@ export class IntegralTracer {
         this.tracerIndex = 0
 
         this.solvedColor = Color.blue
-        this.unsolvedColor = Color.red
+        
 
         /**
          * Flag for 
@@ -119,10 +130,16 @@ export class IntegralTracer {
      */
     inputGridY(gx){
         switch (this.type){
-            case 'sliders':
+            case 'sliders':{
                 const sliderIndex = Math.floor((gx - this.grid.gridXMin)/this.spacing)
                 if (sliderIndex < 0 || sliderIndex >= this.sliders.length) return 0
                 return this.sliders[sliderIndex].value
+            }
+            case 'sumOfSliders':{
+                const sliderIndex = Math.floor((gx - this.grid.gridXMin)/this.spacing)
+                if (sliderIndex < 0 || sliderIndex >= this.sliders.length) return 0
+                return this.sliders[sliderIndex].value + this.sliders2[sliderIndex].value
+            }
             case 'mathBlock':
                 if (!this.blockField.rootBlock || !this.blockField.rootBlock.toFunction()){
                     console.warn('Invalid root block')
@@ -135,7 +152,6 @@ export class IntegralTracer {
                 return this.inputTracer.gridYs[tracerIndex]
             case 'drawFunction':
                 return this.drawFunction.outputFunction(gx)
-                break 
         }
     }
 
@@ -203,42 +219,50 @@ export class IntegralTracer {
                 this.currentDelta = 1
         }
 
-        // If the mathblock is not defined, reset
-        if (this.type == "mathBlock" && 
-            (!this.blockField.rootBlock || !this.blockField.rootBlock.toFunction())){
-            this.reset()
-            return
-        } 
-        // If sliders are grabbed, reset
-        else if (this.type == "sliders"){
-            for (let i = 0; i < this.sliders.length; i++){
-                if (this.sliders[i].grabbed || this.sliders[i].mouseValue != this.sliders[i].value){
+
+        switch (this.type){
+            case 'sumOfSliders':
+            case 'productOfSliders':
+                for (let i = 0; i < this.sliders2.length; i++){
+                    if (this.sliders2[i].grabbed || this.sliders2[i].mouseValue != this.sliders2[i].value){
+                        this.reset()
+                        return
+                    }
+                }
+            case 'sliders':
+                for (let i = 0; i < this.sliders.length; i++){
+                    if (this.sliders[i].grabbed || this.sliders[i].mouseValue != this.sliders[i].value){
+                        this.reset()
+                        return
+                    }
+                }
+                break
+            case 'mathBlock':
+                if (!this.blockField.rootBlock || !this.blockField.rootBlock.toFunction()){
                     this.reset()
                     return
                 }
-            }
-            // If no sliders are grabbed, start tracing
-            if (this.state == this.STOPPED_AT_BEGINNING)
-                this.start()
-        }else if (this.type == 'drawFunction'){
-            if (this.drawFunction.state == 'draw'){
-                this.reset()
-                return
-            }
-            if (this.state == this.STOPPED_AT_BEGINNING)
-                this.start()
-        }else if (this.type == 'tracer'){
-            if (this.inputTracer.state != this.STOPPED_AT_END){ // == this.STOPPED_AT_BEGINNING){
-                this.reset()
-                return
-            } else if (this.state == this.STOPPED_AT_BEGINNING){
-                this.start()
-            }
-
+                break 
+            case 'tracer':
+                if (this.inputTracer.state != this.STOPPED_AT_END){ // == this.STOPPED_AT_BEGINNING){
+                    this.reset()
+                    return
+                }
+                break 
+            case 'drawFunction':
+                if (this.drawFunction.state == 'draw'){
+                    this.reset()
+                    return
+                }
+                break
         }
 
-        if (this.state == this.STOPPED_AT_BEGINNING) return
-
+        if (this.state == this.STOPPED_AT_BEGINNING){
+            if (this.type == 'mathBlock')
+                return
+            else
+                this.start()
+        } 
 
         Color.setColor(ctx, this.solved ? this.solvedColor : this.unsolvedColor)
 
@@ -275,7 +299,7 @@ export class IntegralTracer {
                 this.targets.forEach(t => {
                     if (t.lineIntersect(x,prevCy,x+1,cy) || t.pointIntersect(x,prevCy)){
                         if (!t.hit){
-                            audioManager.play('drop_002',this.gridYs[i-1]/this.grid.gridHeight*12)
+                            audioManager.play('drop_002',{pitch:this.gridYs[i-1]/this.grid.gridHeight*12, channel:this.audioChannel})
                         }
                         t.hit = true
                     }
@@ -309,7 +333,7 @@ export class IntegralTracer {
                 }
             })
             if (this.solved){
-                audioManager.play('confirmation_001')
+                audioManager.play('confirmation_001', {channel:this.audioChannel, pitch:-7*this.audioChannel})
             }
         }
     }

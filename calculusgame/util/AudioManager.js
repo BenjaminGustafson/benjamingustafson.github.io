@@ -22,8 +22,9 @@ export class AudioManager {
      * @param {*} force 
      * @returns 
      */
-    play(name, pitch = 0 , volume = 1.0, force = false) {
-        if (! force && (this.lastTimePlayed[name] != null && Date.now() - this.lastTimePlayed[name] < 35)) {
+    play(name, {pitch = 0 , volume = 1.0, force = false, channel = 0} = {}) {
+        this.lastTimePlayed[name] ??= {}
+        if (!force && (this.lastTimePlayed[name][channel] != null && Date.now() - this.lastTimePlayed[name][channel] < 35)) {
             return;
         }
         if(this.context.state === 'suspended'){
@@ -31,7 +32,8 @@ export class AudioManager {
             return
         }
 
-        this.lastTimePlayed[name] = Date.now();
+        
+        this.lastTimePlayed[name][channel] = Date.now()
     
         const buffer = this.buffers.get(name);
         if (!buffer) return;
