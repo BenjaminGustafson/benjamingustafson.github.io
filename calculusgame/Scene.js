@@ -6,6 +6,8 @@ import * as Linear from './Scenes/Linear.js'
 import * as Quadratic from './Scenes/Quadratic.js'
 import * as Exponential from './Scenes/Exponential.js'
 import * as Navigation from './Scenes/Navigation.js'
+import * as Sine from './Scenes/Sine.js'
+import * as Power from './Scenes/Power.js'
 
 
 export const CANVAS_WIDTH = 1600
@@ -92,9 +94,9 @@ export function loadScene(gameState, sceneName, message = {}) {
             break
         case "exponential": Exponential.loadScene(gameState, sceneName, message)
             break
-        case "sine": Exponential.loadScene(gameState, sceneName, message)
+        case "sine": Sine.loadScene(gameState, sceneName, message)
             break
-        case "power": Exponential.loadScene(gameState, sceneName, message)
+        case "power": Power.loadScene(gameState, sceneName, message)
             break
         case "sum": Exponential.loadScene(gameState, sceneName, message)
             break

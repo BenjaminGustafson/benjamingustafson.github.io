@@ -174,6 +174,10 @@ export class Grid{
         return cx >= this.canvasX && cx <= this.canvasX + this.canvasWidth + 1
     }
 
+    isInBoundsGridY(gy){
+        return this.gridYMin <= gy && gy <= this.gridYMax
+    }
+
     canvasToGridX(cx){
         return (cx - this.canvasX) / this.xScale + this.gridXMin
     }

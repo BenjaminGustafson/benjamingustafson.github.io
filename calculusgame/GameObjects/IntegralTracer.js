@@ -227,6 +227,14 @@ export class IntegralTracer {
             }
             if (this.state == this.STOPPED_AT_BEGINNING)
                 this.start()
+        }else if (this.type == 'tracer'){
+            if (this.inputTracer.state != this.STOPPED_AT_END){ // == this.STOPPED_AT_BEGINNING){
+                this.reset()
+                return
+            } else if (this.state == this.STOPPED_AT_BEGINNING){
+                this.start()
+            }
+
         }
 
         if (this.state == this.STOPPED_AT_BEGINNING) return
