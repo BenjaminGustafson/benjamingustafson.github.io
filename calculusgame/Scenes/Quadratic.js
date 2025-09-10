@@ -316,7 +316,7 @@ function quadDiscLevel (gameState, {
     }
     
     
-    const tracer = new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets, originGridY:tracerStart})
+    const tracer = new IntegralTracer({grid: gridLeft, input: {type:'sliders', sliders:sliders}, targets:targets, originGridY:tracerStart})
     
     const blocks = [
         new MathBlock({type:MathBlock.VARIABLE, token:"x"}),

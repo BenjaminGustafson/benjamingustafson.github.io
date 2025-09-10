@@ -187,7 +187,7 @@ export function loadScene(gameState, sceneName, message = {}){
             linearPlanet(gameState)
             switch(sceneNameSplit[2]){
                 case '1':
-                    dialogueScene(gameState, {exitTo:"linear", nextScenes:["linear.puzzle.5"], text: [
+                    dialogueScene(gameState, {nextScenes:["linear.puzzle.5"], text: [
                         'Hi there.',    
                         'I\'m trying to figure out how these computers work.', 
                         'It seems like value of graph on the right becomes the slope of the graph on the left.',
@@ -280,7 +280,7 @@ function linearPuzzle1 (gameState, {nextScenes}){
     const slider = new Slider({grid:gridRight, gridPos:0})
 
     const target = new Target({grid: gridLeft, gridX:1, gridY:1, size:20})
-    const tracer = new IntegralTracer({grid: gridLeft, sliders: [slider], targets:[target]})
+    const tracer = new IntegralTracer({grid: gridLeft, input: {type:'sliders', sliders:[slider]}, targets:[target]})
 
     const backButton = Planet.backButton(gameState)
     const nextButton = Planet.nextButton(gameState, nextScenes)
@@ -308,7 +308,7 @@ function linearPuzzle2 (gameState, {nextScenes}){
         new Target({grid: gridLeft, gridX:0, gridY:1, size:20}),
         new Target({grid: gridLeft, gridX:1, gridY:2, size:20})
     ]
-    const tracer =  new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets})
+    const tracer =  new IntegralTracer({grid: gridLeft, input: {type:'sliders', sliders:sliders}, targets:targets})
 
     const backButton = Planet.backButton(gameState)
     const nextButton = Planet.nextButton(gameState, nextScenes)
@@ -352,7 +352,7 @@ function simpleDiscLevel(gameState, {
         targets.push(new Target({grid: gridLeft, gridX:gridLeft.gridXMin+(i+1)*spacing, gridY:targetVals[i], size:targetSize}))
     }
     
-    const tracer = new IntegralTracer({grid: gridLeft, sliders: sliders, targets:targets, gridY:tracerStart})
+    const tracer = new IntegralTracer({grid: gridLeft, input: {type:'sliders', sliders:sliders}, targets:targets, gridY:tracerStart})
     
     gameState.objects = [gridLeft, gridRight, tracer, backButton, nextButton].concat(targets).concat(sliders)
     Planet.winCon(gameState, ()=>tracer.solved, nextButton)

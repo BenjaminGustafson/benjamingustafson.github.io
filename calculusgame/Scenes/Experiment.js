@@ -156,7 +156,7 @@ export function experimentTrial(gameState, {
         sliders.push(new Slider({grid:gridRight, gridPos:i,increment:0.1,circleRadius:15}))
     }
     const tracer = new IntegralTracer({grid: gridLeft, originGridY: solutionFun(0), 
-        sliders:sliders, targets:adder.targets})
+        input: {type:'sliders', sliders:sliders}, targets:adder.targets})
 
     const ddxTargets = []
 
