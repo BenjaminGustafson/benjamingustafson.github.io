@@ -222,14 +222,15 @@ export class Grid{
         var i = 0 // line count
         var gy = this.gridYMin 
         while (gy < this.gridYMax){
-            gy = this.gridYMin + i*this.cellSizeY
+            gy = Number((this.gridYMin + i*this.cellSizeY).toFixed(6))
             const cy = this.canvasHeight - this.yScale*i*this.cellSizeY// canvas x (relative)
             var lineWidth = this.lineWidthMax  
             var endCap = 'none'
+            const ratio = gy / (this.majorLinesY*this.cellSizeY)
             if (gy == 0){
                 if (this.arrows) endCap = 'arrow'
                 if (this.labels) ctx.fillText(gy,  - 20, cy)
-            } else if (gy%(this.majorLinesY*this.cellSizeY) == 0){
+            } else if (Math.abs(ratio - Math.round(ratio)) < 1e-9){
                 lineWidth = this.lineWidthMax/2 // 0.5*(this.lineWidthMin + this.lineWidthMax)  
                 if (this.labels) ctx.fillText(gy,  - 20, cy)
             }else {
@@ -252,16 +253,17 @@ export class Grid{
         var i = 0 // line count
         var gx = this.gridXMin 
         while (gx < this.gridXMax){
-            gx = Number((this.gridXMin + i*this.cellSizeX).toFixed(5))
+            gx = Number((this.gridXMin + i*this.cellSizeX).toFixed(6))
             const cx = this.xScale*i*this.cellSizeX// canvas x (relative)
             var lineWidth = this.lineWidthMax  
             var endCap = 'none'
+            const ratio = gx / (this.majorLinesX*this.cellSizeX)
             if (gx == 0){
                 if (this.arrows) endCap = 'arrow'
                 if (this.labels) ctx.fillText(gx, cx, this.canvasHeight + 20)
-            } else if (gx%(this.majorLinesX*this.cellSizeX) == 0){
-                lineWidth = this.lineWidthMax/2 // 0.5*(this.lineWidthMin + this.lineWidthMax)  
-                if (this.labels) ctx.fillText(gx, cx, this.canvasHeight + 20)
+            } else if (Math.abs(ratio - Math.round(ratio)) < 1e-9){
+            lineWidth = this.lineWidthMax/2 // 0.5*(this.lineWidthMin + this.lineWidthMax)  
+            if (this.labels) ctx.fillText(gx, cx, this.canvasHeight + 20)
             }else {
                 lineWidth = this.lineWidthMax / 4
             }
