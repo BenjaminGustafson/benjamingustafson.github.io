@@ -3,158 +3,151 @@ import {Color, Shapes} from '../util/index.js'
  * 
  * Traces the numeric integral of a given input
  * 
- * ISSUE: too high speed might miss targets
+ * ISSUE: too high speed might miss targets. Would need to implemnet line-square intersection. 
  * 
- * Depends on: Color.js, Shapes.js, Grid.js
  */
 
 export class IntegralTracer {
     
-
-    /**
-     * 
-     * @param {object} config 
-     * @param {} this.spacing - The distance between the sliders in grid coordinates
-     */
     constructor({
-        grid, originGridX, originGridY,
-        sliders = [],
-        blockField,
-        inputTracer,
-        drawFunction,
-        pixelsPerSec = 400, 
-        precision = 0.001,
-        targets = [],
-        lineWidth = 5,
-        unsolvedColor = Color.red,
-        spacing,
-        type,
-        sliders2 = [],
-        audioChannel = 0,
+        // Required:
+        grid, // the Grid object to draw on
+        input, // either a preset, e.g. {type:'sliders', sliders:[]} Or {inputFunction, resetCondition, autoStart}
+        // Optional:
+        originGridX = grid.gridXMin, // where the tracer starts
+        originGridY = 0,
+        pixelsPerSec = 400, // number of pixels traced per real time
+        precision = 0.001, // grid value increment
+        targets = [], // targets that can be hit by the tracer
+        lineWidth = 5, // width of the traced line
+        unsolvedColor = Color.red, // color of the line when not solved
+        solvedColor = Color.blue, // color of the line whne solved (hit all targets)
+        audioChannel = 0, // if using multiple tracers, use different audio channels so sounds can play simultaneously
     }){
         Object.assign(this, {
-            grid, originGridX, originGridY, sliders, blockField,
-            pixelsPerSec, targets, lineWidth, precision, spacing, type, sliders2, unsolvedColor, audioChannel
+            grid, originGridX, originGridY,
+            pixelsPerSec, targets, lineWidth, precision, 
+            unsolvedColor, solvedColor, audioChannel,
         })
-        if (originGridX == null){
-            this.originGridX = this.grid.gridXMin
-        }
-        if (originGridY == null){
-            this.originGridY = 0
-        }
+
         this.originCanvasX = this.grid.gridToCanvasX(this.originGridX)
-        this.originCanvasY = this.grid.gridToCanvasY(this.originGridY)
-
-        if (this.type == 'sumOfSliders'){
-            if (this.sliders.length != this.sliders2.length){
-                console.warn('Mismatched number of sliders')
-            }
-            if (this.spacing == null){
-                this.spacing = this.grid.gridWidth / this.sliders.length
-            }
-        }else if (this.sliders.length > 0){
-            this.sliders = sliders
-            this.type = 'sliders'
-            if (this.spacing == null){
-                this.spacing = this.grid.gridWidth / this.sliders.length
-            }
-        }else if (blockField != null){
-            this.type = 'mathBlock'
-            this.blockField = blockField
-        }else if (inputTracer != null){
-            this.type = 'tracer'
-            this.inputTracer = inputTracer
-        }else if (drawFunction != null){
-            this.type = 'drawFunction'
-            this.drawFunction = drawFunction
-        }else {
-            throw new Error('Must provide an input method: sliders, blockField, tracer, drawFunction')
-        }
-
-        // Dynamic vars
-        /**
-         * The number of pixels from the start that the tracer is on.
-         */
-        this.pixelIndex = 0
+        this.originCanvasY = this.grid.gridToCanvasY(this.originGridY)      
         
-        /**
-         * The y value corresponding to each traced pixel.
-         */
-        this.gridYs = []
+        this.pixelIndex = 0 // Number of pixels from the start that the tracer is on.
+        this.currentX = 0 // the current grid X-value
+        this.currentY = 0 // the most recent y-value traced
+        this.gridYs = [] // y-values for each traced pixel.
+        
+        this.solved = false // True if the tracer hits all targets
+        this.tracerIndex = 0 // If input is tracer, the index of the tracer's input.
+        this.startTime = Infinity // the Date.now() of when we started tracing
 
-        /**
-         * True if the tracer hits all targets. Turns the color blue.
-         */
-        this.solved = false
-
-        /**
-         * Tracer has 3 states:
-         */
+        // States
         this.STOPPED_AT_BEGINNING = 0
         this.TRACING = 1
-        this.STOPPED_AT_END = 2
-        this.AT_END = 3
+        this.AT_END = 2
+        this.STOPPED_AT_END = 3
         this.state = this.STOPPED_AT_BEGINNING
-
-        /**
-         * The most recent value traced. 
-         * Gives the start or end value if the tracer is stopped.
-         */
-        this.currentValue = 0
-
-        /**
-         * The current grid X-value.
-         */
-        this.currentX = 0
-
-        /**
-         * If input is tracer, the index of the tracer's input.
-         */
-        this.tracerIndex = 0
-
-        this.solvedColor = Color.blue
-        
-
-        /**
-         * Flag for 
-         */
-        this.recalculate = false
-
+         
         this.reset()
-        this.startTime = Infinity
-    }
-    
 
-    /**
-     * Given a grid x, return the grid y of the input function
-     */
-    inputGridY(gx){
-        switch (this.type){
-            case 'sliders':{
-                const sliderIndex = Math.floor((gx - this.grid.gridXMin)/this.spacing)
-                if (sliderIndex < 0 || sliderIndex >= this.sliders.length) return 0
-                return this.sliders[sliderIndex].value
+        this.autoStart = true
+
+        // Inputs
+        switch (input.type){
+            case 'comboSliders':{
+                const sliders1 = input.sliders1
+                const sliders2 = input.sliders2
+                const spacing1 = input.spacing1 ? input.spacing1 : this.grid.gridWidth / sliders1.length
+                const spacing2 = input.spacing2 ? input.spacing2 : this.grid.gridWidth / sliders2.length
+                const combo = input.combo
+                this.inputFunction = (x) => {
+                    const sliderIndex1 = Math.floor((x - this.grid.gridXMin)/spacing1)
+                    const sliderIndex2 = Math.floor((x - this.grid.gridXMin)/spacing2)
+                    if (sliderIndex1 < 0 || sliderIndex1 >= sliders1.length) return 0
+                    if (sliderIndex2 < 0 || sliderIndex2 >= sliders2.length) return 0
+                    return combo(sliders1[sliderIndex1].value,sliders2[sliderIndex1].value)
+                } 
+                this.resetCondition = () => {
+                    for (let i = 0; i < sliders1.length; i++){
+                        if (sliders1[i].grabbed || sliders1[i].mouseValue != sliders1[i].value){
+                            return true
+                        }
+                    }
+                    for (let i = 0; i < sliders2.length; i++){
+                        if (sliders2[i].grabbed || sliders2[i].mouseValue != sliders2[i].value){
+                            return true
+                        }
+                    }
+                    return false
+                }
             }
-            case 'sumOfSliders':{
-                const sliderIndex = Math.floor((gx - this.grid.gridXMin)/this.spacing)
-                if (sliderIndex < 0 || sliderIndex >= this.sliders.length) return 0
-                return this.sliders[sliderIndex].value + this.sliders2[sliderIndex].value
-            }
+                break
+            case 'sliders':
+                const sliders = input.sliders
+                const spacing = input.spacing ? input.spacing : this.grid.gridWidth / sliders.length
+                this.inputFunction = (x) => {
+                    const sliderIndex = Math.floor((x - this.grid.gridXMin)/spacing)
+                    if (sliderIndex < 0 || sliderIndex >= sliders.length) return 0
+                    return sliders[sliderIndex].value
+                } 
+                this.resetCondition = () => {
+                    for (let i = 0; i < sliders.length; i++){
+                        if (sliders[i].grabbed || sliders[i].mouseValue != sliders[i].value){
+                            return true
+                        }
+                    }
+                    return false
+                }
+                break
             case 'mathBlock':
-                if (!this.blockField.rootBlock || !this.blockField.rootBlock.toFunction()){
+                const blockField = input.blockField
+                this.inputFunction = (x) => {
+                    if (blockField.rootBlock){
+                        // Slight inneficiency here, since we build the function for every call. 
+                        const fun = blockField.rootBlock.toFunction()
+                        if (fun != null){
+                            return fun(x)
+                        }
+                    }
                     console.warn('Invalid root block')
                     return 0
                 }
-                return this.blockField.rootBlock.toFunction()(gx)
+                this.resetCondition = () => {
+                    return !blockField.rootBlock || !blockField.rootBlock.toFunction()
+                }
+                this.autoStart = false
+                break 
             case 'tracer':
-                const tracerIndex = Math.round(this.inputTracer.grid.gridToCanvasX(gx) - this.inputTracer.grid.canvasX)
-                if (tracerIndex < 0 || tracerIndex >= this.inputTracer.gridYs.length) return 0
-                return this.inputTracer.gridYs[tracerIndex]
+                const tracer = input.tracer
+                this.inputFunction = (x) => {
+                    const tracerIndex = Math.round(tracer.grid.gridToCanvasX(x) - tracer.grid.canvasX)
+                    if (tracerIndex < 0 || tracerIndex >= tracer.gridYs.length) return 0
+                    return tracer.gridYs[tracerIndex]
+                }
+                this.resetCondition = (x) => {
+                    return tracer.state != this.STOPPED_AT_END // == this.STOPPED_AT_BEGINNING
+                }
+
+                break 
             case 'drawFunction':
-                return this.drawFunction.outputFunction(gx)
-        }
+                const drawFunction = input.drawFunction
+                this.inputFunction = (x) => {
+                    drawFunction.outputFunction(gx)
+                }
+                this.resetCondition = (x) => {
+                    return drawFunction.state == 'draw'
+                }
+                break
+            default:
+                this.inputFunction = input.inputFunction
+                this.resetCondition = input.resetCondition
+                this.autoStart = input.autoStart  
+                break   
+        } 
     }
 
+    
     /**
      * Calculates the y-values for the tracer
      */
@@ -165,7 +158,7 @@ export class IntegralTracer {
         var cxPixel = this.originCanvasX + 1 // Canvas x of the next pixel to be added to the array
 
         for (let gx = this.grid.gridXMin; gx <= this.grid.gridXMax+1; gx += this.precision){
-            gy += this.inputGridY(gx) * this.precision
+            gy += this.inputFunction(gx) * this.precision
             const cxPrecise = this.grid.gridToCanvasX(gx)
             if (cxPrecise >= cxPixel){
                 const prevCxPrecise = this.grid.gridToCanvasX(gx-this.precision)
@@ -207,61 +200,28 @@ export class IntegralTracer {
     }
 
     update(ctx, audioManager, mouse){
-
-        //console.log(this.state, this.currentX, this.pixelIndex, this.currentValue)
-
+        // Calculate current coords
         this.currentX = this.grid.canvasToGridX(this.originCanvasX + this.pixelIndex)
         if (this.gridYs[this.pixelIndex] != null){
-            this.currentValue = this.gridYs[this.pixelIndex]
+            this.currentY = this.gridYs[this.pixelIndex]
             if (this.pixelIndex > 0)
                 this.currentDelta = this.gridYs[this.pixelIndex] - this.gridYs[this.pixelIndex-1]
             else
                 this.currentDelta = 1
         }
 
-
-        switch (this.type){
-            case 'sumOfSliders':
-            case 'productOfSliders':
-                for (let i = 0; i < this.sliders2.length; i++){
-                    if (this.sliders2[i].grabbed || this.sliders2[i].mouseValue != this.sliders2[i].value){
-                        this.reset()
-                        return
-                    }
-                }
-            case 'sliders':
-                for (let i = 0; i < this.sliders.length; i++){
-                    if (this.sliders[i].grabbed || this.sliders[i].mouseValue != this.sliders[i].value){
-                        this.reset()
-                        return
-                    }
-                }
-                break
-            case 'mathBlock':
-                if (!this.blockField.rootBlock || !this.blockField.rootBlock.toFunction()){
-                    this.reset()
-                    return
-                }
-                break 
-            case 'tracer':
-                if (this.inputTracer.state != this.STOPPED_AT_END){ // == this.STOPPED_AT_BEGINNING){
-                    this.reset()
-                    return
-                }
-                break 
-            case 'drawFunction':
-                if (this.drawFunction.state == 'draw'){
-                    this.reset()
-                    return
-                }
-                break
+        // Check if we need to reset
+        if (this.resetCondition()){
+            this.reset()
+            return
         }
 
+        // Check if we need to start tracing
         if (this.state == this.STOPPED_AT_BEGINNING){
-            if (this.type == 'mathBlock')
-                return
-            else
+            if (this.autoStart)
                 this.start()
+            else
+                return
         } 
 
         Color.setColor(ctx, this.solved ? this.solvedColor : this.unsolvedColor)
