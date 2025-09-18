@@ -1,7 +1,6 @@
 import * as GameObjects from './GameObjects/index.js'
 import {Shapes, Color} from './util/index.js'
 import * as Menus from './Scenes/Menus.js'
-import * as Scenes from './Scenes/index.js'
 import * as Linear from './Scenes/Linear.js'
 import * as Quadratic from './Scenes/Quadratic.js'
 import * as Exponential from './Scenes/Exponential.js'
@@ -9,6 +8,8 @@ import * as Navigation from './Scenes/Navigation.js'
 import * as Sine from './Scenes/Sine.js'
 import * as Power from './Scenes/Power.js'
 import * as Sum from './Scenes/Sum.js'
+import * as Product from './Scenes/Product.js'
+import * as Chain from './Scenes/Chain.js'
 
 
 export const CANVAS_WIDTH = 1600
@@ -101,11 +102,39 @@ export function loadScene(gameState, sceneName, message = {}) {
             break
         case "sum": Sum.loadScene(gameState, sceneName, message)
             break
-        case "product": Exponential.loadScene(gameState, sceneName, message)
+        case "product": Product.loadScene(gameState, sceneName, message)
             break
-        case "chain": Exponential.loadScene(gameState, sceneName, message)
+        case "chain": Chain.loadScene(gameState, sceneName, message)
             break
+    }
+    if (sceneName != 'mainMenu'){
+        journal(gameState)
     }
 }
 
-
+function journal(gameState){
+    var tempObjs = []
+    const journalPopup = {
+        update: function(ctx, audio, mouse){
+            Color.setColor(ctx, Color.white)
+            ctx.font = "40px monospace"
+            ctx.textBaseline = 'alphabetic'
+            ctx.textAlign = 'left'
+            ctx.fillText(`Linear:`,800,300)
+            ctx.fillText(`f(x) = ax+b => f'(x) = a`,800,350)
+        } 
+    }
+    const exitButton = new GameObjects.Button({originX:1525, originY:25, width: 50, height:50, label:'X',
+        onclick: ()=>{
+            gameState.objects = tempObjs
+            tempObjs = []      
+        }
+    })
+    const journalButton = new GameObjects.Button({originX:1525, originY:25, width: 50, height:50, label:'🕮',
+        onclick: ()=>{
+            tempObjs = gameState.objects
+            gameState.objects = [journalPopup, exitButton]
+        }
+    })
+    gameState.objects.push(journalButton)
+}

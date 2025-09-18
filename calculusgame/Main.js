@@ -91,6 +91,8 @@ function setup() {
             navPuzzleAttempts: {}, // number of attempted puzzles, indexed by puzzle type
             mathBlocksUnlocked: [{type:MathBlock.CONSTANT}],// the MathBlocks currently available, excluding variables
 
+            journal: {},
+
             itemsUnlocked: {},
         }
 
