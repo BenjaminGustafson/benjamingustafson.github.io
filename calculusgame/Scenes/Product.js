@@ -77,7 +77,12 @@ export function loadScene(gameState, sceneName, message = {}){
     switch(sceneNameSplit[1]){
         case "puzzle": 
             switch(sceneNameSplit[2]){
-
+                case '1':
+                    productSliderLevel(gameState, {numSliders:1, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:1,
+                        sumTargetValues: [1], f1TargetValues : [-0.5],
+                        f1TracerStart:-1, prodTracerStart:0, f2TracerStart:1,
+                            nextScenes:["sum.puzzle.2"]})
+                break
             }
         break
 
@@ -120,7 +125,7 @@ function productPlanet(gameState,message){
 
 
 
-function quadExperimentTrial(gameState, {
+function productExperimentTrial(gameState, {
     solutionFun, solutionDdx,
     solutionFunString,
     solutionDdxString,
@@ -258,7 +263,7 @@ function quadExperimentTrial(gameState, {
         }
     }
 
-    const rectGrid = new Grid({canvasX:1100, canvasY:
+    const rectGrid = new Grid({canvasX:1100, canvasY:400, width:400, height:400,
     })
 
     const sliders = []
@@ -493,3 +498,76 @@ function quadExperimentTrial(gameState, {
 
 }
 
+
+function productSliderLevel (gameState, {
+    numSliders,
+    prodTracerStart=0,
+    f1TracerStart=0,
+    f2TracerStart=0,
+    targetSize = 20, sliderSize = 15,
+    nextScenes, 
+    gridXMax=2,
+    gridYMax=2,
+    gridYMin=-2,
+    gridXMin=-2,
+    increment=0.1,
+    sumTargetValues, 
+    f1TargetValues,
+}){
+    const f1Color = Color.yellow
+    const f2Color = Color.magenta
+    const sumColor = Color.red
+    const gss = gameState.stored
+    const backButton = Planet.backButton(gameState)
+    const nextButton = Planet.nextButton(gameState, nextScenes)
+
+    const gridLeft = new Grid({canvasX:100, canvasY:350, canvasWidth:400, canvasHeight:400, 
+        gridXMin:gridXMin, gridYMin:gridYMin, gridXMax:gridXMax, gridYMax:gridYMax, labels:true, arrows:false, autoCellSize: true})
+    const gridMiddle = new Grid({canvasX:600, canvasY:350, canvasWidth:400, canvasHeight:400, 
+        gridXMin:gridXMin, gridYMin:gridYMin, gridXMax:gridXMax, gridYMax:gridYMax, labels:true, arrows:false, autoCellSize: true
+    })
+    const gridRight = new Grid({canvasX:1100, canvasY:350, canvasWidth:400, canvasHeight:400, 
+        gridXMin:gridXMin, gridYMin:gridYMin, gridXMax:gridXMax, gridYMax:gridYMax, labels:true, arrows:false, autoCellSize: true})
+    
+    const spacing = gridLeft.gridWidth/numSliders
+    var f1Sliders = []
+    var f2Sliders = []
+    for (let i = 0; i < numSliders; i++){
+        f1Sliders.push(new Slider({grid:gridMiddle, gridPos:gridMiddle.gridXMin + i * spacing,
+            increment: increment,circleRadius:sliderSize,circleColor:f1Color}))
+        f2Sliders.push(new Slider({grid:gridRight, gridPos:gridRight.gridXMin + i * spacing,
+            increment: increment,circleRadius:sliderSize,circleColor:f2Color}))
+    }
+    
+    var sumTargets = []
+    var f1Targets = []
+    for (let i = 0; i < numSliders; i++) {
+        const x = gridLeft.gridXMin+(i+1)*spacing
+        f1Targets.push(new Target({grid: gridLeft, gridX:x, gridY:f1TargetValues[i], size:targetSize,unhitColor:f1Color}))
+        sumTargets.push(new Target({grid: gridLeft, gridX:x, gridY:sumTargetValues[i], size:targetSize, unhitColor:sumColor}))
+    }
+    
+
+    
+    const f2Tracer = new IntegralTracer({grid: gridLeft, input:{type:'sliders', sliders: f2Sliders}, originGridY:f2TracerStart, 
+        unsolvedColor:f2Color,
+    })
+    const f1Tracer = new IntegralTracer({grid: gridLeft, input:{type:'sliders', sliders: f1Sliders}, targets:f1Targets, originGridY:f1TracerStart,
+        unsolvedColor:f1Color,
+    })
+    const prodTracer = new FunctionTracer({grid: gridLeft, 
+        inputFunction: x => {
+            return f1Tracer.outputY(x)*f2Tracer.outputY(x)
+        },
+        targets:sumTargets, originGridY:prodTracerStart, animated:true, autoStart:true,
+        resetCondition: ()=> f1Tracer.state == FunctionTracer.STOPPED_AT_BEGINNING || f2Tracer.state == FunctionTracer.STOPPED_AT_BEGINNING
+    })
+    
+    gameState.objects = [gridLeft, gridMiddle, gridRight, f1Tracer, f2Tracer, prodTracer,
+         backButton, nextButton].concat(f1Targets).concat(sumTargets).concat(f1Sliders).concat(f2Sliders)
+    gameState.update = ()=> {
+    }
+
+    Planet.winCon(gameState, ()=>prodTracer.solved&&f1Tracer.solved, nextButton)
+    Planet.unlockScenes(nextScenes, gss)
+}
