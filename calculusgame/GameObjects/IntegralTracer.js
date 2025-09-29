@@ -117,7 +117,6 @@ export class IntegralTracer extends FunctionTracer{
      * Calculates the y-values for the tracer
      */
     calculateYs(){
-        console.log('integral calc ys')
         var newGridYs = [this.originGridY] // Grid y-values for each pixel
         var gy = this.originGridY // Accumulated grid y-value
         var gyPrev = this.originGridY

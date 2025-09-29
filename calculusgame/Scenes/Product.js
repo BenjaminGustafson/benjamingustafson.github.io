@@ -22,6 +22,16 @@ const nodes = {
     'product.puzzle.8': [13,1, 0,-1],
     'product.puzzle.9': [14,1, 0,-1],
     'product.puzzle.10':[15,1, 0,-1],
+    'product.puzzle.11': [6, 3, 0,-1],
+    'product.puzzle.12': [7, 3, 0,-1],
+    'product.puzzle.13': [8, 3, 0,-1],
+    'product.puzzle.14': [9, 3, 0,-1],
+    'product.puzzle.15': [10,3, 0,-1],
+    'product.puzzle.16': [11,3, 0,-1],
+    'product.puzzle.17': [12,3, 0,-1],
+    'product.puzzle.18': [13,3, 0,-1],
+    'product.puzzle.19': [14,3, 0,-1],
+    'product.puzzle.20': [15,3, 0,-1],
     'product.lab':      [16,1, 0,-1],
 }
 
@@ -38,7 +48,17 @@ const paths =
     {start: 'product.puzzle.7', end: 'product.puzzle.8', steps: [] },
     {start: 'product.puzzle.8', end: 'product.puzzle.9', steps: [] },
     {start: 'product.puzzle.9', end: 'product.puzzle.10', steps: [] },
-    {start: 'product.puzzle.10', end: 'product.lab', steps: []},
+    {start: 'product.puzzle.10', end: 'product.puzzle.11', steps: [] },
+    {start: 'product.puzzle.11', end: 'product.puzzle.12', steps: [] },
+    {start: 'product.puzzle.12', end: 'product.puzzle.13', steps: [] },
+    {start: 'product.puzzle.13', end: 'product.puzzle.14', steps: [] },
+    {start: 'product.puzzle.14', end: 'product.puzzle.15', steps: [] },
+    {start: 'product.puzzle.15', end: 'product.puzzle.16', steps: [] },
+    {start: 'product.puzzle.16', end: 'product.puzzle.17', steps: [] },
+    {start: 'product.puzzle.17', end: 'product.puzzle.18', steps: [] },
+    {start: 'product.puzzle.18', end: 'product.puzzle.19', steps: [] },
+    {start: 'product.puzzle.19', end: 'product.puzzle.20', steps: [] },
+    {start: 'product.puzzle.20', end: 'product.lab', steps: []},
 ]
 
 
@@ -79,10 +99,59 @@ export function loadScene(gameState, sceneName, message = {}){
             switch(sceneNameSplit[2]){
                 case '1':
                     productSliderLevel(gameState, {numSliders:1, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:1,
-                        sumTargetValues: [1], f1TargetValues : [-0.5],
+                        productTargetValues: [0.5], f1TargetValues : [-0.5],
                         f1TracerStart:-1, prodTracerStart:0, f2TracerStart:1,
-                            nextScenes:["sum.puzzle.2"]})
+                            nextScenes:["product.puzzle.2"]})
                 break
+                case '2':
+                    productSliderLevel(gameState, {numSliders:1, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:1,
+                        productTargetValues: [1], f1TargetValues : [2],
+                        f1TracerStart:0, prodTracerStart:0, f2TracerStart:0,
+                            nextScenes:["product.puzzle.3"]})
+                break
+                case '3':
+                    productSliderLevel(gameState, {numSliders:1, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:1,
+                        productTargetValues: [-2], f1TargetValues : [2],
+                        f1TracerStart:0, prodTracerStart:0, f2TracerStart:0,
+                            nextScenes:["product.puzzle.4"]})
+                break
+                case '4':
+                    productSliderLevel(gameState, {numSliders:1, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:1,
+                        productTargetValues: [0], f1TargetValues : [1],
+                        f1TracerStart:0, prodTracerStart:0, f2TracerStart:0,
+                            nextScenes:["product.puzzle.5"]})
+                break
+                case '5':
+                    productSliderLevel(gameState, {numSliders:2, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:2,
+                        productTargetValues: [-1,0], f1TargetValues : [1,1.5],
+                        f1TracerStart:0, prodTracerStart:0, f2TracerStart:0,
+                            nextScenes:["product.puzzle.6"]})
+                break
+                case '6':
+                    productSliderLevel(gameState, {numSliders:2, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:2,
+                        productTargetValues: [1,1], f1TargetValues : [2,0.5],
+                        f1TracerStart:0, prodTracerStart:0, f2TracerStart:0,
+                            nextScenes:["product.puzzle.7"]})
+                break
+                case '7':
+                    productSliderLevel(gameState, {numSliders:4, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:4,
+                        productTargetValues: [-0.25,0.5,-1.5,1.5], f1TargetValues : [0.5,1,1.5,2],
+                        f1TracerStart:0, prodTracerStart:0, f2TracerStart:0,
+                            nextScenes:["product.puzzle.8"]})
+                break
+                case '8':
+                    productSliderLevel(gameState, {numSliders:4, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:4,
+                        productTargetValues: [-0.25,0.5,-1.5,2], f1TargetValues : [0.5,1,1.5,2],
+                        f1TracerStart:0, prodTracerStart:2, f2TracerStart:0,
+                            nextScenes:["product.puzzle.9"]})
+                break
+                case '9':
+                    productSliderLevel(gameState, {numSliders:4, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:1,
+                        productTargetValues: [-0.25,0.5,-1.5,2], f1TargetValues : [0.5,1,1.5,2],
+                        f1TracerStart:0, prodTracerStart:2, f2TracerStart:0,
+                            nextScenes:["product.puzzle.10"]})
+                break
+                
             }
         break
 
@@ -511,12 +580,12 @@ function productSliderLevel (gameState, {
     gridYMin=-2,
     gridXMin=-2,
     increment=0.1,
-    sumTargetValues, 
+    productTargetValues, 
     f1TargetValues,
 }){
     const f1Color = Color.yellow
     const f2Color = Color.magenta
-    const sumColor = Color.red
+    const productColor = Color.red
     const gss = gameState.stored
     const backButton = Planet.backButton(gameState)
     const nextButton = Planet.nextButton(gameState, nextScenes)
@@ -539,12 +608,12 @@ function productSliderLevel (gameState, {
             increment: increment,circleRadius:sliderSize,circleColor:f2Color}))
     }
     
-    var sumTargets = []
+    var productTargets = []
     var f1Targets = []
     for (let i = 0; i < numSliders; i++) {
         const x = gridLeft.gridXMin+(i+1)*spacing
         f1Targets.push(new Target({grid: gridLeft, gridX:x, gridY:f1TargetValues[i], size:targetSize,unhitColor:f1Color}))
-        sumTargets.push(new Target({grid: gridLeft, gridX:x, gridY:sumTargetValues[i], size:targetSize, unhitColor:sumColor}))
+        productTargets.push(new Target({grid: gridLeft, gridX:x, gridY:productTargetValues[i], size:targetSize, unhitColor:productColor}))
     }
     
 
@@ -559,12 +628,12 @@ function productSliderLevel (gameState, {
         inputFunction: x => {
             return f1Tracer.outputY(x)*f2Tracer.outputY(x)
         },
-        targets:sumTargets, originGridY:prodTracerStart, animated:true, autoStart:true,
+        targets:productTargets, originGridY:0, animated:true, autoStart:true,
         resetCondition: ()=> f1Tracer.state == FunctionTracer.STOPPED_AT_BEGINNING || f2Tracer.state == FunctionTracer.STOPPED_AT_BEGINNING
     })
-    
+
     gameState.objects = [gridLeft, gridMiddle, gridRight, f1Tracer, f2Tracer, prodTracer,
-         backButton, nextButton].concat(f1Targets).concat(sumTargets).concat(f1Sliders).concat(f2Sliders)
+         backButton, nextButton].concat(f1Targets).concat(productTargets).concat(f1Sliders).concat(f2Sliders)
     gameState.update = ()=> {
     }
 

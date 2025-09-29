@@ -64,7 +64,6 @@ export class FunctionTracer {
      * Calculates the y-values for the tracer
      */
     calculateYs(){
-        console.log('fun calc ys')
         this.gridYs = []
         for (let cx = this.grid.canvasX; cx <= this.grid.canvasX+this.grid.canvasWidth; cx ++){
             this.gridYs.push(this.inputFunction(this.grid.canvasToGridX(cx)))
