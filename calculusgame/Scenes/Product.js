@@ -603,7 +603,8 @@ function productSliderLevel (gameState, {
     var f2Sliders = []
     for (let i = 0; i < numSliders; i++){
         f1Sliders.push(new Slider({grid:gridMiddle, gridPos:gridMiddle.gridXMin + i * spacing,
-            increment: increment,circleRadius:sliderSize,circleColor:f1Color}))
+            increment: increment,circleRadius:sliderSize,circleColor:f1Color,
+        }))
         f2Sliders.push(new Slider({grid:gridRight, gridPos:gridRight.gridXMin + i * spacing,
             increment: increment,circleRadius:sliderSize,circleColor:f2Color}))
     }

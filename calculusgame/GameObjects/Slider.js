@@ -28,11 +28,12 @@ export class Slider{
         showLines = true, 
         showAxis = false,
         circleColor = new Color(255,20,0),//,
-        lineWidth = 5
+        lineWidth = 5,
+        valueLabel = true,
     }){
         Object.assign(this, {
             canvasLength, sliderLength, minValue, maxValue, startValue, increment, circleRadius,
-            vertical, showLines, showAxis, circleColor, lineWidth, gridPos  
+            vertical, showLines, showAxis, circleColor, lineWidth, gridPos, valueLabel
         })
 
         if (canvasX != null && canvasY != null){
@@ -88,6 +89,7 @@ export class Slider{
         this.hidden = false
         this.grabbed = false
         this.grabPos = 0
+        this.mouseOver = false
         //this.value = startValue
         //this.mouseValue = this.value
         this.setValue(startValue)
@@ -167,6 +169,7 @@ export class Slider{
         }
         
         if (this.mouseOverCircle(mouse.x,mouse.y)){
+            this.mouseOver = true
             if (mouse.down){
                 this.grabbed = true
                 //this.grabPos = this.vertical ? mouse.y - this.circlePos :  mouse.x - this.circlePos
@@ -176,6 +179,7 @@ export class Slider{
                 mouse.cursor = 'grab'
             }
         }else{
+            this.mouseOver = false
             this.circleColor = this.baseCircleColor
         }
 
@@ -254,15 +258,38 @@ export class Slider{
         // Draw slider handle (circle)
         if (!this.clickable) this.circleColor = Color.red
         Color.setColor(ctx, this.active ? this.circleColor : Color.gray)
+        const circleX = this.vertical ? this.canvasX : this.circlePos
+        const circleY = this.vertical ? this.circlePos : this.canvasY
         Shapes.Circle({
             ctx:ctx,
-            centerX: this.vertical ? this.canvasX : this.circlePos,
-            centerY: this.vertical ? this.circlePos : this.canvasY,
+            centerX: circleX,
+            centerY: circleY,
             radius:this.circleRadius,
             inset: this.clickable,
             shadow:this.grabbed, 
         })
 
+        if (this.valueLabel && (this.mouseOver || this.grabbed)){
+            ctx.font = `${this.circleRadius} px monospace`
+            const text = Number(this.value.toFixed(6))
+            const textWidth = ctx.measureText(text).width
+            const labelPad = 10
+            const labelRight = circleX - this.circleRadius - 20
+            Color.setColor(ctx, Color.darkBlack)
+            Shapes.Rectangle({
+                ctx: ctx, 
+                originX: labelRight - labelPad * 2 - textWidth,
+                originY: circleY-this.circleRadius,
+                width: textWidth + 20,
+                height: this.circleRadius*2,
+                shadow: 8,
+            })
+            ctx.textAlign = 'right'
+            ctx.textBaseline = 'middle'
+            Color.setColor(ctx, Color.white)
+            ctx.fillText(text,labelRight - labelPad, circleY)
+            
+        }
         
     }
 
