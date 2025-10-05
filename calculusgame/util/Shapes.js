@@ -15,7 +15,7 @@ export class Shapes {
      * @param {int} end_y the y coordinate of the middle of the end point
      * @param {int} width the width of the line
     */
-    static Line(ctx, originX, originY, end_x, end_y, width, endCapStyle="rounded", endCapSize=-1,oneSideCap=false){
+    static Line(ctx, originX, originY, end_x, end_y, width, endCapStyle="none", endCapSize=-1,oneSideCap=false){
         ctx.beginPath();
         ctx.moveTo(originX, originY);
         ctx.lineTo(end_x, end_y);

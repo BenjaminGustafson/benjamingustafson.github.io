@@ -6,10 +6,11 @@ export class TargetAdder{
 
     constructor({
         grid,
-        precision=0,
+        xPrecision = 1, 
+        yPrecision = 1,
         solutionFun,
     }){
-        Object.assign(this, {grid, precision, solutionFun})
+        Object.assign(this, {grid, xPrecision, yPrecision, solutionFun})
         this.targets = []
         this.active = true
         this.overGrid = false
@@ -68,8 +69,8 @@ export class TargetAdder{
         }
         if (this.overGrid){
             const gridCoord = g.canvasToGrid(x,y)
-            const newTargetGX = Number(gridCoord.x.toFixed(this.precision))
-            const newTargetGY = Number(gridCoord.y.toFixed(this.precision))
+            const newTargetGX = Number((Math.round(gridCoord.x/this.xPrecision)*this.xPrecision).toFixed(6))
+            const newTargetGY = Number((Math.round(gridCoord.y/this.yPrecision)*this.yPrecision).toFixed(6))
             if ((mouse.held && (newTargetGX != this.targetGX || newTargetGY != this.targetGY))){
                 audioManager.play('click_001', this.targetGY/this.grid.gridHeight*6-6, 0.2)
             }
@@ -85,13 +86,12 @@ export class TargetAdder{
                 this.clickedOn = false
                 const newTargets = this.targets.filter(t => !(t.x == this.targetX && t.y == this.targetY))
                 if (newTargets.length == this.targets.length){
-                    if (this.solutionFun == null || 
-                        Math.abs(this.solutionFun(this.targetGX) - this.targetGY) < 0.5
-                    ){
+                    if (this.solutionFun == null || Math.abs(this.solutionFun(this.targetGX) - this.targetGY) < this.yPrecision * 10){
+                        var gy = this.targetGY
+                        if (this.solutionFun != null)
+                            gy = Number((Math.round(this.solutionFun(this.targetGX)/this.yPrecision)*this.yPrecision).toFixed(6))
                         audioManager.play('drop_003', this.targetGY/this.grid.gridHeight*12)
-                        const target = new Target({grid:this.grid,gridX:this.targetGX, 
-                            gridY: this.solutionFun ? Number(this.solutionFun(this.targetGX).toFixed(this.precision)) : this.targetGY,
-                            size:this.targetSize})
+                        const target = new Target({grid:this.grid,gridX:this.targetGX, gridY: gy, size:this.targetSize})
                         this.targets.push(target)
                     }else {
                         audioManager.play('click2')

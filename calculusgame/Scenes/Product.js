@@ -99,8 +99,8 @@ export function loadScene(gameState, sceneName, message = {}){
             switch(sceneNameSplit[2]){
                 case '1':
                     productSliderLevel(gameState, {numSliders:1, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:1,
-                        productTargetValues: [0.5], f1TargetValues : [-0.5],
-                        f1TracerStart:-1, prodTracerStart:0, f2TracerStart:1,
+                        productTargetValues: [0.5], f1TargetValues : [-1],
+                        f1TracerStart:-0.5, prodTracerStart:0, f2TracerStart:0.5,
                             nextScenes:["product.puzzle.2"]})
                 break
                 case '2':

@@ -27,19 +27,20 @@ export class FunctionTracer {
         unsolvedColor = Color.red, // color of the line when not solved
         solvedColor = Color.blue, // color of the line when solved (hit all targets)
         audioChannel = 0, // if using multiple tracers, use different audio channels so sounds can play simultaneously
+        numLabel = true,
     }){
         Object.assign(this, {
             grid, originGridX, originGridY,
             pixelsPerSec, targets, lineWidth, precision, 
             unsolvedColor, solvedColor, audioChannel,
             animated, resetCondition, autoStart, 
-            inputFunction,
+            inputFunction, numLabel
         })
 
         this.originCanvasX = this.grid.gridToCanvasX(this.originGridX)
         this.originCanvasY = this.grid.gridToCanvasY(this.originGridY)      
         
-        this.pixelIndex = 0 // Number of pixels from the start that the tracer is on.
+        this.pixelIndex = this.grid.canvasWidth // Number of pixels from the start that the tracer is on.
         this.currentX = 0 // the current grid X-value
         this.currentY = 0 // the most recent y-value traced
         this.gridYs = [] // y-values for each traced pixel.
@@ -49,8 +50,10 @@ export class FunctionTracer {
         this.startTime = Infinity // the Date.now() of when we started tracing
 
         // States
-        this.state = FunctionTracer.STOPPED_AT_BEGINNING
-         
+        
+        this.state = FunctionTracer.STOPPED_AT_END
+        this.selectedIndex = null
+
         this.reset()
     }
 
@@ -156,6 +159,35 @@ export class FunctionTracer {
             //Draw line
             Shapes.Line(ctx,x-1, prevCy, x, cy, this.lineWidth)
 
+            // Draw label
+            if (this.numLabel && ctx.isPointInStroke(mouse.x, mouse.y)){
+                Shapes.Circle({ctx:ctx, centerX:x, centerY:cy, radius: this.lineWidth*1.5})
+                ctx.save()
+                const fontSize = 30
+                ctx.font = `${fontSize}px monospace`
+                const text = '(' + Number((Math.round(this.grid.canvasToGridX(this.grid.canvasX+i)*10)/10).toFixed(1)) 
+                    + ',' + Number((Math.round(this.gridYs[i]*10)/10).toFixed(1)) + ')'
+                const textWidth = ctx.measureText(text).width
+                const labelPad = 5
+                const labelRight = x - 10
+                const labelBottom = cy - 10
+                Color.setColor(ctx, Color.gray)
+                Shapes.Rectangle({
+                    ctx: ctx, 
+                    originX: labelRight - labelPad * 2 - textWidth,
+                    originY: labelBottom-fontSize,
+                    width: textWidth + 20,
+                    height: fontSize,
+                    shadow: 8,
+                })
+                ctx.textAlign = 'right'
+                ctx.textBaseline = 'middle'
+                Color.setColor(ctx, Color.white)
+                ctx.fillText(text,labelRight - labelPad, labelBottom-fontSize/2)
+                ctx.restore()
+            }
+
+
             // Check if line hit targets on last iteration
             if (!cyObj.out){ //i == this.pixelIndex && 
                 this.targets.forEach(t => {
@@ -173,6 +205,8 @@ export class FunctionTracer {
             prevOob = cyObj.out
         }
 
+
+
         // Before we have drawn past the end of the grid, increment frames
         if (this.state == FunctionTracer.TRACING){
             const elapsedTime = (Date.now() - this.startTime)/1000
@@ -182,6 +216,7 @@ export class FunctionTracer {
                 this.pixelIndex = this.grid.canvasWidth
                 this.state = FunctionTracer.AT_END
             }
+
         }
         else if (this.state == FunctionTracer.AT_END){
             this.state = FunctionTracer.STOPPED_AT_END

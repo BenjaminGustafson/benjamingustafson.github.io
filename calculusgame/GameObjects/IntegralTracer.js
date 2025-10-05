@@ -96,10 +96,14 @@ export class IntegralTracer extends FunctionTracer{
                 break 
             case 'drawFunction':
                 const drawFunction = input.drawFunction
-                inputFunction = (x) => {
-                    drawFunction.outputFunction(gx)
+                function helper (x) {
+                    return drawFunction.outputFunction(x)
                 }
-                resetCondition = (x) => {
+                inputFunction = helper 
+                // (x) => {
+                //     drawFunction.outputFunction(x)
+                // }
+                resetCondition = () => {
                     return drawFunction.state == 'draw'
                 }
                 break

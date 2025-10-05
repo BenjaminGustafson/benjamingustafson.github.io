@@ -277,7 +277,7 @@ function linearPuzzle1 (gameState, {nextScenes}){
         gridXMin:0, gridYMin:0, gridXMax:1, gridYMax:1, labels:false, arrows:false
     })
     
-    const slider = new Slider({grid:gridRight, gridPos:0})
+    const slider = new Slider({grid:gridRight, gridPos:0, valueLabel:false})
 
     const target = new Target({grid: gridLeft, gridX:1, gridY:1, size:20})
     const tracer = new IntegralTracer({grid: gridLeft, input: {type:'sliders', sliders:[slider]}, targets:[target]})

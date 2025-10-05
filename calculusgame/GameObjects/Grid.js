@@ -43,7 +43,8 @@ export class Grid{
         autoCellSize = false,
         lineWidthMax = 4,
         majorLinesX = 1, majorLinesY = 1,
-        lineWidthMin = 1
+        lineWidthMin = 1,
+        xAxisLabel= "", yAxisLabel = "",
     }){
         Object.assign(this, {
             canvasX, canvasY,
@@ -53,6 +54,7 @@ export class Grid{
             labels, arrows,
             lineWidthMax, lineWidthMin,
             majorLinesX, majorLinesY,
+            xAxisLabel, yAxisLabel,
         });
         // The location of the x-axis (horizontal axis), starting from 0 at the top of the grid
         this.xAxis = gridYMax
