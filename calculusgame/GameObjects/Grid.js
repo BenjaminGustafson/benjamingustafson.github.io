@@ -279,6 +279,10 @@ export class Grid{
             i++
         }
 
+        ctx.fillText(this.xAxisLabel, this.canvasWidth/2, this.canvasHeight+50)
+        ctx.rotate(-Math.PI/2)
+        ctx.fillText(this.yAxisLabel, -this.canvasHeight/2, -80)
+
         ctx.resetTransform()
     }
 
