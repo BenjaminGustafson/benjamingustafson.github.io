@@ -9,8 +9,10 @@ export class TargetAdder{
         xPrecision = 1, 
         yPrecision = 1,
         solutionFun,
+        coverBarPrecision = 1,
+        targetColor = Color.magenta,
     }){
-        Object.assign(this, {grid, xPrecision, yPrecision, solutionFun})
+        Object.assign(this, {grid, xPrecision, yPrecision, solutionFun, coverBarPrecision, targetColor})
         this.targets = []
         this.active = true
         this.overGrid = false
@@ -19,9 +21,22 @@ export class TargetAdder{
         this.targetGY = 0
         this.targetGX = 0
         this.targetSize = 15
+        
+        this.coveredIntervals = []
+        for (let i = 0; i < this.grid.gridWidth / this.coverBarPrecision; i++){
+            this.coveredIntervals.push(false)
+        }
 
         this.clickedOn = false
-    }   
+        this.solved = false
+    }
+
+    coverInterval(x){
+        const i = Math.floor((x - this.grid.gridXMin) / this.coverBarPrecision)
+        if (i < this.coveredIntervals.length && i >= 0)
+        this.coveredIntervals[i] = true
+    }
+
 
 
     update(ctx, audioManager, mouse){
@@ -47,6 +62,14 @@ export class TargetAdder{
             Color.setColor(ctx,Color.magenta)
             ctx.fillText(str, x,y)
         }
+
+        for (let i = 0; i < this.coveredIntervals.length; i++){
+            Color.setColor(ctx, this.coveredIntervals[i] ? Color.blue : Color.magenta)
+            const y = this.grid.originY - 50
+            const intervalLength = this.grid.canvasWidth / this.coveredIntervals.length
+            Shapes.Line(ctx, this.grid.originX+i*intervalLength, y, this.grid.originX+(i+1)*intervalLength, y, 10)
+        }
+
     }
 
     mouseInput(mouse, audioManager){
@@ -91,8 +114,18 @@ export class TargetAdder{
                         if (this.solutionFun != null)
                             gy = Number((Math.round(this.solutionFun(this.targetGX)/this.yPrecision)*this.yPrecision).toFixed(6))
                         audioManager.play('drop_003', this.targetGY/this.grid.gridHeight*12)
-                        const target = new Target({grid:this.grid,gridX:this.targetGX, gridY: gy, size:this.targetSize})
+                        const target = new Target({grid:this.grid,gridX:this.targetGX, gridY: gy, size:this.targetSize, unhitColor: this.targetColor})
                         this.targets.push(target)
+                        this.coverInterval(this.targetGX)
+                        var allCovered = true
+                        for (let i = 0; i < this.coveredIntervals.length; i++)
+                            if (!this.coveredIntervals[i]) allCovered = false
+                        if (!this.solved && allCovered){
+                            this.solved = true
+                        }
+                        if (this.solved){
+                            audioManager.play('confirmation_001', {})
+                        }
                     }else {
                         audioManager.play('click2')
                     }

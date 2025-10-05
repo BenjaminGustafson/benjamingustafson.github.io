@@ -298,7 +298,8 @@ function compositeFunctionTargetAdder(gameState, {nextScenes=[], innerFun, outer
         grid: turtleGrid, inputFunction: outerFun,
     })
 
-    const adder = new TargetAdder({grid: compGrid, xPrecision: 0.01, yPrecision:0.01, solutionFun: compFun})
+    const adder = new TargetAdder({grid: compGrid, xPrecision: 0.01, yPrecision:0.01, solutionFun: compFun, 
+        targetColor:Color.blue, coverBarPrecision: 0.5})
 
     /**
      * The turtle moves on top of the outer function f(x), according to the inner function g(t)
@@ -329,8 +330,9 @@ function compositeFunctionTargetAdder(gameState, {nextScenes=[], innerFun, outer
 
     const tSlider = new Slider({canvasX:900,canvasY:150,canvasLength:400,
         sliderLength:10, maxValue:10, vertical:false, increment:0.1})
-    const timeLabel = new TextBox({originX:1000,originY:250, font:'26px monospace'})
-    const xLabel = new TextBox({originX:1200,originY:250, font:'26px monospace'})
+    const timeLabel = new TextBox({originX:800,originY:250, font:'26px monospace'})
+    const xLabel = new TextBox({originX:1000,originY:250, font:'26px monospace'})
+    const yLabel = new TextBox({originX:1200,originY:250, font:'26px monospace'})
     const playPauseButton = new Button({originX:800,originY:120,width:50,height:50,
         onclick: function(){
             if (time >= maxTime){
@@ -362,8 +364,10 @@ function compositeFunctionTargetAdder(gameState, {nextScenes=[], innerFun, outer
     }
     yLine.hidden = true
 
-    gameState.objects = [backButton, nextButton, compGrid,turtleGrid, adder, outerTracer, turtle, timeLabel,
-         xLabel, playPauseButton, tSlider, yLine]
+
+    gameState.objects = [backButton, nextButton, compGrid,turtleGrid, adder, outerTracer, turtle, 
+        //timeLabel, xLabel, yLabel,
+        playPauseButton, tSlider, yLine]
     gameState.update = ()=> {
         if (playing){
             time = (Date.now() - startTime)/1000 + startValue // time in secs to 1 decimal
@@ -371,20 +375,22 @@ function compositeFunctionTargetAdder(gameState, {nextScenes=[], innerFun, outer
             playPauseButton.label =  '⏸'
         }else{
             playPauseButton.label =  '⏵'
+            time = tSlider.value
             if (adder.overGrid){
                 tSlider.moveToValue(adder.targetGX)
+                time = adder.targetGX
             }
             yLine.hidden = !adder.overGrid
-            time = tSlider.value
         }
         if (time >= maxTime){
             time = maxTime
             playing = false
         }
-        timeLabel.content = "t = " + time.toFixed(1)
-        xLabel.content = "x = " + innerFun(time).toFixed(1)
+        timeLabel.content = "t = " + time.toFixed(2)
+        xLabel.content = "x = " + innerFun(time).toFixed(2)
+        yLabel.content = "y = " + outerFun(innerFun(time)).toFixed(2)
     }
     
-    Planet.winCon(gameState, ()=> false, nextButton)
+    Planet.winCon(gameState, ()=> adder.solved, nextButton)
     Planet.unlockScenes(nextScenes, gss)
 }
