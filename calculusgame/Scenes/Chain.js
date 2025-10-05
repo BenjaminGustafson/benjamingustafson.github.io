@@ -99,12 +99,22 @@ export function loadScene(gameState, sceneName, message = {}){
             switch(sceneNameSplit[2]){
                 case '1':
                     compositeFunctionTargetAdder(gameState, {innerFun: x=> Math.sin(x), outerFun: x=>x*x*x,
-                        xMinInner:0, xMaxInner:10, yMinInner:-1, yMaxInner:1,  xMinOuter:-1, xMaxOuter:1, yMinOuter:-1, yMaxOuter:1, 
+                        tMin:0, tMax:10, yMin:-1, yMax:1,  xMin:-1, xMax:1, xPrecision:0.1, yPrecision:0.1,
                         nextScenes:['chain.puzzle.2']})
+                break
+                case '2':
+                    compositeFunctionTargetAdder(gameState, {innerFun: x=> x*x, outerFun: x=>Math.pow(Math.E,x),
+                        tMin:-2, tMax:2, yMin:0, yMax:60,  xMin:0, xMax:4,
+                        nextScenes:['chain.puzzle.3']})
+                break
+                case '3':
+                    compositeFunctionTargetAdder(gameState, {innerFun: x=> x*x, outerFun: x=>Math.sin(x),
+                        tMin:0, tMax:3, yMin:-1, yMax:1,  xMin:0, xMax:9,
+                        nextScenes:['chain.puzzle.4']})
                 break
                 // case '2':
                 //     compositeFunctionTargetAdder(gameState, {innerFun: x=> Math.sin(x), outerFun: x=>x*x*x,
-                //         xMinInner:0, xMaxInner:10, yMinInner:-1, yMaxInner:1,  xMinOuter:-1, xMaxOuter:1, yMinOuter:-1, yMaxOuter:1, 
+                //         tMin:0, tMax:10, yMin:-1, yMax:1,  xMin:-1, xMax:1, yMin:-1, yMax:1, 
                 //         nextScenes:['chain.puzzle.2']})
                 // break
             }
@@ -147,149 +157,152 @@ function chainPlanet(gameState,message){
     })
 }
 
-function chainMeasureDiscrete(gameState, {nextScenes=[], innerFun, outerFun,
-    xMinOuter, xMaxOuter, xMinInner, xMaxInner,
-    yMinOuter, yMaxOuter, yMinInner, yMaxInner,
- }){
-    const gss = gameState.stored
-    const backButton = Planet.backButton(gameState)
-    const nextButton = Planet.nextButton(gameState, nextScenes)
+// function chainMeasureDiscrete(gameState, {nextScenes=[], innerFun, outerFun,
+//     xMin, xMax, tMin, tMax,
+//     yMin, yMax, yMin, yMax,
+//  }){
+//     const gss = gameState.stored
+//     const backButton = Planet.backButton(gameState)
+//     const nextButton = Planet.nextButton(gameState, nextScenes)
 
-    const compFun = x => outerFun(innerFun(x))
+//     const compFun = x => outerFun(innerFun(x))
     
-    const compGrid = new Grid({canvasX:100, canvasY:350, canvasWidth:400, canvasHeight:400, 
-        gridXMin:xMinInner, gridXMax:xMaxInner, gridYMin:yMinInner, gridYMax:yMaxInner,
-        labels:true, arrows:false, autoCellSize: true})
+//     const compGrid = new Grid({canvasX:100, canvasY:350, canvasWidth:400, canvasHeight:400, 
+//         gridXMin:tMin, gridXMax:tMax, gridYMin:yMin, gridYMax:yMax,
+//         labels:true, arrows:false, autoCellSize: true})
 
-    const turtleGrid = new Grid({canvasX:1100, canvasY:350, canvasWidth:400, canvasHeight:400, 
-        gridXMin:xMinOuter, gridXMax:xMaxOuter, gridYMin:yMinOuter, gridYMax:yMaxOuter,
-        labels:true, arrows:false, autoCellSize: true})
+//     const turtleGrid = new Grid({canvasX:1100, canvasY:350, canvasWidth:400, canvasHeight:400, 
+//         gridXMin:xMin, gridXMax:xMax, gridYMin:yMin, gridYMax:yMax,
+//         labels:true, arrows:false, autoCellSize: true})
 
-    const ddxGrid = new Grid ({canvasX:600, canvasY:350, canvasWidth:400, canvasHeight:400, 
-        gridXMin:xMinInner, gridXMax:xMaxInner, gridYMin:yMinInner, gridYMax:yMaxInner,
-        labels:true, arrows:false, autoCellSize: true})
+//     const ddxGrid = new Grid ({canvasX:600, canvasY:350, canvasWidth:400, canvasHeight:400, 
+//         gridXMin:tMin, gridXMax:tMax, gridYMin:yMin, gridYMax:yMax,
+//         labels:true, arrows:false, autoCellSize: true})
 
-    const outerTracer = new FunctionTracer({
-        grid: turtleGrid, inputFunction: outerFun,
-    })
+//     const outerTracer = new FunctionTracer({
+//         grid: turtleGrid, inputFunction: outerFun,
+//     })
 
-    const adder = new TargetAdder({grid: compGrid, precision: 1, solutionFun: compFun})
+//     const adder = new TargetAdder({grid: compGrid, precision: 1, solutionFun: compFun})
 
-    /**
-     * The turtle moves on top of the outer function f(x), according to the inner function g(t)
-     */
-    var time = 0
-    var playing = true
-    var startTime = Date.now()
-    var startValue = 0
-    const maxTime = 10
+//     /**
+//      * The turtle moves on top of the outer function f(x), according to the inner function g(t)
+//      */
+//     var time = 0
+//     var playing = true
+//     var startTime = Date.now()
+//     var startValue = 0
+//     const maxTime = 10
 
-    const turtle = {
-        y: 0,
-        x: 0,
-        size: 50,
-        update: function(ctx){
-            this.x = innerFun(time)
-            this.y = outerFun(this.x)
-            ctx.font = "50px monospace"
-            ctx.translate(turtleGrid.gridToCanvasX(this.x),turtleGrid.gridToCanvasY(this.y))
-            ctx.scale(-1,1)
-            ctx.textAlign = 'center'
-            ctx.textBaseline = 'middle'
-            ctx.fillText("🐢", 0, 0)
-            ctx.resetTransform()
-        }
-    }
+//     const turtle = {
+//         y: 0,
+//         x: 0,
+//         size: 50,
+//         update: function(ctx){
+//             this.x = innerFun(time)
+//             this.y = outerFun(this.x)
+//             ctx.font = "50px monospace"
+//             ctx.translate(turtleGrid.gridToCanvasX(this.x),turtleGrid.gridToCanvasY(this.y))
+//             ctx.scale(-1,1)
+//             ctx.textAlign = 'center'
+//             ctx.textBaseline = 'middle'
+//             ctx.fillText("🐢", 0, 0)
+//             ctx.resetTransform()
+//         }
+//     }
 
 
-    const tSlider = new Slider({canvasX:1100,canvasY:150,canvasLength:450,
-        sliderLength:10, maxValue:10, vertical:false, increment:0.1})
-    const timeLabel = new TextBox({originX:1000,originY:250, font:'26px monospace'})
-    const xLabel = new TextBox({originX:1200,originY:250, font:'26px monospace'})
-    const playPauseButton = new Button({originX:1000,originY:120,width:50,height:50,
-        onclick: function(){
-            if (time >= maxTime){
-                playing = true
-                time = 0
-                startTime = Date.now()
-                startValue = 0
-                tSlider.setValue(0)
-            }else{
-                if (playing){
-                    playing = false
-                }else{
-                    startTime = Date.now()
-                    startValue = time
-                    playing = true
-                }
-            } 
-        },
-        label:"⏸", lineWidth:5
-    }) 
+//     const tSlider = new Slider({canvasX:1100,canvasY:150,canvasLength:450,
+//         sliderLength:10, maxValue:10, vertical:false, increment:0.1})
+//     const timeLabel = new TextBox({originX:1000,originY:250, font:'26px monospace'})
+//     const xLabel = new TextBox({originX:1200,originY:250, font:'26px monospace'})
+//     const playPauseButton = new Button({originX:1000,originY:120,width:50,height:50,
+//         onclick: function(){
+//             if (time >= maxTime){
+//                 playing = true
+//                 time = 0
+//                 startTime = Date.now()
+//                 startValue = 0
+//                 tSlider.setValue(0)
+//             }else{
+//                 if (playing){
+//                     playing = false
+//                 }else{
+//                     startTime = Date.now()
+//                     startValue = time
+//                     playing = true
+//                 }
+//             } 
+//         },
+//         label:"⏸", lineWidth:5
+//     }) 
     
 
-    const yLine = {
-        update: (ctx, audio, mouse) => {
-            Color.setColor(ctx, Color.green)
-            const turtleY = turtleGrid.gridToCanvasY(turtle.y)
-            Shapes.Line(ctx, compGrid.originX, turtleY, turtleGrid.originX + turtleGrid.canvasWidth, turtleY)
-        }
-    }
-    yLine.hidden = true
+//     const yLine = {
+//         update: (ctx, audio, mouse) => {
+//             Color.setColor(ctx, Color.green)
+//             const turtleY = turtleGrid.gridToCanvasY(turtle.y)
+//             Shapes.Line(ctx, compGrid.originX, turtleY, turtleGrid.originX + turtleGrid.canvasWidth, turtleY)
+//         }
+//     }
+//     yLine.hidden = true
 
-    const ddxDrawer = new DrawFunction({grid: ddxGrid, numPoints:400})
+//     const ddxDrawer = new DrawFunction({grid: ddxGrid, numPoints:400})
 
-    const intTracer = new IntegralTracer({grid: compGrid, input: {type:'drawFunction', drawFunction: ddxDrawer}, animated:false})
+//     const intTracer = new IntegralTracer({grid: compGrid, input: {type:'drawFunction', drawFunction: ddxDrawer}, animated:false})
 
-    gameState.objects = [backButton, nextButton, compGrid,turtleGrid, adder, outerTracer, turtle, timeLabel,
-        ddxGrid, ddxDrawer, intTracer,
-         xLabel, playPauseButton, tSlider, yLine]
-    gameState.update = ()=> {
-        console.log(intTracer.state, intTracer.pixelIndex, intTracer.currentY, intTracer.currentX)
-        if (playing){
-            time = (Date.now() - startTime)/1000 + startValue // time in secs to 1 decimal
-            tSlider.moveToValue(time)
-            playPauseButton.label =  '⏸'
-        }else{
-            playPauseButton.label =  '⏵'
-            if (adder.overGrid){
-                tSlider.moveToValue(adder.targetGX)
-            }
-            yLine.hidden = !adder.overGrid
-            time = tSlider.value
-        }
-        if (time >= maxTime){
-            time = maxTime
-            playing = false
-        }
-        timeLabel.content = "t = " + time.toFixed(1)
-        xLabel.content = "x = " + innerFun(time).toFixed(1)
-        intTracer.targets = adder.targets
-    }
+//     gameState.objects = [backButton, nextButton, compGrid,turtleGrid, adder, outerTracer, turtle, timeLabel,
+//         ddxGrid, ddxDrawer, intTracer,
+//          xLabel, playPauseButton, tSlider, yLine]
+//     gameState.update = ()=> {
+//         console.log(intTracer.state, intTracer.pixelIndex, intTracer.currentY, intTracer.currentX)
+//         if (playing){
+//             time = (Date.now() - startTime)/1000 + startValue // time in secs to 1 decimal
+//             tSlider.moveToValue(time)
+//             playPauseButton.label =  '⏸'
+//         }else{
+//             playPauseButton.label =  '⏵'
+//             if (adder.overGrid){
+//                 tSlider.moveToValue(adder.targetGX)
+//             }
+//             yLine.hidden = !adder.overGrid
+//             time = tSlider.value
+//         }
+//         if (time >= maxTime){
+//             time = maxTime
+//             playing = false
+//         }
+//         timeLabel.content = "t = " + time.toFixed(1)
+//         xLabel.content = "x = " + innerFun(time).toFixed(1)
+//         intTracer.targets = adder.targets
+//     }
     
-    Planet.winCon(gameState, ()=> false, nextButton)
-    Planet.unlockScenes(nextScenes, gss)
-}
+//     Planet.winCon(gameState, ()=> false, nextButton)
+//     Planet.unlockScenes(nextScenes, gss)
+// }
 
 
 function compositeFunctionTargetAdder(gameState, {nextScenes=[], innerFun, outerFun,
-    xMinOuter, xMaxOuter, xMinInner, xMaxInner,
-    yMinOuter, yMaxOuter, yMinInner, yMaxInner,
+    xMin, xMax, tMin, tMax,
+    yMin, yMax
  }){
     const gss = gameState.stored
     const backButton = Planet.backButton(gameState)
     const nextButton = Planet.nextButton(gameState, nextScenes)
+
+    const tPrecision = (tMax - tMin)/100
+    const yPrecision = (yMax - yMin)/100
 
     const compFun = x => outerFun(innerFun(x))
     
     const compGrid = new Grid({canvasX:900, canvasY:350, canvasWidth:400, canvasHeight:400, 
-        gridXMin:xMinInner, gridXMax:xMaxInner, gridYMin:yMinInner, gridYMax:yMaxInner,
+        gridXMin:tMin, gridXMax:tMax, gridYMin:yMin, gridYMax:yMax,
         labels:true, arrows:false, autoCellSize: true,
         xAxisLabel:"t", yAxisLabel:"y",
     })
 
     const turtleGrid = new Grid({canvasX:300, canvasY:350, canvasWidth:400, canvasHeight:400, 
-        gridXMin:xMinOuter, gridXMax:xMaxOuter, gridYMin:yMinOuter, gridYMax:yMaxOuter,
+        gridXMin:xMin, gridXMax:xMax, gridYMin:yMin, gridYMax:yMax,
         labels:true, arrows:false, autoCellSize: true,
         xAxisLabel:"x", yAxisLabel:"y",
     })
@@ -298,17 +311,15 @@ function compositeFunctionTargetAdder(gameState, {nextScenes=[], innerFun, outer
         grid: turtleGrid, inputFunction: outerFun,
     })
 
-    const adder = new TargetAdder({grid: compGrid, xPrecision: 0.01, yPrecision:0.01, solutionFun: compFun, 
-        targetColor:Color.blue, coverBarPrecision: 0.5})
+    const adder = new TargetAdder({grid: compGrid, xPrecision: tPrecision, yPrecision:yPrecision, solutionFun: compFun, 
+        targetColor:Color.blue, coverBarPrecision: (tMax - tMin)/20})
 
     /**
      * The turtle moves on top of the outer function f(x), according to the inner function g(t)
      */
-    var time = 0
+    var time = tMin
     var playing = true
     var startTime = Date.now()
-    var startValue = 0
-    const maxTime = 10
 
     const turtle = {
         y: 0,
@@ -329,24 +340,22 @@ function compositeFunctionTargetAdder(gameState, {nextScenes=[], innerFun, outer
 
 
     const tSlider = new Slider({canvasX:900,canvasY:150,canvasLength:400,
-        sliderLength:10, maxValue:10, vertical:false, increment:0.1})
+        sliderLength:tMax-tMin, maxValue:tMax, vertical:false, increment:0.1})
     const timeLabel = new TextBox({originX:800,originY:250, font:'26px monospace'})
     const xLabel = new TextBox({originX:1000,originY:250, font:'26px monospace'})
     const yLabel = new TextBox({originX:1200,originY:250, font:'26px monospace'})
     const playPauseButton = new Button({originX:800,originY:120,width:50,height:50,
         onclick: function(){
-            if (time >= maxTime){
+            if (time >= tMax){
                 playing = true
-                time = 0
+                time = tMin
                 startTime = Date.now()
-                startValue = 0
-                tSlider.setValue(0)
+                tSlider.setValue(time)
             }else{
                 if (playing){
                     playing = false
                 }else{
                     startTime = Date.now()
-                    startValue = time
                     playing = true
                 }
             } 
@@ -370,7 +379,7 @@ function compositeFunctionTargetAdder(gameState, {nextScenes=[], innerFun, outer
         playPauseButton, tSlider, yLine]
     gameState.update = ()=> {
         if (playing){
-            time = (Date.now() - startTime)/1000 + startValue // time in secs to 1 decimal
+            time = (Date.now() - startTime)/1000 + tMin // time in secs to 1 decimal
             tSlider.moveToValue(time)
             playPauseButton.label =  '⏸'
         }else{
@@ -382,8 +391,8 @@ function compositeFunctionTargetAdder(gameState, {nextScenes=[], innerFun, outer
             }
             yLine.hidden = !adder.overGrid
         }
-        if (time >= maxTime){
-            time = maxTime
+        if (time >= tMax){
+            time = tMax
             playing = false
         }
         timeLabel.content = "t = " + time.toFixed(2)

@@ -67,7 +67,8 @@ export class TargetAdder{
             Color.setColor(ctx, this.coveredIntervals[i] ? Color.blue : Color.magenta)
             const y = this.grid.originY - 50
             const intervalLength = this.grid.canvasWidth / this.coveredIntervals.length
-            Shapes.Line(ctx, this.grid.originX+i*intervalLength, y, this.grid.originX+(i+1)*intervalLength, y, 10)
+            Shapes.Line(ctx, this.grid.originX+i*intervalLength, y, this.grid.originX+(i+1)*intervalLength, y, 10, 
+                            i == 0 || i == this.coveredIntervals.length - 1 ? 'rounded' : 'none')
         }
 
     }
