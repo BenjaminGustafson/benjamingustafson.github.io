@@ -99,7 +99,7 @@ export function loadScene(gameState, sceneName, message = {}){
             switch(sceneNameSplit[2]){
                 case '1':
                     compositeFunctionTargetAdder(gameState, {innerFun: x=> Math.sin(x), outerFun: x=>x*x*x,
-                        tMin:0, tMax:10, yMin:-1, yMax:1,  xMin:-1, xMax:1, xPrecision:0.1, yPrecision:0.1,
+                        tMin:0, tMax:10, yMin:-1, yMax:1,  xMin:-1, xMax:1,
                         nextScenes:['chain.puzzle.2']})
                 break
                 case '2':
@@ -112,11 +112,12 @@ export function loadScene(gameState, sceneName, message = {}){
                         tMin:0, tMax:3, yMin:-1, yMax:1,  xMin:0, xMax:9,
                         nextScenes:['chain.puzzle.4']})
                 break
-                // case '2':
-                //     compositeFunctionTargetAdder(gameState, {innerFun: x=> Math.sin(x), outerFun: x=>x*x*x,
-                //         tMin:0, tMax:10, yMin:-1, yMax:1,  xMin:-1, xMax:1, yMin:-1, yMax:1, 
-                //         nextScenes:['chain.puzzle.2']})
-                // break
+                case '4':
+                    compositeFunctionMathBlock(gameState, {innerFun: x=> Math.sin(x), outerFun: x=>x*x*x,
+                        tMin:0, tMax:10, yMin:-1, yMax:1,  xMin:-1, xMax:1,
+                        nextScenes:['chain.puzzle.5']})
+                break
+
             }
         break
 
@@ -377,6 +378,156 @@ function compositeFunctionTargetAdder(gameState, {nextScenes=[], innerFun, outer
     gameState.objects = [backButton, nextButton, compGrid,turtleGrid, adder, outerTracer, turtle, 
         //timeLabel, xLabel, yLabel,
         playPauseButton, tSlider, yLine]
+    gameState.update = ()=> {
+        if (playing){
+            time = (Date.now() - startTime)/1000 + tMin // time in secs to 1 decimal
+            tSlider.moveToValue(time)
+            playPauseButton.label =  '⏸'
+        }else{
+            playPauseButton.label =  '⏵'
+            time = tSlider.value
+            if (adder.overGrid){
+                tSlider.moveToValue(adder.targetGX)
+                time = adder.targetGX
+            }
+            yLine.hidden = !adder.overGrid
+        }
+        if (time >= tMax){
+            time = tMax
+            playing = false
+        }
+        timeLabel.content = "t = " + time.toFixed(2)
+        xLabel.content = "x = " + innerFun(time).toFixed(2)
+        yLabel.content = "y = " + outerFun(innerFun(time)).toFixed(2)
+    }
+    
+    Planet.winCon(gameState, ()=> adder.solved, nextButton)
+    Planet.unlockScenes(nextScenes, gss)
+}
+
+
+function compositeFunctionMathBlock(gameState, {nextScenes=[], innerFun, outerFun,
+    xMin, xMax, tMin, tMax,
+    yMin, yMax
+ }){
+    const gss = gameState.stored
+    const backButton = Planet.backButton(gameState)
+    const nextButton = Planet.nextButton(gameState, nextScenes)
+
+    const tPrecision = (tMax - tMin)/100
+    const yPrecision = (yMax - yMin)/100
+
+    const compFun = x => outerFun(innerFun(x))
+    
+    const compGrid = new Grid({canvasX:700, canvasY:350, canvasWidth:400, canvasHeight:400, 
+        gridXMin:tMin, gridXMax:tMax, gridYMin:yMin, gridYMax:yMax,
+        labels:true, arrows:false, autoCellSize: true,
+        xAxisLabel:"t", yAxisLabel:"y",
+    })
+
+    const turtleGrid = new Grid({canvasX:100, canvasY:350, canvasWidth:400, canvasHeight:400, 
+        gridXMin:xMin, gridXMax:xMax, gridYMin:yMin, gridYMax:yMax,
+        labels:true, arrows:false, autoCellSize: true,
+        xAxisLabel:"x", yAxisLabel:"y",
+    })
+
+    const outerTracer = new FunctionTracer({
+        grid: turtleGrid, inputFunction: outerFun,
+    })
+
+    const adder = new TargetAdder({grid: compGrid, xPrecision: tPrecision, yPrecision:yPrecision, solutionFun: compFun, 
+        targetColor:Color.blue, coverBarPrecision: (tMax - tMin)/20})
+
+    /**
+     * The turtle moves on top of the outer function f(x), according to the inner function g(t)
+     */
+    var time = tMin
+    var playing = true
+    var startTime = Date.now()
+
+    const turtle = {
+        y: 0,
+        x: 0,
+        size: 50,
+        update: function(ctx){
+            this.x = innerFun(time)
+            this.y = outerFun(this.x)
+            ctx.font = "50px monospace"
+            ctx.translate(turtleGrid.gridToCanvasX(this.x),turtleGrid.gridToCanvasY(this.y))
+            ctx.scale(-1,1)
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText("🐢", 0, 0)
+            ctx.resetTransform()
+        }
+    }
+
+
+    const tSlider = new Slider({canvasX:compGrid.originX,canvasY:50,canvasLength:400,
+        sliderLength:tMax-tMin, maxValue:tMax, vertical:false, increment:0.1})
+    const timeLabel = new TextBox({originX:800,originY:250, font:'26px monospace'})
+    const xLabel = new TextBox({originX:1000,originY:250, font:'26px monospace'})
+    const yLabel = new TextBox({originX:1200,originY:250, font:'26px monospace'})
+    const playPauseButton = new Button({originX:compGrid.originX-100,originY:20,width:50,height:50,
+        onclick: function(){
+            if (time >= tMax){
+                playing = true
+                time = tMin
+                startTime = Date.now()
+                tSlider.setValue(time)
+            }else{
+                if (playing){
+                    playing = false
+                }else{
+                    startTime = Date.now()
+                    playing = true
+                }
+            } 
+        },
+        label:"⏸", lineWidth:5
+    }) 
+
+
+    
+
+    const yLine = {
+        update: (ctx, audio, mouse) => {
+            Color.setColor(ctx, Color.green)
+            const turtleY = turtleGrid.gridToCanvasY(turtle.y)
+            Shapes.Line(ctx, turtleGrid.gridToCanvasX(turtle.x), turtleY,compGrid.originX, turtleY)
+        }
+    }
+    yLine.hidden = true
+
+    const blocks = [
+        new MathBlock({type:MathBlock.CONSTANT}),
+        new MathBlock({type:MathBlock.VARIABLE, token:'x'}),
+        new MathBlock({type:MathBlock.POWER, token:'2'}),
+        new MathBlock({type:MathBlock.EXPONENT, token:'e'}),
+        new MathBlock({type:MathBlock.FUNCTION, token:'sin'}),
+        new MathBlock({type:MathBlock.FUNCTION, token:'cos'}),
+        new MathBlock({type:MathBlock.BIN_OP, token:'+'}),
+        new MathBlock({type:MathBlock.BIN_OP, token:'*'}),
+        new MathBlock({type:MathBlock.BIN_OP, token:'/'}),
+    ]
+    
+    const sySlider = new Slider({canvasX: 1180, canvasY: 350, maxValue:2, sliderLength:4, startValue: 1, showAxis:true})
+    const tySlider = new Slider({canvasX: 1240, canvasY: 350, maxValue:2, sliderLength:4, showAxis:true})
+    const nSlider = new Slider({canvasX: 1300, canvasY: 350, maxValue:5, sliderLength:5, increment:1, showAxis:true})
+    const mbField = new MathBlockField({minX:700, minY:100, maxX:1100, maxY:300})
+
+    const mbm = new MathBlockManager({blocks : blocks, toolBarX: 1400, toolBarY:150, outputType:"sliders",
+        scaleYSlider: sySlider, translateYSlider:tySlider, numSlider:nSlider,blockSize : 30,
+        blockFields: [ mbField ],
+
+    })
+
+    gameState.objects = [backButton, nextButton, compGrid,
+        turtleGrid, outerTracer, turtle, 
+        //timeLabel, xLabel, yLabel,
+        playPauseButton, tSlider, yLine,
+        mbm, sySlider, tySlider, nSlider,
+    ]
     gameState.update = ()=> {
         if (playing){
             time = (Date.now() - startTime)/1000 + tMin // time in secs to 1 decimal

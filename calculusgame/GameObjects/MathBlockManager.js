@@ -60,13 +60,14 @@ export class MathBlockManager {
         this.createToolbar(blocks, toolBarX, toolBarY)
 
 
-        this.scaleIcon = new ImageObject({id:'scaleIcon', originX:scaleYSlider.canvasX - 15,
-            originY:scaleYSlider.canvasY+scaleYSlider.canvasLength + 20, width: 30, height:40})
-        this.translateIcon = new ImageObject({id:'translateIcon', originX:translateYSlider.canvasX - 10,
-            originY:translateYSlider.canvasY+translateYSlider.canvasLength + 20, width: 20, height:40})
+        const iconSize = 30
+        this.scaleIcon = new ImageObject({id:'scaleIcon', originX:scaleYSlider.canvasX - iconSize/4,
+            originY:scaleYSlider.canvasY+scaleYSlider.canvasLength + iconSize/2, width: iconSize/2, height:iconSize})
+        this.translateIcon = new ImageObject({id:'translateIcon', originX:translateYSlider.canvasX - iconSize/4,
+            originY:translateYSlider.canvasY+translateYSlider.canvasLength + iconSize/2, width: iconSize/2, height:iconSize})
         if (numSlider != null){
-            this.numIcon = new ImageObject({id:'numIcon', originX:numSlider.canvasX - 10,
-                originY:numSlider.canvasY+numSlider.canvasLength + 20, width: 20, height:40})
+            this.numIcon = new ImageObject({id:'numIcon', originX:numSlider.canvasX - iconSize/4,
+                originY:numSlider.canvasY+numSlider.canvasLength + iconSize/2, width: iconSize/2, height:iconSize})
                 
         }
     }

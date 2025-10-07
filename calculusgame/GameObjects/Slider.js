@@ -23,17 +23,18 @@ export class Slider{
         canvasLength = 400,
         startValue = 0,
         increment = 0.1,
-        circleRadius=15,
+        circleRadius=12,
         vertical = true,
         showLines = true, 
         showAxis = false,
         circleColor = new Color(255,20,0),//,
-        lineWidth = 5,
+        lineWidth = 4,
+        tickLength = 8,
         valueLabel = true,
     }){
         Object.assign(this, {
             canvasLength, sliderLength, minValue, maxValue, startValue, increment, circleRadius,
-            vertical, showLines, showAxis, circleColor, lineWidth, gridPos, valueLabel
+            vertical, showLines, showAxis, circleColor, lineWidth, gridPos, valueLabel, tickLength
         })
 
         if (canvasX != null && canvasY != null){
@@ -223,7 +224,7 @@ export class Slider{
             }
 
             for (let i = 0; i <= this.sliderLength; i++){
-                const tickLength = 15
+                const tickLength = this.tickLength
                 const lineWidth = this.lineWidth
                 var val = this.vertical ? this.maxValue - i : this.minValue + i
 

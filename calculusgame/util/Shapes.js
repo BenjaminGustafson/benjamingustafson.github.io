@@ -37,9 +37,9 @@ export class Shapes {
                 ctx.fill();
                 break;
             case "arrow":
-                this.Arrow(ctx, originX, originY, end_x, end_y,endCapSize)
+                this.Arrow(ctx, originX, originY, end_x, end_y, endCapSize*0.7)
                 if(!oneSideCap){
-                    this.Arrow(ctx, end_x, end_y, originX, originY,endCapSize)
+                    this.Arrow(ctx, end_x, end_y, originX, originY,endCapSize*0.7)
                 }
                 break;
             case "none":
@@ -266,7 +266,8 @@ export class Shapes {
         const w = 0.3
         ctx.scale(scale/w,scale/w)
         ctx.rotate(Math.atan2(end_y-originY,end_x-originX))
-        this.RoundedLine(ctx,0,0,      1,0, w)
+        ctx.translate(-0.5,0)
+        //this.RoundedLine(ctx,0,0,      1,0, w)
         this.RoundedLine(ctx,1,0,      0.5,-0.5, w)
         this.RoundedLine(ctx,0.5,-0.5, 0.5,0.5, w)
         this.RoundedLine(ctx,0.5,0.5,  1,0, w)
