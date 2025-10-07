@@ -23,16 +23,18 @@ export class Slider{
         canvasLength = 400,
         startValue = 0,
         increment = 0.1,
-        circleRadius=15,
+        circleRadius=12,
         vertical = true,
         showLines = true, 
         showAxis = false,
-        circleColor = new Color(255,20,0),//Color.red,
-        lineWidth = 5
+        circleColor = new Color(255,20,0),//,
+        lineWidth = 4,
+        tickLength = 8,
+        valueLabel = true,
     }){
         Object.assign(this, {
             canvasLength, sliderLength, minValue, maxValue, startValue, increment, circleRadius,
-            vertical, showLines, showAxis, circleColor, lineWidth, gridPos  
+            vertical, showLines, showAxis, circleColor, lineWidth, gridPos, valueLabel, tickLength
         })
 
         if (canvasX != null && canvasY != null){
@@ -84,11 +86,14 @@ export class Slider{
 
         // Dynamic vars
         this.active = true
+        this.clickable = true // turn off mouse input while keeping slider active
         this.hidden = false
         this.grabbed = false
         this.grabPos = 0
-        this.value = startValue
-        this.mouseValue = this.value
+        this.mouseOver = false
+        //this.value = startValue
+        //this.mouseValue = this.value
+        this.setValue(startValue)
         this.prevTime = 0
 
         this.baseCircleColor = this.circleColor
@@ -165,6 +170,7 @@ export class Slider{
         }
         
         if (this.mouseOverCircle(mouse.x,mouse.y)){
+            this.mouseOver = true
             if (mouse.down){
                 this.grabbed = true
                 //this.grabPos = this.vertical ? mouse.y - this.circlePos :  mouse.x - this.circlePos
@@ -174,6 +180,7 @@ export class Slider{
                 mouse.cursor = 'grab'
             }
         }else{
+            this.mouseOver = false
             this.circleColor = this.baseCircleColor
         }
 
@@ -191,14 +198,14 @@ export class Slider{
             return
         }
 
-        if (this.active){
+        if (this.active && this.clickable){
             this.mouseInput(audioManager, mouse)
         }
 
         if (this.mouseValue != this.value){
             const dir = (this.mouseValue > this.value ? 1 : -1)
             this.setValueInternal(this.value + dir*this.increment)
-            audioManager.play('click_001', ((this.value-this.minValue) / this.sliderLength-0.5)*6, 0.8)
+            audioManager.play('click_001', {pitch:((this.value-this.minValue) / this.sliderLength-0.5)*6, volume:0.8})
             // if (this.value%1 == 0){// == this.minValue || this.value == this.maxValue){
             //     console.log('A')
             //     audioManager.play('click4', ((this.value-this.minValue) / this.sliderLength)*3-3)
@@ -217,7 +224,7 @@ export class Slider{
             }
 
             for (let i = 0; i <= this.sliderLength; i++){
-                const tickLength = 15
+                const tickLength = this.tickLength
                 const lineWidth = this.lineWidth
                 var val = this.vertical ? this.maxValue - i : this.minValue + i
 
@@ -250,16 +257,40 @@ export class Slider{
         }
 
         // Draw slider handle (circle)
+        if (!this.clickable) this.circleColor = Color.red
         Color.setColor(ctx, this.active ? this.circleColor : Color.gray)
+        const circleX = this.vertical ? this.canvasX : this.circlePos
+        const circleY = this.vertical ? this.circlePos : this.canvasY
         Shapes.Circle({
             ctx:ctx,
-            centerX: this.vertical ? this.canvasX : this.circlePos,
-            centerY: this.vertical ? this.circlePos : this.canvasY,
+            centerX: circleX,
+            centerY: circleY,
             radius:this.circleRadius,
-            inset:true,
+            inset: this.clickable,
             shadow:this.grabbed, 
         })
 
+        if (this.valueLabel && (this.mouseOver || this.grabbed)){
+            ctx.font = `${this.circleRadius} px monospace`
+            const text = Number(this.value.toFixed(6))
+            const textWidth = ctx.measureText(text).width
+            const labelPad = 10
+            const labelRight = circleX - this.circleRadius - 20
+            Color.setColor(ctx, Color.darkBlack)
+            Shapes.Rectangle({
+                ctx: ctx, 
+                originX: labelRight - labelPad * 2 - textWidth,
+                originY: circleY-this.circleRadius,
+                width: textWidth + 20,
+                height: this.circleRadius*2,
+                shadow: 8,
+            })
+            ctx.textAlign = 'right'
+            ctx.textBaseline = 'middle'
+            Color.setColor(ctx, Color.white)
+            ctx.fillText(text,labelRight - labelPad, circleY)
+            
+        }
         
     }
 

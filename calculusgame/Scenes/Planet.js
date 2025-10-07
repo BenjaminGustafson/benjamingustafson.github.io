@@ -157,7 +157,7 @@ export function planetScene(gameState, {
         // experimentButton, shipButton, dialogueButton,
     ].concat(buttons)
     
-    if (message.goTo){
+    if (message && message.goTo){
         player.moveTo(message.goTo)
     }
 

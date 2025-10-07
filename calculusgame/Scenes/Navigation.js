@@ -59,16 +59,14 @@ export function navScene(gameState) {
         canvasWidth:400, canvasHeight:400, 
         gridXMin:-10, gridXMax:10, gridYMin:-10, gridYMax:10,
         labels:true, arrows:false, 
-        lineWidthMax:3,
-        majorLines:5,
+        autoCellSize:true,
     })
     const gridRight = new Grid({
         canvasX:600, canvasY:gridY,
         canvasWidth:400, canvasHeight:400, 
         gridXMin:-10, gridXMax:10, gridYMin:-10, gridYMax:10,
         labels:true, arrows:false, 
-        lineWidthMax:3,
-        majorLines:5,
+        autoCellSize:true,
     })
     //const gridRight = new Grid(padLeft+gridDim+100, gridY, gridDim, gridDim, grid_setting.grid_width, grid_setting.grid_height, 5, 4, 0, labels=true)
     const tySlider = new Slider({
@@ -95,6 +93,11 @@ export function navScene(gameState) {
         new MathBlock({type:MathBlock.BIN_OP, token:'*'}),
         new MathBlock({type:MathBlock.BIN_OP, token:'/'}),
     ]
+    // const mathBlocks = [new MathBlock({type:MathBlock.VARIABLE, token:'x'})]
+    // for (let b of gss.mathBlocksUnlocked){
+    //     mathBlocks.push(new MathBlock({type: b.type, token: b.token}))
+    // }
+
 
     const blockField = new MathBlockField({minX: 600, minY:250, maxX: 1200, maxY:350})
     const mngr = new MathBlockManager({
@@ -505,7 +508,7 @@ function newRNGPuzzle (gameState){
     gss.strikes = 0
     var puzzleMastery = gss.navPuzzleMastery
 
-    const DEBUG = false
+    const DEBUG = true
     if (DEBUG){
         puzzleMastery = {
             'linear':0,

@@ -46,6 +46,7 @@ export class DrawFunction extends GameObject{
     }
 
     outputFunction(x){
+        console.log('OUTPUT')
         var i = this.gridXToIndex(x)
         if (i < 0) i = 0
         if (i > this.numPoints - 1) i = this.numPoints - 1

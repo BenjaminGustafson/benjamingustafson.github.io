@@ -40,7 +40,11 @@ export class Grid{
         gridXMin = -2, gridYMin = -2,
         gridXMax = 2, gridYMax = 2,
         labels = false, arrows = true,
-        lineWidthMax = 5, majorLines = 1, lineWidthMin = 1
+        autoCellSize = false,
+        lineWidthMax = 4,
+        majorLinesX = 1, majorLinesY = 1,
+        lineWidthMin = 1,
+        xAxisLabel= "", yAxisLabel = "",
     }){
         Object.assign(this, {
             canvasX, canvasY,
@@ -49,7 +53,8 @@ export class Grid{
             gridXMax, gridYMax,
             labels, arrows,
             lineWidthMax, lineWidthMin,
-            majorLines
+            majorLinesX, majorLinesY,
+            xAxisLabel, yAxisLabel,
         });
         // The location of the x-axis (horizontal axis), starting from 0 at the top of the grid
         this.xAxis = gridYMax
@@ -58,10 +63,44 @@ export class Grid{
         this.originX = canvasX
         this.originY = canvasY // can't decide what to name var ...
 
+        // Line width max = the width of the axes
+        // Line width min = the width of the minor lines
+        // Width of major lines = 2 * line width min
+        
+
         this.setXBounds(gridXMin, gridXMax)
         this.setYBounds(gridYMin, gridYMax)
         this.lineColor = Color.white
         this.bgColor = Color.darkBlack
+
+        this.cellSizeX = 1 // the size of one grid cell
+        this.cellSizeY = 1
+        const minCellSize = 20 // pixels
+        if (autoCellSize){
+            /**
+             * Map the scale in pixels to the best cell size.
+             * Cell grid size is chosen from: ... 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, ...
+             * Cell pixel size is at least minCellSize
+             */
+            function scaleToCellSize(x){
+                const helper = x => minCellSize / (Math.pow(10, Math.floor(Math.log10(x))))
+                const cell10 = 10/minCellSize*helper(10/minCellSize*x)
+                const cell20 = 20/minCellSize*helper(20/minCellSize*x)
+                const cell50 = 50/minCellSize*helper(50/minCellSize*x)
+                const cellSize = Math.min(cell10, cell20, cell50)
+                const majorLines = cellSize == cell50 ? 4 : 5
+                console.log('c50', cell50, cellSize, majorLines)
+                return {cellSize: cellSize, majorLines:majorLines}
+            }
+            const xObj = scaleToCellSize(this.xScale)
+            this.cellSizeX = xObj.cellSize
+            this.majorLinesX = xObj.majorLines
+            console.log('y')
+            const yObj = scaleToCellSize(this.yScale)
+            this.cellSizeY = yObj.cellSize
+            this.majorLinesY = yObj.majorLines
+            console.log('y', this.yScale, this.cellSizeY, this.majorLinesY)
+        }
     }
 
     setXBounds(xMin, xMax){
@@ -76,6 +115,7 @@ export class Grid{
         this.gridYMax = yMax
         this.gridHeight = yMax - yMin
         this.yScale = this.canvasHeight / this.gridHeight
+        this.xAxis = this.gridYMax
     }
     
     gridToCanvasX(gx){
@@ -136,6 +176,10 @@ export class Grid{
         return cx >= this.canvasX && cx <= this.canvasX + this.canvasWidth + 1
     }
 
+    isInBoundsGridY(gy){
+        return this.gridYMin <= gy && gy <= this.gridYMax
+    }
+
     canvasToGridX(cx){
         return (cx - this.canvasX) / this.xScale + this.gridXMin
     }
@@ -177,23 +221,22 @@ export class Grid{
         ctx.font = '20px monospace'
         ctx.textAlign = 'right'
         ctx.textBaseline = 'middle'
-        for (let i = 0; i <= this.gridHeight; i++){
-            const gy = this.gridYMax-i
-            const cy = this.yScale*i
+        var i = 0 // line count
+        var gy = this.gridYMin 
+        while (gy < this.gridYMax){
+            gy = Number((this.gridYMin + i*this.cellSizeY).toFixed(6))
+            const cy = this.canvasHeight - this.yScale*i*this.cellSizeY// canvas x (relative)
             var lineWidth = this.lineWidthMax  
             var endCap = 'none'
+            const ratio = gy / (this.majorLinesY*this.cellSizeY)
             if (gy == 0){
                 if (this.arrows) endCap = 'arrow'
-                if (this.labels) ctx.fillText(gy, -20, cy)
-            } else if (gy%this.majorLines == 0){
-                lineWidth = 0.5*(this.lineWidthMin + this.lineWidthMax)  
-                if (this.labels) ctx.fillText(gy, -20, cy)
+                if (this.labels) ctx.fillText(gy,  - 20, cy)
+            } else if (Math.abs(ratio - Math.round(ratio)) < 1e-9){
+                lineWidth = this.lineWidthMax/2 // 0.5*(this.lineWidthMin + this.lineWidthMax)  
+                if (this.labels) ctx.fillText(gy,  - 20, cy)
             }else {
-                lineWidth = this.lineWidthMin
-            }
-
-            if (gy == this.gridXMin || gy == this.gridXMax){
-                endCap = 'rounded'
+                lineWidth = this.lineWidthMax / 4
             }
             Shapes.Line(
                 ctx,
@@ -202,25 +245,29 @@ export class Grid{
                 lineWidth, 
                 endCap
             )
+            i++
         }
 
         // Vertical lines. Starting at left = 0
         ctx.font = '20px monospace'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'top'
-        for (let i = 0; i <= this.gridWidth; i++){
-            const gx = this.gridXMin + i
-            const cx = this.xScale*i
+        var i = 0 // line count
+        var gx = this.gridXMin 
+        while (gx < this.gridXMax){
+            gx = Number((this.gridXMin + i*this.cellSizeX).toFixed(6))
+            const cx = this.xScale*i*this.cellSizeX// canvas x (relative)
             var lineWidth = this.lineWidthMax  
             var endCap = 'none'
+            const ratio = gx / (this.majorLinesX*this.cellSizeX)
             if (gx == 0){
                 if (this.arrows) endCap = 'arrow'
                 if (this.labels) ctx.fillText(gx, cx, this.canvasHeight + 20)
-            } else if (gx%this.majorLines == 0){
-                lineWidth = 0.5*(this.lineWidthMin + this.lineWidthMax)  
-                if (this.labels) ctx.fillText(gx, cx, this.canvasHeight + 20)
+            } else if (Math.abs(ratio - Math.round(ratio)) < 1e-9){
+            lineWidth = this.lineWidthMax/2 // 0.5*(this.lineWidthMin + this.lineWidthMax)  
+            if (this.labels) ctx.fillText(gx, cx, this.canvasHeight + 20)
             }else {
-                lineWidth = this.lineWidthMin
+                lineWidth = this.lineWidthMax / 4
             }
             Shapes.Line(
                 ctx,
@@ -229,7 +276,12 @@ export class Grid{
                 lineWidth, 
                 endCap
             )
+            i++
         }
+
+        ctx.fillText(this.xAxisLabel, this.canvasWidth/2, this.canvasHeight+50)
+        ctx.rotate(-Math.PI/2)
+        ctx.fillText(this.yAxisLabel, -this.canvasHeight/2, -80)
 
         ctx.resetTransform()
     }

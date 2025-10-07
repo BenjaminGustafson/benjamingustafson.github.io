@@ -8,8 +8,10 @@ export class Target{
     constructor({
         canvasX,canvasY,
         grid,gridX,gridY,
-        size=15,
+        size=15, 
+        unhitColor = Color.magenta,
     }){
+        Object.assign(this, {unhitColor})
         this.grid = grid
         this.size = size
         if (canvasX != null && canvasY != null){
@@ -20,7 +22,6 @@ export class Target{
         } else {
             throw new Error("Must provide either (canvasX, canvasY) or (grid, gridX, gridY)")
         }
-        this.unhitColor = Color.magenta
         this.hitColor = Color.blue
         this.hit = false
     }

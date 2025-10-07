@@ -3,6 +3,7 @@ export class AudioManager {
         this.context = new (window.AudioContext || window.webkitAudioContext)();
         this.buffers = new Map();
 
+        this.globalVolume = 0.25
         this.lastTimePlayed = {}
     }
 
@@ -21,11 +22,18 @@ export class AudioManager {
      * @param {*} force 
      * @returns 
      */
-    play(name, pitch = 0 , volume = 1.0, force = false) {
-        if (! force && (this.lastTimePlayed[name] != null && Date.now() - this.lastTimePlayed[name] < 35)) {
+    play(name, {pitch = 0 , volume = 1.0, force = false, channel = 0} = {}) {
+        this.lastTimePlayed[name] ??= {}
+        if (!force && (this.lastTimePlayed[name][channel] != null && Date.now() - this.lastTimePlayed[name][channel] < 35)) {
             return;
         }
-        this.lastTimePlayed[name] = Date.now();
+        if(this.context.state === 'suspended'){
+            this.context.resume();
+            return
+        }
+
+        
+        this.lastTimePlayed[name][channel] = Date.now()
     
         const buffer = this.buffers.get(name);
         if (!buffer) return;
@@ -35,7 +43,7 @@ export class AudioManager {
         source.playbackRate.value = Math.pow(2, pitch / 12);
     
         const gainNode = this.context.createGain();
-        gainNode.gain.value = volume;
+        gainNode.gain.value = volume * this.globalVolume;
     
         source.connect(gainNode);
         gainNode.connect(this.context.destination);

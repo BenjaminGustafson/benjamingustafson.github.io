@@ -6,10 +6,13 @@ export class TargetAdder{
 
     constructor({
         grid,
-        precision=0,
+        xPrecision = 1, 
+        yPrecision = 1,
         solutionFun,
+        coverBarPrecision = 1,
+        targetColor = Color.magenta,
     }){
-        Object.assign(this, {grid, precision, solutionFun})
+        Object.assign(this, {grid, xPrecision, yPrecision, solutionFun, coverBarPrecision, targetColor})
         this.targets = []
         this.active = true
         this.overGrid = false
@@ -18,9 +21,22 @@ export class TargetAdder{
         this.targetGY = 0
         this.targetGX = 0
         this.targetSize = 15
+        
+        this.coveredIntervals = []
+        for (let i = 0; i < this.grid.gridWidth / this.coverBarPrecision; i++){
+            this.coveredIntervals.push(false)
+        }
 
         this.clickedOn = false
-    }   
+        this.solved = false
+    }
+
+    coverInterval(x){
+        const i = Math.floor((x - this.grid.gridXMin) / this.coverBarPrecision)
+        if (i < this.coveredIntervals.length && i >= 0)
+        this.coveredIntervals[i] = true
+    }
+
 
 
     update(ctx, audioManager, mouse){
@@ -46,6 +62,15 @@ export class TargetAdder{
             Color.setColor(ctx,Color.magenta)
             ctx.fillText(str, x,y)
         }
+
+        for (let i = 0; i < this.coveredIntervals.length; i++){
+            Color.setColor(ctx, this.coveredIntervals[i] ? Color.blue : Color.magenta)
+            const y = this.grid.originY - 50
+            const intervalLength = this.grid.canvasWidth / this.coveredIntervals.length
+            Shapes.Line(ctx, this.grid.originX+i*intervalLength, y, this.grid.originX+(i+1)*intervalLength, y, 10, 
+                            i == 0 || i == this.coveredIntervals.length - 1 ? 'rounded' : 'none')
+        }
+
     }
 
     mouseInput(mouse, audioManager){
@@ -68,8 +93,8 @@ export class TargetAdder{
         }
         if (this.overGrid){
             const gridCoord = g.canvasToGrid(x,y)
-            const newTargetGX = Number(gridCoord.x.toFixed(this.precision))
-            const newTargetGY = Number(gridCoord.y.toFixed(this.precision))
+            const newTargetGX = Number((Math.round(gridCoord.x/this.xPrecision)*this.xPrecision).toFixed(6))
+            const newTargetGY = Number((Math.round(gridCoord.y/this.yPrecision)*this.yPrecision).toFixed(6))
             if ((mouse.held && (newTargetGX != this.targetGX || newTargetGY != this.targetGY))){
                 audioManager.play('click_001', this.targetGY/this.grid.gridHeight*6-6, 0.2)
             }
@@ -85,14 +110,23 @@ export class TargetAdder{
                 this.clickedOn = false
                 const newTargets = this.targets.filter(t => !(t.x == this.targetX && t.y == this.targetY))
                 if (newTargets.length == this.targets.length){
-                    if (this.solutionFun == null || 
-                        Math.abs(this.solutionFun(this.targetGX) - this.targetGY) < 0.5
-                    ){
+                    if (this.solutionFun == null || Math.abs(this.solutionFun(this.targetGX) - this.targetGY) < this.yPrecision * 10){
+                        var gy = this.targetGY
+                        if (this.solutionFun != null)
+                            gy = Number((Math.round(this.solutionFun(this.targetGX)/this.yPrecision)*this.yPrecision).toFixed(6))
                         audioManager.play('drop_003', this.targetGY/this.grid.gridHeight*12)
-                        const target = new Target({grid:this.grid,gridX:this.targetGX, 
-                            gridY: this.solutionFun ? Number(this.solutionFun(this.targetGX).toFixed(this.precision)) : this.targetGY,
-                            size:this.targetSize})
+                        const target = new Target({grid:this.grid,gridX:this.targetGX, gridY: gy, size:this.targetSize, unhitColor: this.targetColor})
                         this.targets.push(target)
+                        this.coverInterval(this.targetGX)
+                        var allCovered = true
+                        for (let i = 0; i < this.coveredIntervals.length; i++)
+                            if (!this.coveredIntervals[i]) allCovered = false
+                        if (!this.solved && allCovered){
+                            this.solved = true
+                        }
+                        if (this.solved){
+                            audioManager.play('confirmation_001', {})
+                        }
                     }else {
                         audioManager.play('click2')
                     }

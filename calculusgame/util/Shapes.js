@@ -15,7 +15,7 @@ export class Shapes {
      * @param {int} end_y the y coordinate of the middle of the end point
      * @param {int} width the width of the line
     */
-    static Line(ctx, originX, originY, end_x, end_y, width, endCapStyle="rounded", endCapSize=-1,oneSideCap=false){
+    static Line(ctx, originX, originY, end_x, end_y, width, endCapStyle="none", endCapSize=-1,oneSideCap=false){
         ctx.beginPath();
         ctx.moveTo(originX, originY);
         ctx.lineTo(end_x, end_y);
@@ -37,9 +37,9 @@ export class Shapes {
                 ctx.fill();
                 break;
             case "arrow":
-                this.Arrow(ctx, originX, originY, end_x, end_y,endCapSize)
+                this.Arrow(ctx, originX, originY, end_x, end_y, endCapSize*0.7)
                 if(!oneSideCap){
-                    this.Arrow(ctx, end_x, end_y, originX, originY,endCapSize)
+                    this.Arrow(ctx, end_x, end_y, originX, originY,endCapSize*0.7)
                 }
                 break;
             case "none":
@@ -266,7 +266,8 @@ export class Shapes {
         const w = 0.3
         ctx.scale(scale/w,scale/w)
         ctx.rotate(Math.atan2(end_y-originY,end_x-originX))
-        this.RoundedLine(ctx,0,0,      1,0, w)
+        ctx.translate(-0.5,0)
+        //this.RoundedLine(ctx,0,0,      1,0, w)
         this.RoundedLine(ctx,1,0,      0.5,-0.5, w)
         this.RoundedLine(ctx,0.5,-0.5, 0.5,0.5, w)
         this.RoundedLine(ctx,0.5,0.5,  1,0, w)
