@@ -40,82 +40,6 @@ const paths =
 ]
 
 
-const experimentData =  {
-    '1':{
-        solutionFun: x=>0.5*x,
-        solutionDdx:x=>0.5,
-        solutionFunString:"0.5t",
-        solutionDdxString:"0.5",
-        syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
-        syDdxMax: 2,
-        syDdxLen: 4,
-        tyDdxMax: 2,
-        tyDdxLen: 4,
-        numMeasurement:5,
-        ddxSliderSpacing:2,
-    },
-    '2': {
-        solutionFun: x=>5-0.5*x,
-        solutionDdx: x=>-0.5,
-        solutionFunString:"-0.5t + 5",
-        solutionDdxString:"-0.5",
-        syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
-        syDdxMax: 2,
-        syDdxLen: 4,
-        tyDdxMax: 2,
-        tyDdxLen: 4,
-        numMeasurement:5,
-        ddxSliderSpacing:2,
-    },
-    '3':{
-        solutionFun: x=>1+1.5*x,
-        solutionDdx: x=>-0.5,
-        solutionFunString:"1.5t + 1",
-        solutionDdxString:"1.5",
-        syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
-        syDdxMax: 2,
-        syDdxLen: 4,
-        tyDdxMax: 2,
-        tyDdxLen: 4,
-        numMeasurement:4,
-        ddxSliderSpacing:2,
-    },
-    '4':{
-        solutionFun: x=>2*x,
-        solutionDdx: x=>2,
-        solutionFunString:"2 t",
-        solutionDdxString:"2",
-        syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
-        syDdxMax: 2,
-        syDdxLen: 4,
-        tyDdxMax: 2,
-        tyDdxLen: 4,
-        numMeasurement:5,
-        ddxSliderSpacing:1,
-    },
-    '5':{
-        solutionFun: x=>10-x,
-        solutionDdx: x=>-1,
-        solutionFunString:"-1t + 10",
-        solutionDdxString:"-1",
-        syFunMax: 2, syFunLen: 4, tyFunMax: 10, tyFunLen: 10,
-        syDdxMax: 2,
-        syDdxLen: 4,
-        tyDdxMax: 2,
-        tyDdxLen: 4,
-        numMeasurement:5,
-        ddxSliderSpacing:2,
-    }
-}
-
-function demoEnd(gameState){
-    gameState.objects = [
-       new TextBox({originX:800, originY:450, content: 'You have reached the end of the demo.',
-        align:'center', color:Color.white, font:'40px monospace'}),
-        new Button({originX: 700, originY:600, width:250, height: 100, label:'Back to game', onclick: ()=>Scene.loadScene(gameState, 'quadratic')})
-    ]
-}
-
 export function loadScene(gameState, sceneName, message = {}){
     gameState.stored.planet = 'sine'
 
@@ -133,27 +57,26 @@ export function loadScene(gameState, sceneName, message = {}){
             switch(sceneNameSplit[2]){
                 case '1':
                     sineLevel(gameState, {numSliders:4, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:4,
-                         nextScenes:["sine.puzzle.2"]})
+                         nextScenes:["sine.puzzle.2"], tracerLeftStart:0, tracerMiddleStart:-1})
                     break
                 case '2':
-                    sineLevel(gameState, {numSliders:10, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:4,
+                    sineLevel(gameState, {numSliders:8, sliderSize:15, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:4,
                             nextScenes:["sine.puzzle.3"]})
                     break
                 case '3':
-                    sineLevel(gameState, {numSliders:20, sliderSize:10, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:4,
-                            nextScenes:["sine.puzzle.4"], withMathBlock:true})
+                    // Solution: sin(x)
+                    sineLevel(gameState, {numSliders:40, sliderSize:10, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:4,
+                            nextScenes:["sine.puzzle.4"], withMathBlock:true, tracerLeftStart:0, tracerMiddleStart:-1})
                     break
                 case '4':
-                    sineLevel(gameState, {numSliders:100, sliderSize:5, targetSize:10, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:4,
-                            nextScenes:["sine.puzzle.5"], withMathBlock:true, increment:0.05})
+                    // Solution: -sin(x)
+                    sineLevel(gameState, {numSliders:100, sliderSize:5, targetSize:10, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:6,
+                            nextScenes:["sine.puzzle.7"], withMathBlock:true, increment:0.05, tracerLeftStart:0, tracerMiddleStart:1})
                     break
                 case '5':
+                    // Too hard
                     sineLevel(gameState, {numSliders:100, sliderSize:5, targetSize:10, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:6,
                             nextScenes:["sine.puzzle.6"], withMathBlock:true, increment:0.05, tracerLeftStart:1, tracerMiddleStart:0})
-                    break
-                case '6':
-                    sineLevel(gameState, {numSliders:100, sliderSize:5, targetSize:10, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:6,
-                            nextScenes:["sine.puzzle.7"], withMathBlock:true, increment:0.05, tracerLeftStart:0, tracerMiddleStart:-1})
                     break
                 case '7':
                     sineLevel(gameState, {numSliders:200, sliderSize:5, targetSize:12, gridYMin:-3, gridYMax:3,gridXMin:0,gridXMax:6,
@@ -164,6 +87,7 @@ export function loadScene(gameState, sceneName, message = {}){
                             nextScenes:["sine.puzzle.9"], withMathBlock:true, increment:0.05, tracerLeftStart:0, tracerMiddleStart:-0.5})
                     break
                 case '9':
+                    // I can't solve my own puzzle! Maybe I just put those starting numbers in by accident
                     sineLevel(gameState, {numSliders:100, sliderSize:5, targetSize:12, gridYMin:-2, gridYMax:2,gridXMin:0,gridXMax:6,
                             nextScenes:["sine.puzzle.10"], withMathBlock:true, increment:0.05, tracerLeftStart:1, tracerMiddleStart:-1})
                     break
@@ -263,10 +187,10 @@ function sineLevel (gameState, {
         targets.push(new Target({grid: gridLeft, gridX:x, gridY:0, size:targetSize}))
     }
     
-    const tracerMiddle = new IntegralTracer({grid: gridMiddle, sliders: sliders, targets:targets, originGridY:tracerMiddleStart, 
+    const tracerMiddle = new IntegralTracer({grid: gridMiddle, input:{type:'sliders', sliders: sliders}, targets:targets, originGridY:tracerMiddleStart, 
         spacing: gridLeft.gridWidth / (numSliders)
     })
-    const tracerLeft = new IntegralTracer({grid: gridLeft, inputTracer: tracerMiddle, targets:targets, originGridY:tracerLeftStart, 
+    const tracerLeft = new IntegralTracer({grid: gridLeft, input:{type:'tracer', tracer: tracerMiddle}, targets:targets, originGridY:tracerLeftStart, 
     })
     
     
@@ -327,6 +251,21 @@ function sineLevel (gameState, {
     Planet.unlockScenes(nextScenes, gss)
 }
 
-function placeHolderLevel(gameState){
+function pendulumLevel(gameState, {
+
+}){
 
 }
+
+class Pendulum extends GameObject{
+    constructor({
+        
+    }){
+        super()
+    }
+
+    update(ctx, audio, mouse){
+
+    }
+}
+

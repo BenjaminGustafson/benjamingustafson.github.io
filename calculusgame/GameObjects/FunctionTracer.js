@@ -13,7 +13,7 @@ export class FunctionTracer {
     constructor({
         // Required:
         grid, // the Grid object to draw on
-        inputFunction, // the function to trace
+        inputFunction = x=>0, // the function to trace
         // Optional:
         animated = false, // if true the tracer draws from left to right, if false it draws all at once 
         resetCondition = () => false, // condition for starting over the trace
@@ -79,11 +79,11 @@ export class FunctionTracer {
      * If animated, sets the tracer back to the beginning.
      */
     reset(){
-        this.solved = false
-        this.targets.forEach(t => {
-            t.hit = false
-        })
         if (this.animated){
+            this.solved = false
+            this.targets.forEach(t => {
+                t.hit = false
+            })
             this.state = FunctionTracer.STOPPED_AT_BEGINNING
             this.pixelIndex = 0
             this.tracerIndex = 0

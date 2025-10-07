@@ -294,7 +294,7 @@ export class MathBlockManager {
 
         // Update outputs
         for (let i = 0; i < this.funTracers.length; i++){
-            this.funTracers[i].fun = this.blockFields[i].outputFunction()   
+            this.funTracers[i].setInputFunction(this.blockFields[i].outputFunction())   
         }
 
 
